@@ -1,0 +1,29 @@
+GOLDMINE:
+https://quanteda.io/reference/textstat_readability.html
+https://pypi.org/project/textstat/
+
+
+24. Guiraud's index
+len(fd) / math.sqrt(num_words)
+#tako kot TTR (23), le da je spodaj koren
+
+25. Yule's K
+#https://swizec.com/blog/measuring-vocabulary-richness-with-python/swizec/2528
+M1 = število stemmanih besed(tokenov)
+M2 = sum(produktov frekvenca^2 * st. besed)
+
+26. the D estimate
+
+27. hapax legomena - number of words occuring only once in text
+
+28. advanced Guiraud
+#isto kot navaden, le da v števcu ne upoštevaš najbolj pogoste besede 
+http://eprints.uwe.ac.uk/11902/1/11902_Guiraud%27s_index_of_lexical_richness_%28MD_BAAL_2010%29.pdf
+
+29. number of different POS tags
+
+30. height of the tree presenting sentence structure
+
+31. correct verb form
+
+32. number of grammar errors
