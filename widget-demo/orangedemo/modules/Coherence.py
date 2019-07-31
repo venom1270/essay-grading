@@ -128,9 +128,12 @@ class Coherence(BaseModule):
             attribute_dictionary["gearysC"] = gearys_c
 
             print("GETIS G")
+            a, _ = self.calculate_any_point_distances(D_euc)
             g = self.calculate_getis_g(D_euc, a)
             print(g)
             attribute_dictionary["getissG"] = g
+
+        print(attribute_dictionary)
 
         return i
 
@@ -148,9 +151,7 @@ class Coherence(BaseModule):
                 averages.append(sum(neighbour_distances) / len(neighbour_distances)) #TODO: division by zero dodej max(i guess)
                 minimums.append(min(neighbour_distances))
                 maximums.append(max(neighbour_distances))
-        print("QWEQWE")
-        print(minimums)
-        print(maximums)
+
         indexes = np.divide(np.array(minimums), np.array(maximums))
         return averages, minimums, maximums, indexes
 
@@ -410,7 +411,8 @@ class Coherence(BaseModule):
         # TOLE SEM PRESTAVIL GOR IN docs UPORABIL ZA
         docs = lemmatizeTokens(self.corpus, join=True)
         # append source/prompt text
-        docs.append((lemmatizeTokens(self.source_texts, join=True)[0]))
+        # TODO: source_text rabimo sploh?
+        #docs.append((lemmatizeTokens(self.source_texts, join=True)[0]))
 
         # WINDOW PARAMETERS #
         step = 10 # Steps of 10 words

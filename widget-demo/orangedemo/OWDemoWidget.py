@@ -371,7 +371,7 @@ class OWDataSamplerA(OWWidget):
             self.dataset = None
             self.infoa.setText('No data on input yet, waiting to get something.')
             #self.infob.setText('')
-            self.Outputs.sample.send("Sampled Data")
+            self.Outputs.sample.send("Attributes")
             self.optionsBox.setDisabled(False)
 
     @Inputs.source_texts
@@ -394,8 +394,8 @@ class OWDataSamplerA(OWWidget):
             self.commit()
 
     def handleNewSignals(self):
-        #self._update()
-        pass
+        if self.commitOnChange:
+            self._update()
 
     def _update(self):
         if self._task is not None:
@@ -491,7 +491,7 @@ class OWDataSamplerA(OWWidget):
 
         a.cbBasicCoherenceMeasures = self.cbBasicCoherenceMeasures
         a.cbSpatialDataAnalysis = self.cbSpatialDataAnalysis
-        a.cbSpatialDataAnalysis = self.cbSpatialAutocorrelation
+        a.cbSpatialAutocorrelation = self.cbSpatialAutocorrelation
 
         calculate_attributes_func = partial(
             calculateAttributes,
