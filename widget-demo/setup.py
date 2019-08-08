@@ -39,10 +39,10 @@ KEYWORDS = [
 ]
 
 ENTRY_POINTS = {
-    #'orange3.addon': (
+    'orange3.addon': (
         #'text = orangecontrib.text',
-    #    'Demo = orangedemo.essaygrading'
-    #),
+        'essaygrading = orangedemo.essaygrading'
+    ),
     # Entry point used to specify packages containing tutorials accessible
     # from welcome screen. Tutorials are saved Orange Workflows (.ows files).
     #'orange.widgets.tutorials': (
@@ -56,7 +56,7 @@ ENTRY_POINTS = {
         # Widget category specification can be seen in
         #    orangecontrib/text/widgets/__init__.py
         #'Text Mining = orangecontrib.text.widgets',
-        'Demo = orangedemo.essaygrading'
+        'Essay Grading = orangedemo.essaygrading.widgets'
     ),
 
     # Register widget help
