@@ -18,63 +18,63 @@ class ReadabilityMeasures(BaseModule):
 
     def calculate_all(self, selected_attributes, attribute_dictionary, callback=None, proportions=None, i=None):
 
-        if selected_attributes.cbGunningFogIndex:
+        if selected_attributes is None or selected_attributes.cbGunningFogIndex:
             gunning_fog_index = self.calculate_gunning_fog()
             print("Gunning Fog index:", gunning_fog_index)
             attribute_dictionary["gunningFogIndex"] = gunning_fog_index
 
         i = self._update_progressbar(callback, proportions, i)
 
-        if selected_attributes.cbFleschReadingEase:
+        if selected_attributes is None or selected_attributes.cbFleschReadingEase:
             flesch_reading_ease = self.calculate_flesch_reading_ease()
             print("Flesch reading ease:", flesch_reading_ease)
             attribute_dictionary["fleschReadingEase"] = flesch_reading_ease
 
         i = self._update_progressbar(callback, proportions, i)
 
-        if selected_attributes.cbFleschKincaidGradeLevel:
+        if selected_attributes is None or selected_attributes.cbFleschKincaidGradeLevel:
             flesch_kincaid_grade_level = self.calculate_flesch_kincaid_grade()
             print("Flesch Kincaid grade level:", flesch_kincaid_grade_level)
             attribute_dictionary["fleschKincaidGradeLevel"] = flesch_kincaid_grade_level
 
         i = self._update_progressbar(callback, proportions, i)
 
-        if selected_attributes.cbDaleChallReadabilityFormula:
+        if selected_attributes is None or selected_attributes.cbDaleChallReadabilityFormula:
             dale_chall_readability_formula = self.calculate_dale_chall_readability()
             print("Dale Chall readability formula:", dale_chall_readability_formula)
             attribute_dictionary["daleChallReadabilityFormula"] = dale_chall_readability_formula
 
         i = self._update_progressbar(callback, proportions, i)
 
-        if selected_attributes.cbAutomatedReadabilityIndex:
+        if selected_attributes is None or selected_attributes.cbAutomatedReadabilityIndex:
             automated_readability_index = self.calculate_automated_readability_index()
             print("Automated readability index:", automated_readability_index)
             attribute_dictionary["automatedReadabilityIndex"] = automated_readability_index
 
         i = self._update_progressbar(callback, proportions, i)
 
-        if selected_attributes.cbSimpleMeasureOfGobbledygook:
+        if selected_attributes is None or selected_attributes.cbSimpleMeasureOfGobbledygook:
             simple_measure_of_gobbledygook = self.calculate_simple_measure_gobbledygook()
             print("Simple measure of Gobbledygook: ", simple_measure_of_gobbledygook)
             attribute_dictionary["simpleMeasureOfGobbledygook"] = simple_measure_of_gobbledygook
 
         i = self._update_progressbar(callback, proportions, i)
 
-        if selected_attributes.cbLix:
+        if selected_attributes is None or selected_attributes.cbLix:
             lix = self.calculate_lix()
             print("LIX:", lix)
             attribute_dictionary["lix"] = lix
 
         i = self._update_progressbar(callback, proportions, i)
 
-        if selected_attributes.cbWordVariationIndex:
+        if selected_attributes is None or selected_attributes.cbWordVariationIndex:
             ovix = self.calculate_word_variation_index()
             print("Ovix: ", ovix)
             attribute_dictionary["wordVariationIndex"] = ovix
 
         i = self._update_progressbar(callback, proportions, i)
 
-        if selected_attributes.cbNominalRatio:
+        if selected_attributes is None or selected_attributes.cbNominalRatio:
             nominal_ratio = self.calculate_nominal_ratio()
             print("nominalRatio: ", nominal_ratio)
             attribute_dictionary["nominalRatio"] = nominal_ratio
@@ -103,7 +103,7 @@ class ReadabilityMeasures(BaseModule):
         stemmer = nltk.stem.PorterStemmer()
         word_list = []
         # TODO: lematizacija, trenutno mislim da so nekolk previsoki rezultati; tudi ce to resim so potem problem utf-8 punctuationi...
-        with open("C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangedemo/dale_chall_word_list.txt",
+        with open("C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangedemo/essaygrading/dale_chall_word_list.txt",
                   "r") as word_list_file:
             word_list = [word.replace("\n", "").lower() for word in word_list_file]
         num_difficult_words = np.array([sum([1 for token in doc if token not in word_list])

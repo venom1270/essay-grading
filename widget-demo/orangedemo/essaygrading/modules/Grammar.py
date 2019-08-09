@@ -19,21 +19,21 @@ class Grammar(BaseModule):
                            for doc in self.pos_tag_counter]
 
     def calculate_all(self, selected_attributes, attribute_dictionary, callback=None, proportions=None, i=None):
-        if selected_attributes.cbNumberOfDifferentPosTags:
+        if selected_attributes is None or selected_attributes.cbNumberOfDifferentPosTags:
             num_of_different_pos_tags = self.calculate_num_different_pos_tags()
             print("Num of different POS tags: ", num_of_different_pos_tags)
             attribute_dictionary["numberOfDifferentPosTags"] = num_of_different_pos_tags
 
         i = self._update_progressbar(callback, proportions, i)
 
-        if selected_attributes.cbSentenceStructureTreeHeight:
+        if selected_attributes is None or selected_attributes.cbSentenceStructureTreeHeight:
             average_tree_height = self.calculate_sentence_structure_tree_height()
             print("Average sentence structure tree height: ", average_tree_height)
             attribute_dictionary["sentenceStructureTreeHeight"] = average_tree_height
 
         i = self._update_progressbar(callback, proportions, i)
 
-        if selected_attributes.cbCorrectVerbForm:
+        if selected_attributes is None or selected_attributes.cbCorrectVerbForm:
             num_verb_forms = self.calculate_correct_verb_form()
             print("Number of correct verb forms: ", num_verb_forms)
             attribute_dictionary["correctVerbForm"] = num_verb_forms
@@ -75,147 +75,147 @@ class Grammar(BaseModule):
         return num_verb_forms
 
     def _calculate_num_each_pos_tag(self, selected_attributes, attribute_dictionary, callback, proportions, i):
-        if selected_attributes.cbPosCoordinatingConjunction:
+        if selected_attributes is None or selected_attributes.cbPosCoordinatingConjunction:
             pos_count = np.array([tags.get("CC", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_CC"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosCardinalNumber:
+        if selected_attributes is None or selected_attributes.cbPosCardinalNumber:
             pos_count = np.array([tags.get("CD", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_CD"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosDeterminer:
+        if selected_attributes is None or selected_attributes.cbPosDeterminer:
             pos_count = np.array([tags.get("DT", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_DT"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosExistentialThere:
+        if selected_attributes is None or selected_attributes.cbPosExistentialThere:
             pos_count = np.array([tags.get("EX", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_EX"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosForeignWord:
+        if selected_attributes is None or selected_attributes.cbPosForeignWord:
             pos_count = np.array([tags.get("FW", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_FW"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosPrepositionSubordinatingConjunction:
+        if selected_attributes is None or selected_attributes.cbPosPrepositionSubordinatingConjunction:
             pos_count = np.array([tags.get("IN", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_IN"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosAdjective:
+        if selected_attributes is None or selected_attributes.cbPosAdjective:
             pos_count = np.array([tags.get("JJ", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_JJ"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosComparativeAdjective:
+        if selected_attributes is None or selected_attributes.cbPosComparativeAdjective:
             pos_count = np.array([tags.get("JJR", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_JJR"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosSuperlativeAdjective:
+        if selected_attributes is None or selected_attributes.cbPosSuperlativeAdjective:
             pos_count = np.array([tags.get("JJS", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_JJS"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosListItemMarker:
+        if selected_attributes is None or selected_attributes.cbPosListItemMarker:
             pos_count = np.array([tags.get("LS", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_LS"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosModal:
+        if selected_attributes is None or selected_attributes.cbPosModal:
             pos_count = np.array([tags.get("MD", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_MD"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosSingularMassCommonNoun:
+        if selected_attributes is None or selected_attributes.cbPosSingularMassCommonNoun:
             pos_count = np.array([tags.get("NN", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_NN"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosPluralCommonNoun:
+        if selected_attributes is None or selected_attributes.cbPosPluralCommonNoun:
             pos_count = np.array([tags.get("NNS", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_NNS"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosSingularProperNoun:
+        if selected_attributes is None or selected_attributes.cbPosSingularProperNoun:
             pos_count = np.array([tags.get("NNP", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_NNP"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosPluralProperNoun:
+        if selected_attributes is None or selected_attributes.cbPosPluralProperNoun:
             pos_count = np.array([tags.get("NNPS", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_NNPS"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosPredeterminer:
+        if selected_attributes is None or selected_attributes.cbPosPredeterminer:
             pos_count = np.array([tags.get("PDT", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_PDT"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosPossessiveEnding:
+        if selected_attributes is None or selected_attributes.cbPosPossessiveEnding:
             pos_count = np.array([tags.get("POS", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_POS"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosPersonalPronoun:
+        if selected_attributes is None or selected_attributes.cbPosPersonalPronoun:
             pos_count = np.array([tags.get("PRP", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_PRP"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosPossessivePronoun:
+        if selected_attributes is None or selected_attributes.cbPosPossessivePronoun:
             pos_count = np.array([tags.get("PRP$", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_PRP$"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosAdverb:
+        if selected_attributes is None or selected_attributes.cbPosAdverb:
             pos_count = np.array([tags.get("RB", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_RB"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosComparativeAdverb:
+        if selected_attributes is None or selected_attributes.cbPosComparativeAdverb:
             pos_count = np.array([tags.get("RBR", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_RBR"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosSuperlativeAdverb:
+        if selected_attributes is None or selected_attributes.cbPosSuperlativeAdverb:
             pos_count = np.array([tags.get("RBS", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_RBS"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosParticle:
+        if selected_attributes is None or selected_attributes.cbPosParticle:
             pos_count = np.array([tags.get("RP", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_RP"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosSymbol:
+        if selected_attributes is None or selected_attributes.cbPosSymbol:
             pos_count = np.array([tags.get("SYM", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_SYM"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosTo:
+        if selected_attributes is None or selected_attributes.cbPosTo:
             pos_count = np.array([tags.get("TO", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_TO"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosInterjection:
+        if selected_attributes is None or selected_attributes.cbPosInterjection:
             pos_count = np.array([tags.get("UH", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_UH"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosVerbBaseForm:
+        if selected_attributes is None or selected_attributes.cbPosVerbBaseForm:
             pos_count = np.array([tags.get("VB", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_VB"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosVerbPastTense:
+        if selected_attributes is None or selected_attributes.cbPosVerbPastTense:
             pos_count = np.array([tags.get("VBD", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_VBD"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosVerbPresentParticiple:
+        if selected_attributes is None or selected_attributes.cbPosVerbPresentParticiple:
             pos_count = np.array([tags.get("VBG", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_VBG"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosVerbPastParticiple:
+        if selected_attributes is None or selected_attributes.cbPosVerbPastParticiple:
             pos_count = np.array([tags.get("VBN", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_VBN"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosVerbNonThirdPersonSingularPresent:
+        if selected_attributes is None or selected_attributes.cbPosVerbNonThirdPersonSingularPresent:
             pos_count = np.array([tags.get("VBP", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_VBP"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosVerbThirdPersonSingularPresent:
+        if selected_attributes is None or selected_attributes.cbPosVerbThirdPersonSingularPresent:
             pos_count = np.array([tags.get("VBZ", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_VBZ"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosWhDeterminer:
+        if selected_attributes is None or selected_attributes.cbPosWhDeterminer:
             pos_count = np.array([tags.get("WDT", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_WDT"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosWhPronoun:
+        if selected_attributes is None or selected_attributes.cbPosWhPronoun:
             pos_count = np.array([tags.get("WP", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_WP"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosPossessiveWhPronoun:
+        if selected_attributes is None or selected_attributes.cbPosPossessiveWhPronoun:
             pos_count = np.array([tags.get("WP$", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_WP"] = pos_count
         i = self._update_progressbar(callback, proportions, i)
-        if selected_attributes.cbPosWhAdverb:
+        if selected_attributes is None or selected_attributes.cbPosWhAdverb:
             pos_count = np.array([tags.get("WRB", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_WRB"] = pos_count
         i = self._update_progressbar(callback, proportions, i)

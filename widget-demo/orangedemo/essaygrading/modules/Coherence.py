@@ -27,7 +27,7 @@ class Coherence(BaseModule):
         C, CD_euc, CD_cos = self.calculate_centroids()
 
 
-        if selected_attributes.cbBasicCoherenceMeasures:
+        if selected_attributes is None or selected_attributes.cbBasicCoherenceMeasures:
             # Avg/Min/Max/Index neighbour and any points, Clark Evans, Avg to NN, Cumulative frequency
             print("ALL EUC NEIGH")
             a, mi, ma, ind = self.calculate_neighbour_distances(D_euc)
@@ -74,7 +74,7 @@ class Coherence(BaseModule):
             attribute_dictionary["avgDistanceNearestNeighbour"] = a_nn
             attribute_dictionary["cumulativeFrequencyDistribution"] = freq
 
-        if selected_attributes.cbSpatialDataAnalysis:
+        if selected_attributes is None or selected_attributes.cbSpatialDataAnalysis:
             print("CENTROID EUC")
             a, mi, ma, ind = self.calculate_centroid_distances(CD_euc)
             print(a)
@@ -112,7 +112,7 @@ class Coherence(BaseModule):
             print(det)
             attribute_dictionary["determinantDistanceMatrix"] = det
 
-        if selected_attributes.cbSpatialAutocorrelation:
+        if selected_attributes is None or selected_attributes.cbSpatialAutocorrelation:
             print("MORANS I")
             morans_i = self.calculate_morans_i(C)
             print(morans_i)
@@ -401,7 +401,7 @@ class Coherence(BaseModule):
         return np.sqrt(np.sum((x - y) ** 2))
 
     def preprocess(self):
-        tfidf_vectorizer = TfidfVectorizer(max_features=200000, stop_words="english",
+        tfidf_vectorizer = TfidfVectorizer(max_features=2000, stop_words="english",
                                            use_idf=True)
 
         # TOLE SEM PRESTAVIL GOR IN docs UPORABIL ZA

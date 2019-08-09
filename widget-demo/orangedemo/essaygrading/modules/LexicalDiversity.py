@@ -14,42 +14,42 @@ class LexicalDiversity(BaseModule):
 
     def calculate_all(self, selected_attributes, attribute_dictionary, callback=None, proportions=None, i=None):
         
-        if selected_attributes.cbTypeTokenRatio:
+        if selected_attributes is None or selected_attributes.cbTypeTokenRatio:
             type_token_ratio = self.calculate_type_token_ratio()
             print("Type Token Ratio: ", type_token_ratio)
             attribute_dictionary["typeTokenRatio"] = type_token_ratio
 
         i = self._update_progressbar(callback, proportions, i)
 
-        if selected_attributes.cbGuiraudsIndex:
+        if selected_attributes is None or selected_attributes.cbGuiraudsIndex:
             guirauds_index = self.calculate_guirauds_index()
             print("Guirauds Index: ", guirauds_index)
             attribute_dictionary["guiraudsIndex"] = guirauds_index
 
         i = self._update_progressbar(callback, proportions, i)
 
-        if selected_attributes.cbYulesK:
+        if selected_attributes is None or selected_attributes.cbYulesK:
             yules_k = self.calculate_yules_k()
             print("Yule's K: ", yules_k)
             attribute_dictionary["yulesK"] = yules_k
 
         i = self._update_progressbar(callback, proportions, i)
 
-        if selected_attributes.cbTheDEstimate:
+        if selected_attributes is None or selected_attributes.cbTheDEstimate:
             d_estimate = self.calculate_d_estimate()
             print("D Estimate: ", d_estimate)
             attribute_dictionary["theDEstimate"] = d_estimate
 
         i = self._update_progressbar(callback, proportions, i)
 
-        if selected_attributes.cbHapaxLegomena:
+        if selected_attributes is None or selected_attributes.cbHapaxLegomena:
             num_of_words_once = self.calculate_hapax_legomena()
             print("Hapax Legomena: ", num_of_words_once)
             attribute_dictionary["hapaxLegomena"] = num_of_words_once
 
         i = self._update_progressbar(callback, proportions, i)
 
-        if selected_attributes.cbAdvancedGuirardIndex:
+        if selected_attributes is None or selected_attributes.cbAdvancedGuirardIndex:
             advanced_guiraud = self.calculate_advanced_guirauds_index()
             print("Advanced Guirauds index: ", advanced_guiraud)
             attribute_dictionary["advancedGuiraudIndex"] = advanced_guiraud
@@ -101,7 +101,7 @@ class LexicalDiversity(BaseModule):
         # LINK: https://sci-hub.tw/10.1093/applin/24.2.197
         # advanced_tokens / sqrt(all_tokens)
         num_difficult_words = []
-        with open("C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangedemo/dale_chall_word_list.txt",
+        with open("C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangedemo/essaygrading/dale_chall_word_list.txt",
                   "r") as word_list_file:
             word_list = [word.replace("\n", "").lower() for word in word_list_file]
             for doc in self.filtered_tokens:
