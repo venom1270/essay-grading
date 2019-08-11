@@ -9,8 +9,6 @@ class LexicalDiversity(BaseModule):
     def __init__(self, corpus, corpus_sentences):
         super().__init__(corpus, corpus_sentences)
 
-        self.attributes = []
-        #TODO: ?
 
     def calculate_all(self, selected_attributes, attribute_dictionary, callback=None, proportions=None, i=None):
         
@@ -19,51 +17,55 @@ class LexicalDiversity(BaseModule):
             print("Type Token Ratio: ", type_token_ratio)
             attribute_dictionary["typeTokenRatio"] = type_token_ratio
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbGuiraudsIndex:
             guirauds_index = self.calculate_guirauds_index()
             print("Guirauds Index: ", guirauds_index)
             attribute_dictionary["guiraudsIndex"] = guirauds_index
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbYulesK:
             yules_k = self.calculate_yules_k()
             print("Yule's K: ", yules_k)
             attribute_dictionary["yulesK"] = yules_k
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbTheDEstimate:
             d_estimate = self.calculate_d_estimate()
             print("D Estimate: ", d_estimate)
             attribute_dictionary["theDEstimate"] = d_estimate
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbHapaxLegomena:
             num_of_words_once = self.calculate_hapax_legomena()
             print("Hapax Legomena: ", num_of_words_once)
             attribute_dictionary["hapaxLegomena"] = num_of_words_once
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbAdvancedGuirardIndex:
             advanced_guiraud = self.calculate_advanced_guirauds_index()
             print("Advanced Guirauds index: ", advanced_guiraud)
             attribute_dictionary["advancedGuiraudIndex"] = advanced_guiraud
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         return i
 
     def calculate_type_token_ratio(self):
         return self.num_of_different_words / self.num_of_words
 
+    # https://pdfs.semanticscholar.org/a93b/a9b8f746800dc06ebeda02284cd8148d238a.pdf
     def calculate_guirauds_index(self):
         return self.num_of_different_words / np.sqrt(self.num_of_words)
 
+    # TODO: CHECK IF THIS IS CORRECT
+    # https://www.mitpressjournals.org/doi/pdf/10.1162/COLI_a_00228
+    # https://swizec.com/blog/measuring-vocabulary-richness-with-python/swizec/2528
     def calculate_yules_k(self):
         m1 = np.array([len(fw) for fw in self.freq_words])
         stemmer = nltk.stem.porter.PorterStemmer()
@@ -73,12 +75,13 @@ class LexicalDiversity(BaseModule):
             v = collections.defaultdict(list)
             for key, value in sorted(doc.items()):
                 v[value].append(stemmer.stem(key))
+                #v[value].append(key)
             grouped_frequencies.append(v)
         m2 = np.array(
             [sum([freq ** 2 * len(tokens) for freq, tokens in doc.items()]) for doc in grouped_frequencies])
         # TODO: check zero division
         yules_k = 0
-        yules_k = 1000 * ((m2 - m1) / (m1 * m1))
+        yules_k = 10000 * ((m2 - m1) / (m1 * m1))
         # Yule's I
         # yules_k = 1 / yules_k
         return yules_k
@@ -100,7 +103,9 @@ class LexicalDiversity(BaseModule):
     def calculate_advanced_guirauds_index(self):
         # LINK: https://sci-hub.tw/10.1093/applin/24.2.197
         # advanced_tokens / sqrt(all_tokens)
+        # https://pdfs.semanticscholar.org/a93b/a9b8f746800dc06ebeda02284cd8148d238a.pdf
         num_difficult_words = []
+        # TODO: naceloma iz pycharma dela '../.txt', amapak potem v orange canvasu nedela...
         with open("C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangedemo/essaygrading/dale_chall_word_list.txt",
                   "r") as word_list_file:
             word_list = [word.replace("\n", "").lower() for word in word_list_file]

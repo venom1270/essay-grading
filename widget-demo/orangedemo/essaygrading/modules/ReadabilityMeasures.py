@@ -12,8 +12,6 @@ class ReadabilityMeasures(BaseModule):
     def __init__(self, corpus, corpus_sentences):
         super().__init__(corpus, corpus_sentences)
 
-        self.attributes = []
-        #TODO: ?
         self.syllable_count = get_syllable_count(self.filtered_tokens)
 
     def calculate_all(self, selected_attributes, attribute_dictionary, callback=None, proportions=None, i=None):
@@ -23,63 +21,63 @@ class ReadabilityMeasures(BaseModule):
             print("Gunning Fog index:", gunning_fog_index)
             attribute_dictionary["gunningFogIndex"] = gunning_fog_index
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbFleschReadingEase:
             flesch_reading_ease = self.calculate_flesch_reading_ease()
             print("Flesch reading ease:", flesch_reading_ease)
             attribute_dictionary["fleschReadingEase"] = flesch_reading_ease
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbFleschKincaidGradeLevel:
             flesch_kincaid_grade_level = self.calculate_flesch_kincaid_grade()
             print("Flesch Kincaid grade level:", flesch_kincaid_grade_level)
             attribute_dictionary["fleschKincaidGradeLevel"] = flesch_kincaid_grade_level
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbDaleChallReadabilityFormula:
             dale_chall_readability_formula = self.calculate_dale_chall_readability()
             print("Dale Chall readability formula:", dale_chall_readability_formula)
             attribute_dictionary["daleChallReadabilityFormula"] = dale_chall_readability_formula
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbAutomatedReadabilityIndex:
             automated_readability_index = self.calculate_automated_readability_index()
             print("Automated readability index:", automated_readability_index)
             attribute_dictionary["automatedReadabilityIndex"] = automated_readability_index
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbSimpleMeasureOfGobbledygook:
             simple_measure_of_gobbledygook = self.calculate_simple_measure_gobbledygook()
             print("Simple measure of Gobbledygook: ", simple_measure_of_gobbledygook)
             attribute_dictionary["simpleMeasureOfGobbledygook"] = simple_measure_of_gobbledygook
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbLix:
             lix = self.calculate_lix()
             print("LIX:", lix)
             attribute_dictionary["lix"] = lix
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbWordVariationIndex:
             ovix = self.calculate_word_variation_index()
             print("Ovix: ", ovix)
             attribute_dictionary["wordVariationIndex"] = ovix
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbNominalRatio:
             nominal_ratio = self.calculate_nominal_ratio()
             print("nominalRatio: ", nominal_ratio)
             attribute_dictionary["nominalRatio"] = nominal_ratio
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         return i
 
@@ -132,6 +130,7 @@ class ReadabilityMeasures(BaseModule):
 
     def calculate_lix(self):
         # TODO: zgleda okish ampak je tud ena simplificiran verzija; periods == sentences???
+        # Number of periods (defined by period, colon or capital first letter) -- TODO?: manjka capital first leter
         num_of_periods = np.array([len([c for c in doc if c == '.' or c == ',']) for doc in self.corpus.documents])
         num_of_periods += np.array([len([token for token in doc if token[0].isupper()])
                                     for doc in self.corpus.tokens])

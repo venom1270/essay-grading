@@ -89,21 +89,21 @@ class Content(BaseModule):
             print("Number of spellcecking errors: ", errors)
             attribute_dictionary["numberOfSpellcheckingErrors"] = errors
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbNumberOfCapitalizationErrors:
             capitalization_errors = self.calculate_num_capitalization_errors()
             print("Number of capitalization errors: ", capitalization_errors)
             attribute_dictionary["numberOfCapitalizationErrors"] = capitalization_errors
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbNumberOfPunctuationErrors:
             punctuation_errors = self.calculate_num_punctuation_errors()
             print("Number of punctuation errors: ", punctuation_errors)
             attribute_dictionary["numberOfPunctuationErrors"] = punctuation_errors
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbCosineSumOfCorrelationValues or selected_attributes.cbCosinePattern \
                 or selected_attributes.cbCosineSimilarityBestEssays or selected_attributes.cbCosineSimilarityMax \
@@ -117,35 +117,35 @@ class Content(BaseModule):
             print("Cosine similarity with source text: ", cosine_source_text)
             attribute_dictionary["cosineWithSourceText"] = cosine_source_text
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbCosineSimilarityMax:
             max_similarity_scores = self.calculate_cosine_max()
             print("Cosine similarity Max: ", max_similarity_scores)
             attribute_dictionary["scoreCosineSimilarityMax"] = max_similarity_scores
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbCosineSimilarityBestEssays:
             top_essay_similarities = self.calculate_cosine_best_essays()
             print("Cosine similarity with best essay: ", top_essay_similarities)
             attribute_dictionary["cosineTopEssaySimilarityAverage"] = top_essay_similarities
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbCosinePattern:
             cos_patterns = self.calculate_cosine_pattern()
             print("Cosine Patterns: ", cos_patterns)
             attribute_dictionary["cosinePattern"] = cos_patterns
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbCosineSumOfCorrelationValues:
             cos_weighted_sum = self.calculate_cosine_correlation_values()
             print("cos_weighted_sum: ", cos_weighted_sum)
             attribute_dictionary["cosineSumOfCorrelationValues"] = cos_weighted_sum
 
-        i = self._update_progressbar(callback, proportions, i)
+        #i = self._update_progressbar(callback, proportions, i)
 
         return i
 
@@ -159,7 +159,7 @@ class Content(BaseModule):
         return capitalization_errors
 
     def calculate_num_punctuation_errors(self):
-        punctuation_errors = [sum([1 for e in doc_errors if e.category == "Punctuation"])
+        punctuation_errors = [sum([1 for e in doc_errors if e.category == "Punctuation" or e.category == "Miscellaneous"])
                               for doc_errors in self.lang_check_errors]
         return punctuation_errors
 

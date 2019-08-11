@@ -11,7 +11,7 @@ from orangedemo.essaygrading.modules import BasicMeasures, ReadabilityMeasures, 
 import numpy as np
 
 import Orange.data
-from Orange.widgets.widget import OWWidget, Input, Output
+from Orange.widgets.widget import OWWidget, Input, Output, Msg
 from Orange.widgets import gui
 from Orange.widgets import settings
 from Orange.widgets.utils.widgetpreview import WidgetPreview
@@ -87,6 +87,14 @@ class OWAttributeSelection(OWWidget):
         attributes_graded = Output("Attributes Graded", Orange.data.Table)
         attributes_ungraded = Output("Attributes Ungraded", Orange.data.Table)
 
+    class Error(OWWidget.Error):
+        pass
+        #need_discrete_data = Msg("Need some discrete data to work with.")
+        #no_disc_features = Msg("Discrete features required but data has none.")
+
+    class Warning(OWWidget.Warning):
+        no_test_data = Msg("No test data (ungraded essays) present.")
+
     proportion = settings.Setting(50)
     commitOnChange = settings.Setting(0)
 
@@ -122,12 +130,6 @@ class OWAttributeSelection(OWWidget):
         self.infoa = gui.widgetLabel(box, 'No graded data on input yet, waiting to get something.')
         self.infob = gui.widgetLabel(box, 'No ungraded data on input yet, waiting to get something.')
 
-        #gui.separator(self.controlArea)
-
-        #self.attributeSelectionBox = gui.widgetBox(self.controlArea, "Attribute selection")
-
-        #self.attributeList = gui.listBox(self.attributeSelectionBox, self, value="selected_attributes", labels="selected_attributes_names")
-
         self.controlArea.layout().addWidget(
             CheckListLayout("Attribute selection", self, "selected_attributes", self.selected_attributes_names, cols=2)
         )
@@ -156,8 +158,6 @@ class OWAttributeSelection(OWWidget):
 
             self.infoa.setText('%d instances in graded input dataset' % len(dataset))
 
-            #self.infob.setText("Some document has so many tokens: " + str(len(new_corpus)))
-
             print(corpus.tokens[0])
             print(corpus.pos_tags[0])
             print(corpus.documents[0])
@@ -171,6 +171,8 @@ class OWAttributeSelection(OWWidget):
             self.infoa.setText('No graded data on input yet, waiting to get something.')
             self.Outputs.attributes_graded.send(None)
             self.optionsBox.setDisabled(True)
+            if self.ungraded_corpus is None:
+                self.Warning.no_test_data()
 
     @Inputs.source_texts
     def set_source_texts(self, source_texts):
@@ -191,6 +193,8 @@ class OWAttributeSelection(OWWidget):
             self.ungraded_corpus_sentences = corpus_sentences
 
             self.infob.setText('%d instances in ungraded input dataset' % len(ungraded_essays))
+
+            self.Warning.no_test_data.clear()
 
         else:
             self.ungraded_corpus = None
@@ -233,8 +237,6 @@ class OWAttributeSelection(OWWidget):
 
         if self.corpus is None or self.corpus_sentences is None:
             return
-
-
 
         calculate_attributes_func = partial(
             calculateAttributes,
@@ -369,7 +371,11 @@ def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, un
 
     print(source_texts)
 
-    proportions = np.linspace(0.0, 1.0, 80 * 2, endpoint=True)[1:]
+    # proportions = np.linspace(0.0, 1.0, 80 * 2, endpoint=True)[1:]
+    if ungraded_corpus is None:
+        proportions = np.linspace(0.0, 1.0, len(attr) + 1, endpoint=True)[1:]
+    else:
+        proportions = np.linspace(0.0, 1.0, len(attr)*2 + 1, endpoint=True)[1:]
 
     #for i in range(len(new_corpus)):
     #    for j in range(len(new_corpus.tokens[i])):
@@ -412,6 +418,8 @@ def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, un
 
     for m in attr:
         i = modules[m].calculate_all(None, attributeDictionaryGraded, callback, proportions, i)
+        callback(proportions[i])
+        i += 1
 
 
     if ungraded_corpus and ungraded_corpus_sentences:
@@ -428,6 +436,8 @@ def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, un
 
         for m in attr:
             i = modules[m].calculate_all(None, attributeDictionaryUngraded, callback, proportions, i)
+            callback(proportions[i])
+            i += 1
 
     '''print(flesch_reading_ease)
     for d in new_corpus.documents:
