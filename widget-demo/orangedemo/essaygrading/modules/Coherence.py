@@ -1,6 +1,6 @@
 from orangedemo.essaygrading.modules.BaseModule import BaseModule
 from sklearn.feature_extraction.text import TfidfVectorizer
-from orangedemo.essaygrading.modules.lemmatizer import lemmatizeTokens
+from orangedemo.essaygrading.utils.lemmatizer import lemmatizeTokens
 from scipy.spatial import distance
 import numpy as np
 import math

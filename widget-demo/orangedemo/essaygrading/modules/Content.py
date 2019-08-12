@@ -3,7 +3,7 @@ import string
 import language_check
 import collections
 from orangedemo.essaygrading.modules.BaseModule import BaseModule
-from orangedemo.essaygrading.modules.lemmatizer import lemmatizeTokens
+from orangedemo.essaygrading.utils.lemmatizer import lemmatizeTokens
 from spellchecker import SpellChecker
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity

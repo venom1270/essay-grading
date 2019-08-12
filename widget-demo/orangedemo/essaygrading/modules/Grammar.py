@@ -3,7 +3,7 @@ import string
 import spacy
 import collections
 from orangedemo.essaygrading.modules.BaseModule import BaseModule
-from orangedemo.essaygrading.modules.parse_tree_util import get_parse_tree_height
+from orangedemo.essaygrading.utils.parse_tree_util import get_parse_tree_height
 
 
 class Grammar(BaseModule):

@@ -106,7 +106,7 @@ class LexicalDiversity(BaseModule):
         # https://pdfs.semanticscholar.org/a93b/a9b8f746800dc06ebeda02284cd8148d238a.pdf
         num_difficult_words = []
         # TODO: naceloma iz pycharma dela '../.txt', amapak potem v orange canvasu nedela...
-        with open("C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangedemo/essaygrading/dale_chall_word_list.txt",
+        with open("C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangedemo/essaygrading/data/dale_chall_word_list.txt",
                   "r") as word_list_file:
             word_list = [word.replace("\n", "").lower() for word in word_list_file]
             for doc in self.filtered_tokens:

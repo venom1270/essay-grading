@@ -4,7 +4,7 @@ import math
 import collections
 import string
 from orangedemo.essaygrading.modules.BaseModule import BaseModule
-from orangedemo.essaygrading.modules.syllables_util import get_syllable_count, get_syllable_count_word
+from orangedemo.essaygrading.utils.syllables_util import get_syllable_count, get_syllable_count_word
 
 
 class ReadabilityMeasures(BaseModule):
@@ -101,7 +101,7 @@ class ReadabilityMeasures(BaseModule):
         stemmer = nltk.stem.PorterStemmer()
         word_list = []
         # TODO: lematizacija, trenutno mislim da so nekolk previsoki rezultati; tudi ce to resim so potem problem utf-8 punctuationi...
-        with open("C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangedemo/essaygrading/dale_chall_word_list.txt",
+        with open("C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangedemo/essaygrading/data/dale_chall_word_list.txt",
                   "r") as word_list_file:
             word_list = [word.replace("\n", "").lower() for word in word_list_file]
         num_difficult_words = np.array([sum([1 for token in doc if token not in word_list])

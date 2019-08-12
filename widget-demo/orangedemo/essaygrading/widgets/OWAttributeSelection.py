@@ -2,9 +2,6 @@
 # conda install spacy
 # python -m spacy download en
 
-#PROBLEMATINO:
-# height of sentence parse tree (VERY HIGH!!!!)
-# grammar errors (VERRRRYYY HIGH!!!!!)
 
 from orangedemo.essaygrading.modules import BasicMeasures, ReadabilityMeasures, LexicalDiversity, Grammar, Content, Coherence
 
@@ -22,6 +19,8 @@ from orangecontrib.text.tag import pos
 
 from orangecontrib.text.widgets.utils import CheckListLayout
 
+from orangedemo.essaygrading.utils.task import Task
+
 from functools import partial
 
 
@@ -35,41 +34,6 @@ from Orange.widgets.utils.concurrent import (
 )
 
 from AnyQt.QtCore import QThread, pyqtSlot
-
-from orangedemo.essaygrading.Attributes import Attributes
-
-class Task:
-    """
-    A class that will hold the state for an learner evaluation.
-    """
-    #: A concurrent.futures.Future with our (eventual) results.
-    #: The OWLearningCurveC class must fill this field
-    future = ...       # type: concurrent.futures.Future
-
-    #: FutureWatcher. Likewise this will be filled by OWLearningCurveC
-    watcher = ...      # type: FutureWatcher
-
-    #: True if this evaluation has been cancelled. The OWLearningCurveC
-    #: will setup the task execution environment in such a way that this
-    #: field will be checked periodically in the worker thread and cancel
-    #: the computation if so required. In a sense this is the only
-    #: communication channel in the direction from the OWLearningCurve to the
-    #: worker thread
-    cancelled = False  # type: bool
-
-    def cancel(self):
-        """
-        Cancel the task.
-
-        Set the `cancelled` field to True and block until the future is done.
-        """
-        # set cancelled state
-        self.cancelled = True
-        # cancel the future. Note this succeeds only if the execution has
-        # not yet started (see `concurrent.futures.Future.cancel`) ..
-        self.future.cancel()
-        # ... and wait until computation finishes
-        concurrent.futures.wait([self.future])
 
 
 class OWAttributeSelection(OWWidget):
@@ -207,8 +171,8 @@ class OWAttributeSelection(OWWidget):
         self.dataset = data.copy()
         p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
                                     transformers=[preprocess.LowercaseTransformer()],
-                                    pos_tagger=pos.AveragedPerceptronTagger())
-                                    # normalizer=preprocess.WordNetLemmatizer())
+                                    pos_tagger=pos.AveragedPerceptronTagger(),
+                                    normalizer=preprocess.WordNetLemmatizer())
         p_sentences = preprocess.Preprocessor(tokenizer=preprocess.PunktSentenceTokenizer())
 
         corpus = p(data)
@@ -464,7 +428,7 @@ if __name__ == "__main__":
     #WidgetPreview(OWAttributeSelection).run(set_data=Corpus.from_file("../set1_train.tsv"),
     #                                   set_source_texts=Corpus.from_file("../source_texts.tsv"))
 
-    WidgetPreview(OWAttributeSelection).run(set_graded_data=Corpus.from_file("../small_set_graded.tsv"),
-                                      set_ungraded_data=Corpus.from_file("../small_set.tsv"),
-                                      set_source_texts=Corpus.from_file("../source_texts.tsv"))
+    WidgetPreview(OWAttributeSelection).run(set_graded_data=Corpus.from_file("../datasets/small_set_graded.tsv"),
+                                      set_ungraded_data=Corpus.from_file("../datasets/small_set.tsv"),
+                                      set_source_texts=Corpus.from_file("../datasets/source_texts.tsv"))
 
