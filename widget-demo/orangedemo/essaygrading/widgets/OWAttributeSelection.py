@@ -72,6 +72,8 @@ class OWAttributeSelection(OWWidget):
                                  "Content",
                                  "Coherence and Semantics"]
 
+    coherence_word_embeddings = "TF-IDF"
+
     want_main_area = False
 
     def __init__(self):
@@ -97,6 +99,12 @@ class OWAttributeSelection(OWWidget):
         self.controlArea.layout().addWidget(
             CheckListLayout("Attribute selection", self, "selected_attributes", self.selected_attributes_names, cols=2)
         )
+
+        parametersBox = gui.widgetBox(self.controlArea, "Options")
+
+        self.cb_word_embedding_info = gui.widgetLabel(parametersBox, 'Word Embedding: ')
+        self.cb_coherence_word_embeddings = gui.comboBox(widget=parametersBox, master=self, items=("TF-IDF", "GloVe"),
+                                                         value="coherence_word_embeddings", sendSelectedValue=True)
 
         self.optionsBox = gui.widgetBox(self.controlArea, "Controls")
         gui.checkBox(self.optionsBox, self, "commitOnChange", "Commit data on selection change")
@@ -209,8 +217,12 @@ class OWAttributeSelection(OWWidget):
             ungraded_corpus=self.ungraded_corpus,
             ungraded_corpus_sentences=self.ungraded_corpus_sentences,
             source_texts=self.source_texts,
-            attr=self.selected_attributes
+            attr=self.selected_attributes,
+            word_embeddings=self.coherence_word_embeddings
         )
+
+        #print(self.cb_coherence_word_embeddings)
+        #exit()
 
         # setup the task state
         self._task = task = Task()
@@ -327,7 +339,8 @@ class OWAttributeSelection(OWWidget):
         self.attributeDictionaryUngraded = {}
         self._update()
 
-def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, ungraded_corpus, ungraded_corpus_sentences, attr, callback):
+def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, ungraded_corpus,
+                        ungraded_corpus_sentences, attr, callback, word_embeddings):
     word_length_threshold = 7
     sentence_length_threshold = 40
     lemmatizer = WordNetLemmatizer()
@@ -356,14 +369,14 @@ def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, un
 
     i = 0
 
-
-    modules = {}
+    modules = dict()
     modules["Basic Measures"] = BasicMeasures.BasicMeasures(graded_corpus, graded_corpus_sentences)
     modules["Readability Measures"] = ReadabilityMeasures.ReadabilityMeasures(graded_corpus, graded_corpus_sentences)
     modules["Lexical Diversity"] = LexicalDiversity.LexicalDiversity(graded_corpus, graded_corpus_sentences)
     modules["Grammar"] = Grammar.Grammar(graded_corpus, graded_corpus_sentences)
     modules["Content"] = Content.Content(graded_corpus, graded_corpus_sentences, source_texts)
-    modules["Coherence and Semantics"] = Coherence.Coherence(graded_corpus, graded_corpus_sentences, source_texts)
+    modules["Coherence and Semantics"] = Coherence.Coherence(graded_corpus, graded_corpus_sentences, source_texts,
+                                                             word_embeddings)
 
     '''
     basicMeasures = BasicMeasures.BasicMeasures(new_corpus, new_corpus_sentences)
@@ -396,7 +409,7 @@ def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, un
         modules["Content"] = Content.Content(ungraded_corpus, ungraded_corpus_sentences, source_texts,
                                              graded_corpus=graded_corpus)
         modules["Coherence and Semantics"] = Coherence.Coherence(ungraded_corpus, ungraded_corpus_sentences,
-                                                                 source_texts)
+                                                                 source_texts, word_embeddings)
 
         for m in attr:
             i = modules[m].calculate_all(None, attributeDictionaryUngraded, callback, proportions, i)

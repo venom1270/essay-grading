@@ -2,12 +2,18 @@ from orangedemo.essaygrading.modules.BaseModule import BaseModule
 from sklearn.feature_extraction.text import TfidfVectorizer
 from orangedemo.essaygrading.utils.lemmatizer import lemmatizeTokens
 from scipy.spatial import distance
+from scipy.sparse import issparse
 import numpy as np
+import spacy
 import math
+
+
+# GLOVE Word Embeddings
+# python -m spacy download en_vectors_web_lg
 
 class Coherence(BaseModule):
 
-    def __init__(self, corpus, corpus_sentences, source_texts):
+    def __init__(self, corpus, corpus_sentences, source_texts, word_embeddings):
         super().__init__(corpus, corpus_sentences)
 
         self.source_texts = source_texts
@@ -17,6 +23,11 @@ class Coherence(BaseModule):
         self.tfidf_parts = []
         self.essay_scores = []
         self.distance_matrix = []
+
+        if word_embeddings == "TF-IDF":
+            self.use_glove = False
+        else:
+            self.use_glove = True
 
     def calculate_all(self, selected_attributes, attribute_dictionary, callback=None, proportions=None, i=None):
 
@@ -220,7 +231,9 @@ class Coherence(BaseModule):
             # relative distance
             d_max = 0
             for i in doc:
-                d_max = max(d_max, abs(self.euclidean_distance(np.array([i.todense()]), np.array([C[doc_i]]))))
+                if issparse(i):
+                    i = i.todense()
+                d_max = max(d_max, abs(self.euclidean_distance(np.array([i]), np.array([C[doc_i]]))))
                 if d_max == 0:
                     d_max = 1
             relative_distances.append(standard_distances[-1]/d_max)
@@ -277,6 +290,8 @@ class Coherence(BaseModule):
         gearys_c = []
         for doc_i in range(len(self.tfidf_parts)):
             doc = self.tfidf_parts[doc_i]
+            if issparse(doc):
+                doc = doc.todense()
             N = doc.shape[0] # st. tock
             n = doc.shape[1] # st. komponent
             S = (N - 1)*2 # vsota utezi TODO: je to res: sosedov je n-1 ??
@@ -300,7 +315,7 @@ class Coherence(BaseModule):
                     c += numerator / denominator
             '''
             # treba je narest v dveh delih, ker so notrnji >1 in <n elementi dvakrat v formuli (stevec), imenovalec je isti
-            D = doc.todense()
+            D = doc
             Di = np.delete(D, -1, axis=0)
             Dj = np.delete(D, 0, axis=0)
             D_numerator = np.sum(np.power(np.subtract(Di, Dj), 2), axis=0)
@@ -325,11 +340,13 @@ class Coherence(BaseModule):
         getis_g = []
         for doc_i in range(len(self.tfidf_parts)):
             doc = self.tfidf_parts[doc_i]
+            if issparse(doc):
+                doc = doc.todense()
             N = doc.shape[0]  # st. tock
             n = doc.shape[1]  # st. komponent
             S = (N - 1) * 2  # vsota utezi TODO: je to res: sosedov je n-1 ??
             g = 0  # sprotna vsota
-            D = doc.todense()
+            D = doc
             d = distance_threshold[doc_i]
             '''
             for k in range(doc.shape[1]):
@@ -346,7 +363,7 @@ class Coherence(BaseModule):
                     g += numerator / denominator
             '''
             # nimam blage veze kaj je ta black magic z broadcastanjem, ampak dela :DDDD
-            D = doc.todense()
+            D = doc
             W = np.where(D_mat[doc_i] <= distance_threshold[doc_i], 1, 0) # matrika utezi (1 ali 0) veliksoti NxN - katere vsote pridejo v postev
             D = np.array(D)
             multiplied = np.multiply(D[None,:,:], D[:,None,:]) # broadcastanje - iz tega rata pol 3D array, vsak element (vrstica) z vsakim - 3D zato, ker je vec komponent
@@ -372,7 +389,12 @@ class Coherence(BaseModule):
             cd_euc = []
             cd_cos = []
 
-            centroid = np.sum(doc, axis=0).A[0] / doc.shape[0]
+            if issparse(doc): # TODO: NAREDI LEPSE: pri tfidfju je sprse matrika in je tuki mal kolobocije pdoatke dobit...
+                centroid = np.sum(doc, axis=0).A[0] / doc.shape[0]
+                d = np.append(doc.todense(), [centroid], axis=0)
+            else:
+                centroid = np.sum(doc, axis=0) / doc.shape[0]
+                d = np.append(doc, [centroid], axis=0)
 
             #for i in range(doc.shape[0]):
             #    cd_euc.append(self.euclidean_distance(doc[i].toarray(), centroid))
@@ -383,7 +405,7 @@ class Coherence(BaseModule):
             c_mat = np.tile(centroid, (doc.shape[0],1))
 
 
-            d = np.append(doc.todense(), [centroid], axis=0)
+            #d = np.append(doc.todense(), [centroid], axis=0)
 
             cd_euc = distance.cdist(d, d, metric='euclidean')[-1]
             cd_cos = distance.cdist(d, d, metric='cosine')[-1]
@@ -401,38 +423,76 @@ class Coherence(BaseModule):
         return np.sqrt(np.sum((x - y) ** 2))
 
     def preprocess(self):
-        tfidf_vectorizer = TfidfVectorizer(max_features=2000, stop_words="english",
+
+        tfidf_vectorizer = TfidfVectorizer(max_features=10000, stop_words="english",
                                            use_idf=True)
 
         # TOLE SEM PRESTAVIL GOR IN docs UPORABIL ZA
-        docs = lemmatizeTokens(self.corpus, join=True)
+        corpus_sentences = lemmatizeTokens(self.corpus, join=True)
+        corpus_tokens = lemmatizeTokens(self.corpus, join=False)
         # append source/prompt text
         # TODO: source_text rabimo sploh?
         #docs.append((lemmatizeTokens(self.source_texts, join=True)[0]))
 
+
         # WINDOW PARAMETERS #
         step = 10 # Steps of 10 words
         window_size_factor = 0.25 # 25% of average words in all essays
-        avg_essays_words = sum([len(tokens) for tokens in docs]) / len(docs)
+        avg_essays_words = sum([len(tokens) for tokens in corpus_tokens]) / len(corpus_tokens)
         window_size = int(avg_essays_words * window_size_factor)
 
         # Create corpus/essay parts
-        for tokens in docs:
+        for tokens in corpus_tokens:
             parts = []
             i = 0
             j = window_size
-            parts.append(tokens[i:min(j, len(tokens))])
+            #if USE_GLOVE:
+            #    parts.append(tokens[i:min(j, len(tokens))]) #za GLOVE verjetno
+            #else: #TFIDF
+            parts.append(" ".join(tokens[i:min(j, len(tokens))]))
             while j <= len(tokens):
                 i += step
                 j += step
                 #parts.append(tokens[i:min(j, len(tokens))])
-                parts.append(tokens[i:j])
+                #if USE_GLOVE:
+                    #parts.append(tokens[i:j]) # za GLOVE verjetno
+                #else: #TFIDF
+                parts.append(" ".join(tokens[i:j]))
+
             self.corpus_parts.append(parts)
 
         # TODO: preveri, ce je pravilno
+
+        nlp = None
+        if self.use_glove:
+            nlp = spacy.load("en_vectors_web_lg")
+            print("GLOVE vectors loaded!")
+
         self.tfidf_parts = []
         for parts in self.corpus_parts:
-            self.tfidf_parts.append(tfidf_vectorizer.fit_transform(parts))
+            if not self.use_glove:
+                self.tfidf_parts.append(tfidf_vectorizer.fit_transform(parts))
+            else:
+
+                ''' 
+                king = np.array(nlp.vocab.get_vector("king"))
+                queen = np.array(nlp.vocab.get_vector("queen"))
+                man = np.array(nlp.vocab.get_vector("man"))
+                woman = np.array(nlp.vocab.get_vector("woman"))
+
+                print(np.sum(np.square(king-queen)))
+                print(np.sum(np.square(man-woman)))
+                print(np.sum(np.square(king-man)))
+                print(np.sum(np.square(queen-woman)))
+                print(np.sum(np.square(king-woman)))
+                print(np.sum(np.square(queen-man)))
+                '''
+                essay_word_embedding = []
+                #vocab = nlp.vocab
+                for essay_part in parts:
+                    essay_word_embedding.append(np.array(nlp(essay_part).vector))
+                #print(essay_word_embedding)
+                self.tfidf_parts.append(np.array(essay_word_embedding))
 
         self.essay_scores = list(np.floor(self.corpus.X[:, 5] / 2))
 
@@ -447,7 +507,9 @@ class Coherence(BaseModule):
 
         for doc in self.tfidf_parts:
             s = 0
-            d = distance.cdist(doc.todense(), doc.todense(), metric=metric)
+            if issparse(doc):
+                doc = doc.todense()
+            d = distance.cdist(doc, doc, metric=metric)
             '''d = np.zeros((doc.shape[0], doc.shape[0]))
             if doc.shape[0] == 1:
                 d[0,0] = 1
