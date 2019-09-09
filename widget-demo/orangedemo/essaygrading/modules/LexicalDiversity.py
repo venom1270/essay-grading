@@ -63,7 +63,6 @@ class LexicalDiversity(BaseModule):
     def calculate_guirauds_index(self):
         return self.num_of_different_words / np.sqrt(self.num_of_words)
 
-    # TODO: CHECK IF THIS IS CORRECT
     # https://www.mitpressjournals.org/doi/pdf/10.1162/COLI_a_00228
     # https://swizec.com/blog/measuring-vocabulary-richness-with-python/swizec/2528
     def calculate_yules_k(self):

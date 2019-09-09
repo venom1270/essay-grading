@@ -193,7 +193,7 @@ class Coherence(BaseModule):
                     if np.amin(np.delete(d[i,:], i)) <= averages[-1]: #TODO: maybe use matrix to store values
                         count += 1
             cumulative_freq.append(float(count)/n)
-        return clark_evans, averages, cumulative_freq # TODO: za cumfreq nism zihr :/
+        return clark_evans, averages, cumulative_freq # TODO: za cfreq nism zihr :/
 
     def calculate_centroid_distances(self, C):
         averages = []
@@ -252,7 +252,7 @@ class Coherence(BaseModule):
             doc = self.tfidf_parts[doc_i]
             N = doc.shape[0] # st. tock
             n = doc.shape[1] # st. komponent
-            S = (N - 1)*2 # vsota utezi TODO: je to res: sosedov je n-1 ??
+            S = (N - 1)*2 # vsota utezi TODO: je to res: sosedov je n-1 ?? update: JA?
             m = 0 # sprotna vsota
             D = doc - C[doc_i]
             '''
@@ -294,7 +294,7 @@ class Coherence(BaseModule):
                 doc = doc.todense()
             N = doc.shape[0] # st. tock
             n = doc.shape[1] # st. komponent
-            S = (N - 1)*2 # vsota utezi TODO: je to res: sosedov je n-1 ??
+            S = (N - 1)*2 # vsota utezi TODO: je to res: sosedov je n-1 ?? JA?
             c = 0 # sprotna vsota
             D = doc - C[doc_i]
             '''
@@ -344,7 +344,7 @@ class Coherence(BaseModule):
                 doc = doc.todense()
             N = doc.shape[0]  # st. tock
             n = doc.shape[1]  # st. komponent
-            S = (N - 1) * 2  # vsota utezi TODO: je to res: sosedov je n-1 ??
+            S = (N - 1) * 2  # vsota utezi TODO: je to res: sosedov je n-1 ?? JA?
             g = 0  # sprotna vsota
             D = doc
             d = distance_threshold[doc_i]

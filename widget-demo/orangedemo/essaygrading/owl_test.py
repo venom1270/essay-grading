@@ -1,9 +1,14 @@
 #pip install owlready2
 
-from owlready2 import *
+#from owlready2 import *
 from rdflib.graph import Graph
 from rdflib.term import URIRef
+from rdflib.graph import Namespace
 import nltk
+
+from orangedemo.essaygrading.utils.HermiT import HermiT
+from orangedemo.essaygrading.utils import ExtractionManager
+
 '''
 TODO
 
@@ -26,6 +31,9 @@ in potem doda se zares v ontologijo (povezave? kaj tocno nevem?) in preveri s He
 
 '''
 
+import spacy
+
+
 def breakToWords(s):
 	charIndex = 0
 	sBroken = ''
@@ -41,12 +49,12 @@ def breakToWords(s):
 
 #onto_path.append("data/")
 #onto = get_ontology("data/COSMO.owl")
-onto = get_ontology("http://www.cs.ox.ac.uk/isg/ontologies/UID/00793.owl")
+#onto = get_ontology("http://www.cs.ox.ac.uk/isg/ontologies/UID/00793.owl")
 #onto = get_ontology("http://www.micra.com/COSMO/COSMO.owl")
-onto.load()
+#onto.load()
 
 g = Graph()
-g.parse("data/COSMO.owl", format="xml")
+g.parse("data/COSMO-Serialized.owl", format="xml")
 bicycleURI = URIRef("http://micra.com/COSMO/COSMO.owl#Bicycle")
 t = g.triples((None, None, None))
 print("Num of triples: ", len(g))
@@ -54,10 +62,41 @@ print(t)
 
 subObjSet = []
 predSet = []
+count = 0
+'''
+hermit = HermiT()
+hermit.check_unsatisfiable_cases(g)
+
+exit()
+'''
+
+
 for subj, pred, obj in g:
+
+    #if str(type(subj)) == "<class 'rdflib.term.BNode'>" or str(type(pred)) == "<class 'rdflib.term.BNode'>" or str(type(obj)) == "<class 'rdflib.term.BNode'>":
+    #    count += 1
+    #    g.remove((subj, pred, obj))
+
     subObjSet.extend([subj, obj])
     predSet.append(pred)
 
+
+print(count)
+print(len(g))
+
+COSMO = Namespace("http://micra.com/COSMO/COSMO.owl#")
+'''
+print(COSMO["Person"])
+print(COSMO["http://colab.cim3.net/file/work/SICoP/ontac/COSMO/COSMO.owl#Wizard"])
+print(COSMO["http://colab.cim3.net/file/work/SICoP/ontac/COSMO/COSMO.owl#Dwarf"])
+print(COSMO["http://colab.cim3.net/file/work/SICoP/ontac/COSMO/COSMO.owl#Elf"])
+print(COSMO["http://colab.cim3.net/file/work/SICoP/ontac/COSMO/COSMO.owl#Troll"])
+exit()
+g.add(("http://colab.cim3.net/file/work/SICoP/ontac/COSMO/COSMO.owl#Person", "like", "candy"))
+g.add(("Lisa", "not like", "candy"))
+g.serialize("data/COSMO-Serialized.owl", format="pretty-xml")
+exit()
+'''
 uniqueSubObj = set(subObjSet)
 uniqueURIRefSubObj = []
 for node in uniqueSubObj:
@@ -70,8 +109,13 @@ for node in uniquePred:
     if str(type(node)) == "<class 'rdflib.term.URIRef'>":
         uniqueURIRefPred.append(node)
 
-# print(len(uniqueURIRefSubObj)) #COSMO=10916
-# print(len(uniqueURIRefPred)) #COSMO=352
+print(len(uniqueURIRefSubObj)) #COSMO=10916
+print(len(uniqueURIRefPred)) #COSMO=352
+
+
+print(uniqueURIRefSubObj)
+print(uniqueURIRefPred)
+
 # uniqueURIRef = set(uniqueURIRefSubObj + uniqueURIRefPred)
 # print(len(uniqueURIRef)) #COSMO=10936
 
@@ -101,8 +145,10 @@ print(stringPredBroken)
 porter = nltk.PorterStemmer()
 
 uniqueURIRef = {}
-uniqueURIRef['SubObj'] = [stringSubObjBroken, uniqueURIRefSubObj, [None for k in range(len(uniqueURIRefSubObj))]]
-uniqueURIRef['Pred'] = [stringPredBroken, uniqueURIRefPred, [None for k in range(len(uniqueURIRefPred))]]
+uniqueURIRef['SubObj'] = [stringSubObjBroken, uniqueURIRefSubObj]
+uniqueURIRef['Pred'] = [stringPredBroken, uniqueURIRefPred]
+
+print(uniqueURIRef["SubObj"][0][0])
 
 stemedUniqueURIRefso = [None for v in uniqueURIRef['SubObj'][0]]
 for i in range(len(uniqueURIRef['SubObj'][0])):
@@ -117,23 +163,24 @@ for i in range(len(uniqueURIRef['Pred'][0])):
 uniqueURIRef['Pred'].append(stemedUniqueURIRefp)
 
 
+print("MY ESSAY")
+
+test_essay = ["Lisa is a girl.", "She likes all kinds of sports.", "Lisa likes tennis the most.", "Tennis is a fast sport."]
+extractionManager = ExtractionManager.ExtractionManager()
+chunks = extractionManager.getChunks(test_essay)
+print(extractionManager.mergeEssayAndChunks(test_essay, chunks))
+
+print("END MY ESSAY")
+
+URIs = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['SubObj'])
+print(URIs)
+# TODO: add VPs to predicate edges and match with URIRefs
+# ALA: URIs_predicates = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['Pred'])
 print(uniqueURIRef["Pred"])
 # TUKAJ imamo zdej isto razclenjenoe predikate in objekte, ampak so zraven še "Ref" vozlisca
 
-print('ID_URI')
-# if (os.path.exists("ID_URI/ID_URI"+fileName+str(DS)+".txt")):
-# 	print("already exists")
-# 	ID_URI = json.load(open("ID_URI/ID_URI"+fileName+str(DS)+".txt"))
-# else:
-ID_URI = dict((key, '') for key in [x + 1 for x in range(maxID)])
-ID_URI = matchIDsWithURIs(ID_URI, bagOfEntities, uniqueURIRef['SubObj'], 'SO')
-# json.dump(ID_URI, open("ID_URI/ID_URI"+fileName+str(DS)+".txt",'w'))
-ID_URI = {int(k): rdflib.URIRef(v) for k, v in ID_URI.items()}
 
-# for key, value in ID_URI.items():
-# 	print(str(key) + ': ' + str(value))
 
-# printList(bagOfEntities)
 
 
 print('edgeID_URI')

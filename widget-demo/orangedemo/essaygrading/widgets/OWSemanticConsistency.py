@@ -145,7 +145,10 @@ class OWSemanticConsistency(OWWidget):
                                     transformers=[preprocess.LowercaseTransformer()],
                                     pos_tagger=pos.AveragedPerceptronTagger(),
                                     normalizer=preprocess.WordNetLemmatizer())
-        p_sentences = preprocess.Preprocessor(tokenizer=preprocess.PunktSentenceTokenizer())
+        p_sentences = preprocess.Preprocessor(tokenizer=preprocess.PunktSentenceTokenizer(),
+                                              transformers=[preprocess.LowercaseTransformer()],
+                                              pos_tagger=pos.AveragedPerceptronTagger(),
+                                              normalizer=preprocess.WordNetLemmatizer())
 
         corpus = p(data)
         corpus = copy.deepcopy(corpus)
@@ -317,6 +320,6 @@ def calculateAttributes(sentences, openie_system="ClausIE", callback=None):
 
 if __name__ == "__main__":
 
-    WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/small_set_graded.tsv"),
+    WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/set1_train.tsv"),
                                       set_source_texts=Corpus.from_file("../datasets/source_texts.tsv"))
 
