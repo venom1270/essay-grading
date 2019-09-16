@@ -108,7 +108,7 @@ class ClausIE(OpenIEExtraction):
         #all_sentences = lemmatizeSentences(all_sentences, stem_ing=True)
         # mogoce zanimivo: https://stackoverflow.com/questions/47856247/extract-verb-phrases-using-spacy
         # Try stemming, because ClausIE does not have robust error handling
-        all_sentences = stemSentences(all_sentences)
+        #all_sentences = stemSentences(all_sentences)
         print(all_sentences)
         extracted_triples = self.openie.extract_triples(all_sentences)
 

@@ -35,6 +35,19 @@ def stemSentences(sentences):
         stemmed_sentences.append(" ".join([stemmer.stem(token) for token in tokens]))
     return stemmed_sentences
 
+def breakToWords(s):
+    charIndex = 0
+    sBroken = ''
+    for c in s:
+        if charIndex==0:
+            sBroken = sBroken + c.lower()
+        elif c.isupper():
+            sBroken = sBroken + ' ' + c.lower()
+        else:
+            sBroken = sBroken + c
+        charIndex = charIndex + 1
+    return(sBroken)
+
 def get_wordnet_pos(treebank_tag):
     if treebank_tag.startswith('J'):
         return nltk.corpus.wordnet.ADJ

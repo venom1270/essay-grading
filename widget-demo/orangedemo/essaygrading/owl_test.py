@@ -5,9 +5,12 @@ from rdflib.graph import Graph
 from rdflib.term import URIRef
 from rdflib.graph import Namespace
 import nltk
+import re
 
 from orangedemo.essaygrading.utils.HermiT import HermiT
 from orangedemo.essaygrading.utils import ExtractionManager
+from orangedemo.essaygrading.utils import OpenIEExtraction
+from orangedemo.essaygrading.utils.lemmatizer import breakToWords
 
 '''
 TODO
@@ -33,19 +36,6 @@ in potem doda se zares v ontologijo (povezave? kaj tocno nevem?) in preveri s He
 
 import spacy
 
-
-def breakToWords(s):
-	charIndex = 0
-	sBroken = ''
-	for c in s:
-		if charIndex==0:
-			sBroken = sBroken + c.lower()
-		elif c.isupper():
-			sBroken = sBroken + ' ' + c.lower()
-		else:
-			sBroken = sBroken + c
-		charIndex = charIndex + 1
-	return(sBroken)
 
 #onto_path.append("data/")
 #onto = get_ontology("data/COSMO.owl")
@@ -83,8 +73,15 @@ for subj, pred, obj in g:
 
 print(count)
 print(len(g))
-
+'''
 COSMO = Namespace("http://micra.com/COSMO/COSMO.owl#")
+
+for meaning in g.objects(URIRef("http://micra.com/COSMO/COSMO.owl#King"), COSMO.wnsense):
+    print(meaning)
+    print(re.findall(r'(\w+?)(\d+)([a-z]+)', meaning))
+
+exit()
+'''
 '''
 print(COSMO["Person"])
 print(COSMO["http://colab.cim3.net/file/work/SICoP/ontac/COSMO/COSMO.owl#Wizard"])
@@ -165,25 +162,33 @@ uniqueURIRef['Pred'].append(stemedUniqueURIRefp)
 
 print("MY ESSAY")
 
-test_essay = ["Lisa is a girl.", "She likes all kinds of sports.", "Lisa likes tennis the most.", "Tennis is a fast sport."]
+#test_essay = ["Lisa is a girl.", "She likes all kinds of sports.", "Lisa likes tennis the most.", "Tennis is a fast sport."]
+#test_essay = ["Tennis is a fast sport.", "Lisa doesn't like fast sports.", "Lisa likes tennis."]
+test_essay = ["Lisa is a boy.", "Lisa is a girl."]
 extractionManager = ExtractionManager.ExtractionManager()
 chunks = extractionManager.getChunks(test_essay)
 print(extractionManager.mergeEssayAndChunks(test_essay, chunks))
 
 print("END MY ESSAY")
 
-URIs = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['SubObj'])
+URIs = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['SubObj'][0])
 print(URIs)
 # TODO: add VPs to predicate edges and match with URIRefs
 # ALA: URIs_predicates = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['Pred'])
-print(uniqueURIRef["Pred"])
+print("UNIQUE URI REF: " + str(uniqueURIRef["SubObj"]))
 # TUKAJ imamo zdej isto razclenjenoe predikate in objekte, ampak so zraven še "Ref" vozlisca
 
+# TODO NUJNO!!! : POFIXEJ TO DA SE CUDNO APPENDA - najprej ne stematiziran, potem stematizirano v drugacni obliki arraya - problem je ker ne najde "femal" v URIRefs...
 
 
+# ADD OPENIE EXTRACTIONS TO ONTOLOGY
+openie = OpenIEExtraction.ClausIE()
+triples = openie.extract_triples([test_essay])
+print(triples)
+
+extractionManager.addExtractionToOntology(g, triples[0], uniqueURIRef['SubObj'], uniqueURIRef['Pred'])
 
 
-print('edgeID_URI')
 
 '''
 i = 0
