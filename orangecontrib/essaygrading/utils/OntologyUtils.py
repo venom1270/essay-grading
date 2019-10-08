@@ -195,9 +195,9 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
         print(extractionManager.mergeEssayAndChunks(essay, chunks["np"], "SubjectObject"))
         print(extractionManager.mergeEssayAndChunks(essay, chunks["vp"], "Predicate"))
 
-        URIs = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['SubObj'][0], "SubjectObject")
+        URIs = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['SubObj'], "SubjectObject")
         #print(URIs)
-        URIs = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['Pred'][0], "Predicate")
+        URIs = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['Pred'], "Predicate")
         #print(URIs)
 
         # ALA: URIs_predicates = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['Pred'])

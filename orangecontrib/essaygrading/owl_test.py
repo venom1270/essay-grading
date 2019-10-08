@@ -217,9 +217,9 @@ print(extractionManager.mergeEssayAndChunks(test_essay, chunks["vp"], "Predicate
 
 print("END MY ESSAY")
 
-URIs = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['SubObj'][0], "SubjectObject")
+URIs = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['SubObj'], "SubjectObject")
 print(URIs)
-URIs = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['Pred'][0], "Predicate")
+URIs = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['Pred'], "Predicate")
 print(URIs)
 
 # ALA: URIs_predicates = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['Pred'])

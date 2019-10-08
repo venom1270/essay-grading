@@ -1,45 +1,40 @@
 # PACKAGE INSTALLATIONS
 # conda install spacy
 # python -m spacy download en
+# python -m spacy download en_core_web_lg
+# python -m spacy download en_core_web_sm
+# python -m spacy download en_vectors_web_lg
 
-from orangecontrib.essaygrading.utils import OpenIEExtraction
 
+import copy
+import string
 import numpy as np
+import concurrent.futures
+from functools import partial
+
 
 import Orange.data
 from Orange.widgets.widget import OWWidget, Input, Output, Msg
 from Orange.widgets import gui
 from Orange.widgets import settings
 from Orange.widgets.utils.widgetpreview import WidgetPreview
-
-from orangecontrib.text import Corpus
-from orangecontrib.text import preprocess
-from orangecontrib.text.tag import pos
-
-from orangecontrib.text.widgets.utils import CheckListLayout
-
-from orangecontrib.essaygrading.utils.task import Task
-
-from functools import partial
-
-
-import copy
-import string
-from nltk.stem import WordNetLemmatizer
-
-import concurrent.futures
 from Orange.widgets.utils.concurrent import (
     ThreadExecutor, FutureWatcher, methodinvoke
 )
 
 from AnyQt.QtCore import QThread, pyqtSlot
 
+from orangecontrib.text import Corpus
+from orangecontrib.text import preprocess
+from orangecontrib.text.tag import pos
+from orangecontrib.text.widgets.utils import CheckListLayout
+from orangecontrib.essaygrading.utils.task import Task
 from orangecontrib.essaygrading.utils import OntologyUtils
 
 
 class OWSemanticConsistency(OWWidget):
     name = "Semantic Consistency"
-    description = "Check semantic consistency of the essay and reports on errors."
+    description = "Checks semantic consistency of the essay and reports on errors."
     icon = "../icons/DataSamplerA.svg"
     priority = 10
 
@@ -151,7 +146,8 @@ class OWSemanticConsistency(OWWidget):
                                     pos_tagger=pos.AveragedPerceptronTagger(),
                                     normalizer=preprocess.WordNetLemmatizer())
         p_sentences = preprocess.Preprocessor(tokenizer=preprocess.PunktSentenceTokenizer(),
-                                              #transformers=[preprocess.LowercaseTransformer()], # ce je to vklopljeno, pol neki nedela cist prov.
+                                              #transformers=[preprocess.LowercaseTransformer()],
+                                              # ce je to vklopljeno, pol neki nedela cist prov.
                                               pos_tagger=pos.AveragedPerceptronTagger(),
                                               )
 
@@ -277,7 +273,8 @@ class OWSemanticConsistency(OWWidget):
             if self.attributeDictionaryGraded:
                 print("FINISHED")
                 print(self.attributeDictionaryGraded)
-                domain = Orange.data.Domain([Orange.data.ContinuousVariable.make(key) for key in self.attributeDictionaryGraded],
+                domain = Orange.data.Domain([Orange.data.ContinuousVariable.make(key)
+                                             for key in self.attributeDictionaryGraded],
                                             Orange.data.ContinuousVariable.make("score"))
 
                 arr = np.array([value for _, value in self.attributeDictionaryGraded.items()])

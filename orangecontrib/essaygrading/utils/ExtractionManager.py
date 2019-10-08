@@ -60,6 +60,7 @@ class ExtractionManager:
            # for URI_index in range(len(URIRefs[3])):
                 #print(URIRefs[3][URI_index])
                 #exit()
+            print(URIRefs[2])
             similarNode, _ = self.similarNode(URIRefs[2], entity["text"], indepth=True)
             if similarNode is not None:
                 print("SIMILAR")
@@ -533,7 +534,7 @@ class ExtractionManager:
 
     def sentenceSimilarity(self, s1, s2):
         count = 0
-        #print("S!: ", s1)
+        #print("S1: ", s1, "  ---- S2: ", s2)
         s1 = word_tokenize(s1)
         s2 = word_tokenize(s2)
         for word in s1:
