@@ -1,0 +1,6 @@
+[orange.widgets]
+Essay Grading = orangecontrib.essaygrading.widgets
+
+[orange3.addon]
+essaygrading = orangecontrib.essaygrading
+

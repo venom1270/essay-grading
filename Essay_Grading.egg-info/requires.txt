@@ -1,0 +1,9 @@
+Orange3>=3.4.3
+language-check
+nltk>=3.0.5
+numpy
+pyspellchecker
+scikit-learn
+scipy
+setuptools-git
+spacy

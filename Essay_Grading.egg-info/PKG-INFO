@@ -1,0 +1,20 @@
+Metadata-Version: 1.1
+Name: Essay-Grading
+Version: 0.1.0.dev0+unknown
+Summary: Orange3 EssayGrading add-on.
+Home-page: TODO
+Author: Bioinformatics Laboratory, FRI UL
+Author-email: info@biolab.si
+License: UNKNOWN
+Download-URL: TODO
+Description: Orange3 Essay Grading
+        ============
+        
+        Orange add-on for essay grading. TODO BLABLA It provides access to publicly available data,
+        like NY Times, Twitter and PubMed. Further, it provides tools for preprocessing,
+        constructing vector spaces (like bag-of-words, topic modeling and word2vec) and
+        visualizations like word cloud end geo map. All features can be combined with
+        powerful data mining techniques from the Orange data mining framework.
+        
+Keywords: orange3-essaygrading,data mining,orange3 add-on
+Platform: UNKNOWN
