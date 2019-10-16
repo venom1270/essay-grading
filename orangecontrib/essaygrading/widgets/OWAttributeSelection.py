@@ -494,5 +494,7 @@ if __name__ == "__main__":
     #WidgetPreview(OWAttributeSelection).run(set_data=Corpus.from_file("../set1_train.tsv"),
     #                                   set_source_texts=Corpus.from_file("../source_texts.tsv"))
 
-    WidgetPreview(OWAttributeSelection).run(set_graded_data=Corpus.from_file("../datasets/small_set.tsv"))
+    WidgetPreview(OWAttributeSelection).run(set_graded_data=Corpus.from_file("../datasets/small_set.tsv"),
+                                      set_ungraded_data=Corpus.from_file("../datasets/small_set.tsv"),
+                                      set_source_texts=Corpus.from_file("../datasets/source_texts.tsv"))
 
