@@ -6,17 +6,27 @@ from orangecontrib.essaygrading.modules.BaseModule import BaseModule
 from orangecontrib.essaygrading.utils.parse_tree_util import get_parse_tree_height
 
 
+name = "Grammar"
+
+
 class Grammar(BaseModule):
 
-    def __init__(self, corpus, corpus_sentences):
-        super().__init__(corpus, corpus_sentences)
+    name = "Grammar"
+
+    def __init__(self, corpus=None, corpus_sentences=None):
+        if corpus is not None and corpus_sentences is not None:
+            self._load(corpus, corpus_sentences)
+
+    def _load(self, corpus, corpus_sentences):
+        super()._load(corpus, corpus_sentences)
 
         self.attributes = []
 
         self.pos_tag_counter = [collections.Counter([x for x in doc]) for doc in self.corpus.pos_tags]
         # clean stopwords
-        self.pos_tag_counter = [{key: value for key, value in doc.items() if key not in string.punctuation and key != "''"}
-                           for doc in self.pos_tag_counter]
+        self.pos_tag_counter = [
+            {key: value for key, value in doc.items() if key not in string.punctuation and key != "''"}
+            for doc in self.pos_tag_counter]
 
     def calculate_all(self, selected_attributes, attribute_dictionary, callback=None, proportions=None, i=None):
         if selected_attributes is None or selected_attributes.cbNumberOfDifferentPosTags:

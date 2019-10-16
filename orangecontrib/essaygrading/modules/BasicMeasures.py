@@ -3,11 +3,12 @@ import nltk
 import collections
 from orangecontrib.essaygrading.modules.BaseModule import BaseModule
 
+name = "Basic measures"
+
 
 class BasicMeasures(BaseModule):
 
-    def __init__(self, corpus, corpus_sentences):
-        super().__init__(corpus, corpus_sentences)
+    name = "Basic measures"
 
     def calculate_all(self, selected_attributes, attribute_dictionary, callback=None, proportions=None, i=None):
 

@@ -7,27 +7,34 @@ import numpy as np
 import spacy
 import math
 
+name = "Coherence"
+
 
 # GLOVE Word Embeddings
 # python -m spacy download en_vectors_web_lg
-
 class Coherence(BaseModule):
 
-    def __init__(self, corpus, corpus_sentences, source_texts, word_embeddings):
-        super().__init__(corpus, corpus_sentences)
+    name = "Coherence and semantics"
 
-        self.source_texts = source_texts
+    def __init__(self, corpus, corpus_sentences, source_texts=None, word_embeddings="TF-IDF"):
+        self._load(corpus, corpus_sentences, source_texts, word_embeddings)
 
-        self.attributes = []
-        self.corpus_parts = []
-        self.tfidf_parts = []
-        self.essay_scores = []
-        self.distance_matrix = []
+    def _load(self, corpus, corpus_sentences, source_texts=None, word_embeddings="TF-IDF"):
+        if corpus is not None and corpus_sentences is not None:
+            super()._load(corpus, corpus_sentences)
 
-        if word_embeddings == "TF-IDF":
-            self.use_glove = False
-        else:
-            self.use_glove = True
+            self.source_texts = source_texts
+
+            self.attributes = []
+            self.corpus_parts = []
+            self.tfidf_parts = []
+            self.essay_scores = []
+            self.distance_matrix = []
+
+            if word_embeddings == "TF-IDF":
+                self.use_glove = False
+            else:
+                self.use_glove = True
 
     def calculate_all(self, selected_attributes, attribute_dictionary, callback=None, proportions=None, i=None):
 

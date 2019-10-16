@@ -60,7 +60,7 @@ class ExtractionManager:
            # for URI_index in range(len(URIRefs[3])):
                 #print(URIRefs[3][URI_index])
                 #exit()
-            print(URIRefs[2])
+            #print(URIRefs[2])
             similarNode, _ = self.similarNode(URIRefs[2], entity["text"], indepth=True)
             if similarNode is not None:
                 print("SIMILAR")

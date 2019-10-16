@@ -6,12 +6,20 @@ import string
 from orangecontrib.essaygrading.modules.BaseModule import BaseModule
 from orangecontrib.essaygrading.utils.syllables_util import get_syllable_count, get_syllable_count_word
 
+name = "Readability measures"
+
 
 class ReadabilityMeasures(BaseModule):
 
+    name = "Readability measures"
+
     def __init__(self, corpus, corpus_sentences):
         super().__init__(corpus, corpus_sentences)
+        if corpus is not None and corpus_sentences is not None:
+            self._load(corpus, corpus_sentences)
 
+    def _load(self, corpus, corpus_sentences):
+        super()._load(corpus, corpus_sentences)
         self.syllable_count = get_syllable_count(self.filtered_tokens)
 
     def calculate_all(self, selected_attributes, attribute_dictionary, callback=None, proportions=None, i=None):

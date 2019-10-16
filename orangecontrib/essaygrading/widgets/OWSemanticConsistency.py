@@ -43,7 +43,7 @@ class OWSemanticConsistency(OWWidget):
         source_texts = Input("Source texts", Corpus)
 
     class Outputs:
-        errors = Output("Errors", Orange.data.Table)
+        feedback = Output("Feedback", Orange.data.Table)
 
     class Error(OWWidget.Error):
         pass
@@ -263,43 +263,15 @@ class OWSemanticConsistency(OWWidget):
             self.error("Exception occurred during evaluation: {!r}"
                        .format(ex))
         else:
-            # split the combined result into per learner/model results ...
+            '''domain = Orange.data.Domain([Orange.data.StringVariable.make("feedback")])
 
-            self.attributeDictionaryGraded = results[0]
-            self.attributeDictionaryUngraded = results[1]
+            arr = []
+            for essay_feedback in results:
+                for f in essay_feedback:
+                    arr.append(f)
 
-            outGraded = None
-            # Only output if dictionary is not empty (contains attributes)
-            if self.attributeDictionaryGraded:
-                print("FINISHED")
-                print(self.attributeDictionaryGraded)
-                domain = Orange.data.Domain([Orange.data.ContinuousVariable.make(key)
-                                             for key in self.attributeDictionaryGraded],
-                                            Orange.data.ContinuousVariable.make("score"))
-
-                arr = np.array([value for _, value in self.attributeDictionaryGraded.items()])
-
-                print("INF CHECK GRADED")
-                for k,i in self.attributeDictionaryGraded.items():
-                    if np.isinf(i).any():
-                      print(k)
-                print(arr)
-                outGraded = Orange.data.Table.from_numpy(domain, np.array(arr).transpose(), self.corpus.X[:, 5])
-
-            outUngraded = None
-            if self.attributeDictionaryUngraded:
-                domain = Orange.data.Domain(
-                    [Orange.data.ContinuousVariable.make(key) for key in self.attributeDictionaryUngraded])
-                arr = np.array([value for _, value in self.attributeDictionaryUngraded.items()])
-                print("INF CHECK UNGRADED")
-                for k,i in self.attributeDictionaryGraded.items():
-                    if np.isinf(i).any():
-                      print(k)
-                print(arr)
-                outUngraded = Orange.data.Table.from_numpy(domain, np.array(arr).transpose())
-
-            self.Outputs.attributes_graded.send(outGraded)
-            self.Outputs.attributes_ungraded.send(outUngraded)
+            out = Orange.data.Table.from_numpy(domain, np.array(arr).transpose())
+            self.Outputs.feedback.send(out)'''
 
     # "reset"
     def _invalidate_results(self):

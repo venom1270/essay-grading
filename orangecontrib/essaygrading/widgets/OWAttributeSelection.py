@@ -60,12 +60,7 @@ class OWAttributeSelection(OWWidget):
     attributeDictionary = {}
 
     selected_attributes = []
-    selected_attributes_names = ["Basic Measures",
-                                 "Readability Measures",
-                                 "Lexical Diversity",
-                                 "Grammar",
-                                 "Content",
-                                 "Coherence and Semantics"]
+    selected_attributes_names = []
 
     coherence_word_embeddings = "TF-IDF"
 
@@ -73,6 +68,10 @@ class OWAttributeSelection(OWWidget):
 
     def __init__(self):
         super().__init__()
+
+        self.METHODS = (BasicMeasures.BasicMeasures, ReadabilityMeasures.ReadabilityMeasures,
+                        LexicalDiversity.LexicalDiversity, Grammar.Grammar, Content.Content, Coherence.Coherence)
+        self.selected_attributes_names = [m.name for m in self.METHODS]
 
         self.corpus = None
         self.corpus_sentences = None
@@ -234,7 +233,8 @@ class OWAttributeSelection(OWWidget):
             ungraded_corpus_sentences=self.ungraded_corpus_sentences,
             source_texts=self.source_texts,
             attr=self.selected_attributes,
-            word_embeddings=self.coherence_word_embeddings
+            word_embeddings=self.coherence_word_embeddings,
+            METHODS=self.METHODS
         )
 
         #print(self.cb_coherence_word_embeddings)
@@ -358,7 +358,7 @@ class OWAttributeSelection(OWWidget):
         self._update()
 
 def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, ungraded_corpus,
-                        ungraded_corpus_sentences, attr, callback, word_embeddings):
+                        ungraded_corpus_sentences, attr, callback, word_embeddings, METHODS):
     word_length_threshold = 7
     sentence_length_threshold = 40
     lemmatizer = WordNetLemmatizer()
@@ -386,12 +386,24 @@ def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, un
     attributeDictionaryGraded = {}
     attributeDictionaryUngraded = {}
 
-    i = 0
+
 
 
     # TODO: naredi METHODS = (metoda1, metoda2, ...) ??
-    METHODS = ()
+    names = [m.name for m in METHODS]
+    modules = {}
+    for m in attr:
+        index = names.index(m)
+        module = METHODS[index]
+        if m.startswith("Coherence"):
+            module = module(graded_corpus, graded_corpus_sentences, source_texts, word_embeddings)
+        elif m.startswith("Content"):
+            module = module(graded_corpus, graded_corpus_sentences, source_texts)
+        else:
+            module = module(graded_corpus, graded_corpus_sentences)
+        modules[m] = module
 
+    '''
     modules = dict()
     modules["Basic Measures"] = BasicMeasures.BasicMeasures(graded_corpus, graded_corpus_sentences)
     modules["Readability Measures"] = ReadabilityMeasures.ReadabilityMeasures(graded_corpus, graded_corpus_sentences)
@@ -400,7 +412,7 @@ def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, un
     modules["Content"] = Content.Content(graded_corpus, graded_corpus_sentences, source_texts)
     modules["Coherence and Semantics"] = Coherence.Coherence(graded_corpus, graded_corpus_sentences, source_texts,
                                                              word_embeddings)
-
+    '''
     '''
     basicMeasures = BasicMeasures.BasicMeasures(new_corpus, new_corpus_sentences)
     readabilityMeasures = ReadabilityMeasures.ReadabilityMeasures(new_corpus, new_corpus_sentences)
@@ -416,13 +428,14 @@ def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, un
     #i = content.calculate_all(attr, attributeDictionary, callback, proportions, i)
     #i = coherence.calculate_all(attr, attributeDictionary, callback, proportions, i)
 
+    i = 0
     for m in attr:
         i = modules[m].calculate_all(None, attributeDictionaryGraded, callback, proportions, i)
         callback(proportions[i])
         i += 1
 
-
     if ungraded_corpus and ungraded_corpus_sentences:
+        '''
         modules = {}
         modules["Basic Measures"] = BasicMeasures.BasicMeasures(ungraded_corpus, ungraded_corpus_sentences)
         modules["Readability Measures"] = ReadabilityMeasures.ReadabilityMeasures(ungraded_corpus,
@@ -433,6 +446,19 @@ def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, un
                                              graded_corpus=graded_corpus)
         modules["Coherence and Semantics"] = Coherence.Coherence(ungraded_corpus, ungraded_corpus_sentences,
                                                                  source_texts, word_embeddings)
+
+        '''
+        modules = {}
+        for m in attr:
+            index = names.index(m)
+            module = METHODS[index]
+            if m.startswith("Coherence"):
+                module = module(ungraded_corpus, ungraded_corpus_sentences, source_texts, word_embeddings)
+            elif m.startswith("Content"):
+                module = module(ungraded_corpus, ungraded_corpus_sentences, source_texts, graded_corpus=graded_corpus)
+            else:
+                module = module(ungraded_corpus, ungraded_corpus_sentences)
+            modules[m] = module
 
         for m in attr:
             i = modules[m].calculate_all(None, attributeDictionaryUngraded, callback, proportions, i)
@@ -447,6 +473,7 @@ def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, un
     print(attributeDictionaryGraded)
     return attributeDictionaryGraded, attributeDictionaryUngraded
 
+
 def is_number(n):
     try:
         if math.isnan(float(n)):
@@ -454,6 +481,7 @@ def is_number(n):
         return True
     except ValueError:
         return False
+
 
 if __name__ == "__main__":
     #print(nsyl("the"))

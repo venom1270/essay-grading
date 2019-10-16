@@ -46,7 +46,9 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
     print("Starting...")
 
     g = Graph()
-    g.parse("../data/COSMO-Serialized.owl", format="xml")
+    #g.parse("../data/COSMO-Serialized.owl", format="xml")
+    g.parse("C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangecontrib/essaygrading/data/COSMO-Serialized.owl",
+            format="xml")
 
     subObjSet = []
     predSet = []
@@ -167,9 +169,14 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
             print("Essay " + str(i))
             essay = " ".join(essays[i])
             doc = nlp(essay)
+            # TODO: punkt sentence tokenizer?
             essay = doc._.coref_resolved.split(". ")
-            print(essay)
-            prepared_essays.append(essay)
+            essay_final = []
+            for e in essay[:-1]:
+                essay_final.append(e + ".")
+            essay_final.append(essay[-1])
+            print(essay_final)
+            prepared_essays.append(essay_final)
         nlp.remove_pipe("neuralcoref")
     else:
         prepared_essays = essays

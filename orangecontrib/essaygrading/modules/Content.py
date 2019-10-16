@@ -8,32 +8,40 @@ from spellchecker import SpellChecker
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+name = "Content"
+
 
 class Content(BaseModule):
+
+    name = "Content"
+
+    def __init__(self, corpus, corpus_sentences, source_texts=None, graded_corpus=None):
+        self._load(corpus, corpus_sentences, source_texts, graded_corpus)
 
     # graded corpus is used when comparing "Score point level for maximum cosine similarity over all score points"
     # and "max cosine sim"
     # if empty, just compare with "leave one out" method
-    def __init__(self, corpus, corpus_sentences, source_texts, graded_corpus=None):
-        super().__init__(corpus, corpus_sentences)
-        self.source_texts = source_texts
+    def _load(self, corpus, corpus_sentences, source_texts=None, graded_corpus=None):
+        if corpus is not None and corpus_sentences is not None:
+            super()._load(corpus, corpus_sentences)
+            self.source_texts = source_texts
 
-        self.attributes = []
+            self.attributes = []
 
-        self.pos_tag_counter = [collections.Counter([x for x in doc]) for doc in self.corpus.pos_tags]
-        # clean stopwords
-        self.pos_tag_counter = [{key: value for key, value in doc.items() if key not in string.punctuation and key != "''"}
-                           for doc in self.pos_tag_counter]
+            self.pos_tag_counter = [collections.Counter([x for x in doc]) for doc in self.corpus.pos_tags]
+            # clean stopwords
+            self.pos_tag_counter = [{key: value for key, value in doc.items() if key not in string.punctuation and key != "''"}
+                               for doc in self.pos_tag_counter]
 
-        self.spellchecker = SpellChecker()
-        self.lang_check = None
-        self.lang_check_errors = None
+            self.spellchecker = SpellChecker()
+            self.lang_check = None
+            self.lang_check_errors = None
 
-        self.tfidf_matrix = None
-        self.essay_scores = None
-        self.cosine = None
+            self.tfidf_matrix = None
+            self.essay_scores = None
+            self.cosine = None
 
-        self.graded_corpus = graded_corpus
+            self.graded_corpus = graded_corpus
 
     def _cosine_preparation(self):
         tfidf_vectorizer = TfidfVectorizer(max_features=200000, stop_words="english",
