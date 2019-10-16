@@ -15,13 +15,13 @@ class Content(BaseModule):
 
     name = "Content"
 
-    def __init__(self, corpus, corpus_sentences, source_texts=None, graded_corpus=None):
-        self._load(corpus, corpus_sentences, source_texts, graded_corpus)
+    def __init__(self, corpus, corpus_sentences, grades, source_texts=None, graded_corpus=None):
+        self._load(corpus, corpus_sentences, grades, source_texts=source_texts, graded_corpus=graded_corpus)
 
     # graded corpus is used when comparing "Score point level for maximum cosine similarity over all score points"
     # and "max cosine sim"
     # if empty, just compare with "leave one out" method
-    def _load(self, corpus, corpus_sentences, source_texts=None, graded_corpus=None):
+    def _load(self, corpus, corpus_sentences, grades, source_texts=None, graded_corpus=None):
         if corpus is not None and corpus_sentences is not None:
             super()._load(corpus, corpus_sentences)
             self.source_texts = source_texts
@@ -38,10 +38,11 @@ class Content(BaseModule):
             self.lang_check_errors = None
 
             self.tfidf_matrix = None
-            self.essay_scores = None
+            self.essay_scores = np.array(grades)
             self.cosine = None
 
             self.graded_corpus = graded_corpus
+
 
     def _cosine_preparation(self):
         tfidf_vectorizer = TfidfVectorizer(max_features=200000, stop_words="english",
@@ -54,13 +55,12 @@ class Content(BaseModule):
 
         #print(docs)
         self.tfidf_matrix = tfidf_vectorizer.fit_transform(docs)
-        #print(self.tfidf_matrix)
+        #self.tfidf_matrix = self.tfidf_matrix * self.tfidf_matrix.T
+        print(self.tfidf_matrix)
+
         self.cosine = cosine_similarity(self.tfidf_matrix)
         print(self.cosine)
         #print(self.cosine[-1][:-1])
-
-
-        #print(self.essay_scores)
 
         # Now calculate cosine for ungraded vs graded essays
         if self.graded_corpus:
@@ -72,11 +72,13 @@ class Content(BaseModule):
             print("ALL")
             print(cosine_similarity(tfidf))
             self.cosine_graded = cosine_similarity(tfidf)[:len(self.corpus), len(self.corpus):]
-            self.essay_scores = list(np.floor(self.graded_corpus.X[:, 5] / 2))
+            #self.essay_scores = list(np.floor(self.graded_corpus.X[:, 5] / 2))
+            self.essay_scores = list(np.floor(self.essay_scores / 2))
             print("COSINE GRADED")
             print(self.cosine_graded)
         else:
-            self.essay_scores = list(np.floor(self.corpus.X[:, 5] / 2))
+            # TODO: kaj je to???
+            self.essay_scores = list(np.floor(self.essay_scores / 2))
 
         print("Cosine preparation finished")
 
@@ -188,7 +190,6 @@ class Content(BaseModule):
             for ii in range(len(self.corpus.documents)):
                 row = self.cosine[ii][:-1]
                 most_similar_doc_index = list(row).index(sorted(row, reverse=True)[1])
-                print(ii, most_similar_doc_index)
                 max_similarity_scores.append(self.essay_scores[most_similar_doc_index])
             return max_similarity_scores
 
@@ -197,7 +198,7 @@ class Content(BaseModule):
             for ii in range(len(self.corpus.documents)):
                 row = self.cosine_graded[ii][:]
                 most_similar_doc_index = list(row).index(sorted(row, reverse=True)[0])
-                print(ii, most_similar_doc_index)
+                #print(ii, most_similar_doc_index)
                 max_similarity_scores.append(self.essay_scores[most_similar_doc_index])
             return max_similarity_scores
 

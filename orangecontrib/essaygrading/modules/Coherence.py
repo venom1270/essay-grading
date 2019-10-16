@@ -16,14 +16,15 @@ class Coherence(BaseModule):
 
     name = "Coherence and semantics"
 
-    def __init__(self, corpus, corpus_sentences, source_texts=None, word_embeddings="TF-IDF"):
-        self._load(corpus, corpus_sentences, source_texts, word_embeddings)
+    def __init__(self, corpus, corpus_sentences, grades, source_texts=None, word_embeddings="TF-IDF"):
+        self._load(corpus, corpus_sentences, grades, source_texts, word_embeddings)
 
-    def _load(self, corpus, corpus_sentences, source_texts=None, word_embeddings="TF-IDF"):
+    def _load(self, corpus, corpus_sentences, grades, source_texts=None, word_embeddings="TF-IDF"):
         if corpus is not None and corpus_sentences is not None:
             super()._load(corpus, corpus_sentences)
 
             self.source_texts = source_texts
+            self.grades = np.array(grades)
 
             self.attributes = []
             self.corpus_parts = []
@@ -501,7 +502,7 @@ class Coherence(BaseModule):
                 #print(essay_word_embedding)
                 self.tfidf_parts.append(np.array(essay_word_embedding))
 
-        self.essay_scores = list(np.floor(self.corpus.X[:, 5] / 2))
+        self.essay_scores = list(np.floor(self.grades / 2))
 
         #print(self.tfidf_parts)
 

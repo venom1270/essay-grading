@@ -116,16 +116,13 @@ class OWAttributeSelection(OWWidget):
 
             # domain 1 scores
             #print(corpus.X[:,5])
-            offset = 2
+            offset = 1
             for i, value in enumerate(corpus.X[0][offset:]):
                 print(str(i) + " --- " + str(value))
                 if is_number(value):
                     essay_scores.append(corpus.X[:, i+offset])
 
             self.corpus_grades = np.array(essay_scores).transpose()
-
-
-
 
             if len(self.corpus_grades) == 0:
                 self.Warning.no_grades()
@@ -231,6 +228,7 @@ class OWAttributeSelection(OWWidget):
             graded_corpus_sentences=self.corpus_sentences,
             ungraded_corpus=self.ungraded_corpus,
             ungraded_corpus_sentences=self.ungraded_corpus_sentences,
+            grades=self.corpus_grades,
             source_texts=self.source_texts,
             attr=self.selected_attributes,
             word_embeddings=self.coherence_word_embeddings,
@@ -357,7 +355,7 @@ class OWAttributeSelection(OWWidget):
         self.attributeDictionaryUngraded = {}
         self._update()
 
-def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, ungraded_corpus,
+def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, ungraded_corpus, grades,
                         ungraded_corpus_sentences, attr, callback, word_embeddings, METHODS):
     word_length_threshold = 7
     sentence_length_threshold = 40
@@ -386,19 +384,15 @@ def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, un
     attributeDictionaryGraded = {}
     attributeDictionaryUngraded = {}
 
-
-
-
-    # TODO: naredi METHODS = (metoda1, metoda2, ...) ??
     names = [m.name for m in METHODS]
     modules = {}
     for m in attr:
         index = names.index(m)
         module = METHODS[index]
         if m.startswith("Coherence"):
-            module = module(graded_corpus, graded_corpus_sentences, source_texts, word_embeddings)
+            module = module(graded_corpus, graded_corpus_sentences, grades, source_texts, word_embeddings)
         elif m.startswith("Content"):
-            module = module(graded_corpus, graded_corpus_sentences, source_texts)
+            module = module(graded_corpus, graded_corpus_sentences, grades, source_texts)
         else:
             module = module(graded_corpus, graded_corpus_sentences)
         modules[m] = module
@@ -453,9 +447,10 @@ def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, un
             index = names.index(m)
             module = METHODS[index]
             if m.startswith("Coherence"):
-                module = module(ungraded_corpus, ungraded_corpus_sentences, source_texts, word_embeddings)
+                module = module(ungraded_corpus, ungraded_corpus_sentences, grades, source_texts, word_embeddings)
             elif m.startswith("Content"):
-                module = module(ungraded_corpus, ungraded_corpus_sentences, source_texts, graded_corpus=graded_corpus)
+                module = module(ungraded_corpus, ungraded_corpus_sentences, grades, source_texts,
+                                graded_corpus=graded_corpus)
             else:
                 module = module(ungraded_corpus, ungraded_corpus_sentences)
             modules[m] = module
@@ -499,7 +494,5 @@ if __name__ == "__main__":
     #WidgetPreview(OWAttributeSelection).run(set_data=Corpus.from_file("../set1_train.tsv"),
     #                                   set_source_texts=Corpus.from_file("../source_texts.tsv"))
 
-    WidgetPreview(OWAttributeSelection).run(set_graded_data=Corpus.from_file("../datasets/small_set_graded.tsv"),
-                                      set_ungraded_data=Corpus.from_file("../datasets/small_set.tsv"),
-                                      set_source_texts=Corpus.from_file("../datasets/source_texts.tsv"))
+    WidgetPreview(OWAttributeSelection).run(set_graded_data=Corpus.from_file("../datasets/small_set.tsv"))
 
