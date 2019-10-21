@@ -86,6 +86,8 @@ class ExtractionManager:
         4. Preverimo feedback (rocno)
         '''
 
+        EXPLAIN = True
+
         ner_nlp = spacy.load("en_core_web_sm")
         feedback_array = []
         #over sentences
@@ -109,7 +111,7 @@ class ExtractionManager:
                 print("Adding extracted triple relation...")
                 # def recurse_add_remove(self, ONTO, root, rdfType, operation, subj, pred):
                 self.recurse_add_remove(ONTO, CURI, rdflib.namespace.RDFS.subClassOf, "add", AURI, BURI)
-                ok = self.tryAddToOntology(ONTO, AURI, BURI, CURI, remove=False)
+                ok = self.tryAddToOntology(ONTO, AURI, BURI, CURI, remove=False, explain=EXPLAIN)
                 print(t)
                 print(t.subject + t.predicate + t.object)
                 print(sent)
@@ -117,8 +119,18 @@ class ExtractionManager:
                 # TO je zato, da
                 if len(entityTypes) > 0 and entityTypes[0]["type"] != "PERSON" and BURI == rdflib.namespace.RDF.type:
                     print("SPECIAL ADD")
-                    ok = self.tryAddToOntology(ONTO, AURI, rdflib.namespace.RDFS.subClassOf, CURI, remove=False)
+                    ok = self.tryAddToOntology(ONTO, AURI, rdflib.namespace.RDFS.subClassOf, CURI, remove=False, explain=EXPLAIN)
 
+                if ok is not True:
+                    print("Relation " + str(t) + " is inconsistent with base ontology.")
+                    if EXPLAIN:
+                        print("***** Explanation begin ******")
+                        print(ok)
+                        print("***** Explanation end ******")
+
+                '''
+                ************ OLD FEEDBACK **************
+                
                 if not ok:
                     # iskat mormo vedno po subClassOf, ce je RDF.type ("is")
                     fBURI = BURI
@@ -146,6 +158,7 @@ class ExtractionManager:
                         print(f)
                     feedback_array.append(f)
                     self.recurse_add_remove(ONTO, CURI, rdflib.namespace.RDFS.subClassOf, "remove", AURI, BURI)
+                    '''
 
         # TODO: return errors (1, 2, 1+2)
         return feedback_array
@@ -159,6 +172,10 @@ class ExtractionManager:
             element = " ".join(element.split()[1:])
         if elementType == "Predicate":
             print(self.entities["SubjectObject"])
+
+        # isn't => isnot    doesn't => doesnot  didn't => didnot
+        element = element.replace("n't", "not")
+
         index, similarNode = self.similarNode([e["text"] for e in self.entities[elementType]], element, indepth=False)
         # TUKAJ PRIMERJA ENTITIJE V TEM STAVKU (zaradi optimizacije?) ki jih je pridobila s shallow parsingom
         # -> DOBI ID IN POTEM TAKOJ URIRef
@@ -408,18 +425,21 @@ class ExtractionManager:
         # TO JE TO!!!!! NOW GTW
         return elementURI
 
-    def tryAddToOntology(self, ONTO, subj_URI, type, obj_URI, symetric=False, remove=True):
+    def tryAddToOntology(self, ONTO, subj_URI, type, obj_URI, symetric=False, remove=True, explain=False):
         if (subj_URI, type, obj_URI) not in ONTO:
             print("elementURI: " + str(subj_URI))
             print("Adding URI '" + str(subj_URI) + "' to ontology as " + str(type) + " of '" + str(obj_URI) + "'")
             ONTO.add((subj_URI, type, obj_URI))
             if symetric: # if we want a symetric relation (e.g. disjointWith)
                 ONTO.add((obj_URI, type, subj_URI))
-            if not self.hermit.check_unsatisfiable_cases(ONTO, remove=remove):
+            # If explain==True, then we will return explanations IF ontology is inconsistent, otherwise True or False
+            check = self.hermit.check_unsatisfiable_cases(ONTO, remove=remove, explain=explain)
+            # We just check for True -> if consistent then we return True, else explanations or False
+            if not isinstance(check, bool) or check is False:
                 print("Removing...")
                 ONTO.remove((subj_URI, type, obj_URI))
                 ONTO.remove((obj_URI, type, subj_URI))
-                return False
+            return check
         else:
             print("Already in ONTO! " + str(subj_URI) + " " + str(type) + " " + str(obj_URI))
         return True

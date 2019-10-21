@@ -189,7 +189,9 @@ uniqueURIRef['Pred'].append(stemedUniqueURIRefp)
 print("MY ESSAY")
 
 #test_essay = ["Lisa is a girl.", "She likes all kinds of sports.", "Lisa likes tennis the most.", "Tennis is a fast sport."]
-test_essay = ["Tennis is a fast sport.", "Lisa does not like fast sport.", "Lisa likes tennis."]
+test_essay = ["Tennis is a fast sport.", "Lisa doesn't like fast sport.", "Lisa likes tennis."] #TODO: zrihtaj za mnozino 'fast sportS'
+#test_essay = ["Lisa likes tennis.", "Lisa hates tennis."] # wordnet nima ustreznih protipomenk za 'hate'
+#test_essay = ["Boris likes Tina.", "Tina likes Boris.", "Boris doesn't like Tina."]
 #test_essay = ["Lisa is a boy.", "Lisa is a girl."]
 #test_essay = ["Lisa does not like sports.", "Lisa likes tennis."]
 #test_essay = ["Lisa likes tennis.", "Lisa does not like sports."]
