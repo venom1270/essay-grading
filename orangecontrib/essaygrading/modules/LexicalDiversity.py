@@ -1,5 +1,6 @@
 import numpy as np
 import nltk
+import os
 import collections
 from orangecontrib.essaygrading.modules.BaseModule import BaseModule
 
@@ -137,9 +138,9 @@ class LexicalDiversity(BaseModule):
         # advanced_tokens / sqrt(all_tokens)
         # https://pdfs.semanticscholar.org/a93b/a9b8f746800dc06ebeda02284cd8148d238a.pdf
         num_difficult_words = []
-        # TODO: naceloma iz pycharma dela '../.txt', amapak potem v orange canvasu nedela...
-        with open("C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangecontrib/essaygrading/data/dale_chall_word_list.txt",
-                  "r") as word_list_file:
+        file_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/data/dale_chall_word_list.txt"
+        # "C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangecontrib/essaygrading/data/dale_chall_word_list.txt"
+        with open(file_path, "r") as word_list_file:
             word_list = [word.replace("\n", "").lower() for word in word_list_file]
             for doc in self.filtered_tokens:
                 difficult_words = []
