@@ -13,6 +13,7 @@ This is an essay grading add-on for [Orange data mining](https://orange.biolab.s
         cd essay-grading
         activate "C:\Program Files\Orange"
         pip install -e .
+        python -m spacy download en
         python -m spacy download en_vectors_web_lg
 
 - Open Orange
