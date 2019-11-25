@@ -8,11 +8,11 @@ This is an essay grading add-on for [Orange data mining](https://orange.biolab.s
 
 - Clone this repository
 
-
-- Open Anaconda prompt, navigate to cloned repository, activate Orange environment and download additional vocabulary files:
+- Open Anaconda prompt, navigate to cloned repository, activate Orange environment, install essay grading, and download additional vocabulary files:
 
         cd essay-grading
         activate "C:\Program Files\Orange"
+		pip install -e .
         python -m spacy download en_vectors_web_lg
 
 - Open Orange
