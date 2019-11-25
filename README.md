@@ -4,7 +4,7 @@ This is an essay grading add-on for [Orange data mining](https://orange.biolab.s
 
 ## Installation
 
-- [Download Orange](https://orange.biolab.si/download/)
+- [Download and install Orange](https://orange.biolab.si/download/)
 
 - Clone this repository
 
