@@ -23,7 +23,7 @@ class HermiT:
 
         '''
         os.chdir(self.path)
-        onto_path = "ontologies/ontology_tmp_test.owl"
+        onto_path = "ontologies/ontology_tmp_test_qwe.owl"
         ontology.serialize(onto_path, format='pretty-xml')
         IRI = "file:///" + self.path + onto_path
         print("Hermit call")
@@ -69,7 +69,7 @@ class HermiT:
                 read = f.read()
                 f.close()
                 print(read)
-                if read[38:49] != "owl:Nothing":
+                if read[38:49] != "owl:Nothing" or len(read) > 52:
                     print("unsatisfiable COUNT +1")
                     #errorCount[1] = errorCount[1] + 1
                     #extrNumber = extrNumber - 1
@@ -127,16 +127,20 @@ class HermiT:
         #print(text)
         parsed_explanation = []
         if text:
-            for i in range(1, num_groups+1):
-                print(text.group(i))
+            #for i in range(1, num_groups+1):
+            #    print(text.group(i))
             typ = text.group(1)
             exp_text = ""
             if typ == "ObjectPropertyAssertion":
                 exp_text = "Relation not consistent: " + str(text.group(3)) + " " + str(text.group(2)) + " " + str(text.group(4)) + "."
                 print(exp_text)
             elif typ == "DisjointObjectProperties":
-                exp_text = "Relations " + str(text.group(2)) + " and " + str(text.group(3)) + " are opposite."
+                exp_text = "Relations " + str(text.group(2)) + " and " + str(text.group(3)) + " are opposite/disjoint."
                 print(exp_text)
+            elif typ == "DisjointClasses":
+                exp_text = "Concepts " + str(text.group(2)) + " and " + str(text.group(3)) + " are opposite/disjoint."
+            elif typ == "ClassAssertion":
+                exp_text = "'" + str(text.group(3)) + " is " + str(text.group(2)) + "'."
             else:
                 print("Unknown relation type: " + str(typ))
             parsed_explanation.append(exp_text)

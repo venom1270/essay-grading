@@ -287,32 +287,12 @@ def calculateAttributes(sentences, openie_system="ClausIE", use_coreference=Fals
     return f
 
 
-    '''
-    print(use_coreference)
-    exit()
-
-    print("QWE")
-    print(openie_system)
-    if openie_system == "ClausIE":
-        openie = OpenIEExtraction.ClausIE()
-    else:
-        openie = OpenIEExtraction.OpenIE5()
-
-    triples = openie.extract_triples(sentences)
-
-    print("FINAL TRIPLES: ")
-    print(triples)
-
-    return triples
-    '''
-
-
 
 if __name__ == "__main__":
 
     #WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/set1_train.tsv"),
     #                                  set_source_texts=Corpus.from_file("../datasets/source_texts.tsv"))
 
-    WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/test_essay.tsv"),
+    WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/small_set.tsv"),
                                       set_source_texts=Corpus.from_file("../datasets/source_texts.tsv"))
 

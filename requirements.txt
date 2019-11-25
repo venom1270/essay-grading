@@ -1,9 +1,13 @@
 scipy
 nltk>=3.0.5     # TweetTokenizer introduces in 3.0.5
 scikit-learn
-numpy
+numpy # po defaultu 1.16.4
 setuptools-git
 Orange3>=3.4.3
 language-check
 pyspellchecker
 spacy
+rdflib
+textacy
+pyclausie # + se moji popravki (treba je dat v neko mapo na repotu in povedat nej iz tm instalira)
+neuralcoref # problem, ker je nekompatibilen s starim numpyom in novim spacyem

@@ -14,10 +14,20 @@ class Grammar(BaseModule):
     name = "Grammar"
 
     def __init__(self, corpus=None, corpus_sentences=None):
+        """
+        Overrides parent __init__ and calls _load().
+        :param corpus: Tokenized essay Corpus.
+        :param corpus_sentences: Tokenized (by sentence) essay Corpus.
+        """
         if corpus is not None and corpus_sentences is not None:
             self._load(corpus, corpus_sentences)
 
     def _load(self, corpus, corpus_sentences):
+        """
+        Calls parent _load() and sets additional parameters not present in parent _load().
+        :param corpus: Tokenized essay Corpus.
+        :param corpus_sentences: Tokenized (by sentence) essay Corpus.
+        """
         super()._load(corpus, corpus_sentences)
 
         self.attributes = []
@@ -29,6 +39,15 @@ class Grammar(BaseModule):
             for doc in self.pos_tag_counter]
 
     def calculate_all(self, selected_attributes, attribute_dictionary, callback=None, proportions=None, i=None):
+        """
+        Calculates all attributes in this module.
+        :param selected_attributes: Object with attributes to calculate (boolean flags). If None, calculate all.
+        :param attribute_dictionary: Attribute dicitionary which will be filled with calculated attributes.
+        :param callback: Callback update function for progressbar.
+        :param proportions: List of possible progressbar values.
+        :param i: Index of current progressbar value.
+        :return: i (index of progressbar value).
+        """
         if selected_attributes is None or selected_attributes.cbNumberOfDifferentPosTags:
             num_of_different_pos_tags = self.calculate_num_different_pos_tags()
             print("Num of different POS tags: ", num_of_different_pos_tags)
@@ -62,11 +81,19 @@ class Grammar(BaseModule):
         return i
 
     def calculate_num_different_pos_tags(self):
+        """
+        Calculates number of different POS tags (Part-of-Speech tags).
+        :return: Number of different POS tags for each essay.
+        """
         # TODO: med POS tagi so pike, vejce, oklepaji... treba bi blo removat stop worde -- update: to je ze?
         num_of_different_pos_tags = [len(doc) for doc in self.pos_tag_counter]
         return num_of_different_pos_tags
 
     def calculate_sentence_structure_tree_height(self):
+        """
+        Calculates sentence structure tree height. Creates a tree structure for each sentence and averages their height.
+        :return: Average sentence structure height for each essay.
+        """
         # https://www.oit.ac.jp/japanese/toshokan/tosho/kiyou/jinshahen/55-2/01.pdf
         print("TREE PARSING")
         tree_parser = spacy.load("en")
@@ -77,6 +104,10 @@ class Grammar(BaseModule):
         return average_tree_height
 
     def calculate_correct_verb_form(self):
+        """
+        Calculates number of verb forms (simply: verbs) for each essay. We just identify verbs using POS tags.
+        :return: Number of verbs for each essay.
+        """
         # TODO: najdi knjiznico za to ali pa izracunaj delez napak ki se nanasajo na glagole
         # TODO: TUKAJ SE VEDNO NE VIDIM LEGIT RESITVE
         # torej: st_napak_na_glagolih / st_verb_pos_tagov
@@ -86,6 +117,15 @@ class Grammar(BaseModule):
         return num_verb_forms
 
     def _calculate_num_each_pos_tag(self, selected_attributes, attribute_dictionary, callback, proportions, i):
+        """
+        Calculates number of each POS tag in each essay. Identical behavior to _calculate_all() method.
+        :param selected_attributes: Object with attributes to calculate (boolean flags). If None, calculate all.
+        :param attribute_dictionary: Attribute dicitionary which will be filled with calculated attributes.
+        :param callback: Callback update function for progressbar.
+        :param proportions: List of possible progressbar values.
+        :param i: Index of current progressbar value.
+        :return: i (index of progressbar value).
+        """
         if selected_attributes is None or selected_attributes.cbPosCoordinatingConjunction:
             pos_count = np.array([tags.get("CC", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_CC"] = pos_count

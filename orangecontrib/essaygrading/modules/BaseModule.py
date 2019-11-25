@@ -6,10 +6,22 @@ import numpy as np
 class BaseModule:
 
     def __init__(self, corpus=None, corpus_sentences=None):
+        """
+        Initializes module.
+        :param corpus: Tokenized essay Corpus.
+        :param corpus_sentences: Tokenized (by sentence) essay Corpus.
+        """
         if corpus is not None and corpus_sentences is not None:
             self._load(corpus, corpus_sentences)
 
     def _update_progressbar(self, callback, proportions, i):
+        """
+        Helper function for updating widget progressbar in Orange.
+        :param callback: Callback function which updates progressbar.
+        :param proportions: Array of possible progress-bar progress.
+        :param i: Current progress (proportions index).
+        :return: Returns next progress index for calling this method next time.
+        """
         if callback is not None and proportions is not None and i is not None:
             callback(proportions[i])
             return i + 1
@@ -17,6 +29,11 @@ class BaseModule:
             return i
 
     def _init_processing(self, corpus, corpus_sentences):
+        """
+        Called by _load(), initializes basic attributes shared across all modules (counting, frequency).
+        :param corpus: Tokenized essay Corpus.
+        :param corpus_sentences: Tokenized (by sentence) essay Corpus.
+        """
         self.filtered_tokens = [[token.lower() for token in doc if token not in string.punctuation] for doc in
                                 corpus.tokens]
         self.num_of_characters = np.array([len(doc) for doc in corpus.documents])
@@ -28,8 +45,13 @@ class BaseModule:
         self.freq_words = [nltk.probability.FreqDist(doc) for doc in self.filtered_tokens]
 
     def _load(self, corpus, corpus_sentences):
-        self.word_length_threshold = 7
-        self.sentence_length_threshold = 40
+        """
+        Sets thresholds and calls _init_processing() for calculation of basic attributes shared across modules.
+        :param corpus: Tokenized essay Corpus.
+        :param corpus_sentences: Tokenized (by sentence) essay Corpus.
+        """
+        self.word_length_threshold = 5
+        self.sentence_length_threshold = 90
 
         self.corpus = corpus
         self.corpus_sentences = corpus_sentences

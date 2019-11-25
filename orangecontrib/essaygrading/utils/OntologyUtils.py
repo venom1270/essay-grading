@@ -1,15 +1,9 @@
-#pip install owlready2
-
-#from owlready2 import *
 from rdflib.graph import Graph
-from rdflib.term import URIRef
 from rdflib.graph import Namespace
 from rdflib.namespace import RDF, OWL, RDFS
 import nltk
-import re
 import neuralcoref
 
-from orangecontrib.essaygrading.utils.HermiT import HermiT
 from orangecontrib.essaygrading.utils import ExtractionManager
 from orangecontrib.essaygrading.utils import OpenIEExtraction
 from orangecontrib.essaygrading.utils.lemmatizer import breakToWords
@@ -55,23 +49,9 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
     count = 0
 
     COSMO = Namespace("http://micra.com/COSMO/COSMO.owl#")
-    URI_likes = COSMO["likes"]
 
     for subj, pred, obj in g:
 
-        #if str(type(subj)) == "<class 'rdflib.term.BNode'>" or str(type(pred)) == "<class 'rdflib.term.BNode'>" or str(type(obj)) == "<class 'rdflib.term.BNode'>":
-        #    count += 1
-        #    g.remove((subj, pred, obj))
-
-        '''
-        if pred == RDF.type:
-            if URI_likes == subj:
-                print("YEZZZ")
-                print(subj, pred, obj)
-        '''
-
-        #subObjSet.extend([subj, obj])
-        #predSet.append(pred)
         if pred == RDF.type and obj == OWL.ObjectProperty:
             predSet.append(subj)
         elif pred == RDF.type and obj == OWL.Class:
@@ -93,21 +73,6 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
         if str(type(node)) == "<class 'rdflib.term.URIRef'>":
             uniqueURIRefPred.append(node)
 
-    print(len(uniqueURIRefSubObj)) #COSMO=10916
-    print(len(uniqueURIRefPred)) #COSMO=352
-
-
-    print(uniqueURIRefSubObj)
-    print(uniqueURIRefPred)
-
-    # uniqueURIRef = set(uniqueURIRefSubObj + uniqueURIRefPred)
-    # print(len(uniqueURIRef)) #COSMO=10936
-
-    # for node in uniqueURIRefSubObj:
-    # 	if
-    # 	print(str(node)[str(node).index("#")+1:])
-    # 	print(' - - - ')
-
     stringSubObj = [str(node)[str(node).find("#") + 1:] for node in uniqueURIRefSubObj]
     for i in range(len(stringSubObj) - 1, -1, -1):
         if stringSubObj[i] == '':
@@ -119,20 +84,12 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
             del stringPred[i]
     stringPredBroken = [breakToWords(s) for s in stringPred]
 
-    print(stringSubObj)
-    print(stringSubObjBroken)
-    print(stringPred)
-    print(stringPredBroken)
-
     # tukaj imamo razclenjene objekte in predikate
-
     porter = nltk.PorterStemmer()
 
     uniqueURIRef = {}
     uniqueURIRef['SubObj'] = [stringSubObjBroken, uniqueURIRefSubObj]
     uniqueURIRef['Pred'] = [stringPredBroken, uniqueURIRefPred]
-
-    print(uniqueURIRef["SubObj"][0][0])
 
     stemedUniqueURIRefso = [None for v in uniqueURIRef['SubObj'][0]]
     for i in range(len(uniqueURIRef['SubObj'][0])):
@@ -148,13 +105,6 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
 
 
     print("Ontology preparation finished")
-
-    #test_essay = ["Lisa is a girl.", "She likes all kinds of sports.", "Lisa likes tennis the most.", "Tennis is a fast sport."]
-    #test_essay = ["Tennis is a fast sport.", "Lisa does not like fast sport.", "Lisa likes tennis."]
-    #test_essay = ["Lisa is a boy.", "Lisa is a girl."]
-    #test_essay = ["Lisa does not like sports.", "Lisa likes tennis."]
-    #test_essay = ["Lisa likes tennis.", "Lisa does not like sports."]
-    #test_essay = ["Dear local newspaper, I think effects computers have on people are great learning skills/affects because they give us time to chat with friends/new people, helps us learn about the globe(astronomy) and keeps us out of troble!", "Now I hope you have reached a point to understand and agree with me, because computers can have great effects on you or child because it gives us time to chat with friends/new people, helps us learn about the globe and believe or not keeps us out of troble.", "Thank you for listening."]
 
     prepared_essays = []
 
@@ -187,17 +137,18 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
 
     if openie_system == "ClausIE":
         openie = OpenIEExtraction.ClausIE()
-    elif openie_system == "OpenIE5":
+    elif openie_system == "OpenIE-5.0":
         openie = OpenIEExtraction.OpenIE5()
 
     final_results = []
     essays_feedback = []
+    essays_errors = []
 
     for i, essay in enumerate(prepared_essays):
 
         print(" ----- Processing essay " + str(i+1) + " / " + str(len(prepared_essays)) + " --------")
 
-        extractionManager = ExtractionManager.ExtractionManager()
+        extractionManager = ExtractionManager.ExtractionManager(turbo=True)
         chunks = extractionManager.getChunks(essay)
         print(extractionManager.mergeEssayAndChunks(essay, chunks["np"], "SubjectObject"))
         print(extractionManager.mergeEssayAndChunks(essay, chunks["vp"], "Predicate"))
@@ -212,27 +163,20 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
         # TUKAJ imamo zdej isto razclenjenoe predikate in objekte, ampak so zraven še "Ref" vozlisca
 
 
-        # je to se aktualno? TODO NUJNO!!! : POFIXEJ TO DA SE CUDNO APPENDA - najprej ne stematiziran, potem stematizirano v drugacni obliki arraya - problem je ker ne najde "femal" v URIRefs...
-
-        #
         # ADD OPENIE EXTRACTIONS TO ONTOLOGY
         print("OpenIE extraction...")
+        print(essay)
         triples = openie.extract_triples([essay])
         print(triples)
 
         # 'be' je v URIREF['SubObj']
 
         print("Adding extractions to ontology...")
-        feedback = extractionManager.addExtractionToOntology(g, triples[0], uniqueURIRef['SubObj'], uniqueURIRef['Pred'])
+        feedback, errors = extractionManager.addExtractionToOntology(g, triples[0], uniqueURIRef['SubObj'], uniqueURIRef['Pred'])
         essays_feedback.append(feedback)
+        essays_errors.append(errors)
+
+    print(essays_errors)
 
     return essays_feedback
 
-
-'''
-i = 0
-for triple in t:
-    print(triple)
-    i += 1
-    #if i > 1000: break
-'''

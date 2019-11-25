@@ -14,16 +14,34 @@ class ReadabilityMeasures(BaseModule):
     name = "Readability measures"
 
     def __init__(self, corpus, corpus_sentences):
+        """
+        Overrides parent __init__ and calls _load().
+        :param corpus: Tokenized essay Corpus.
+        :param corpus_sentences: Tokenized (by sentence) essay Corpus.
+        """
         super().__init__(corpus, corpus_sentences)
         if corpus is not None and corpus_sentences is not None:
             self._load(corpus, corpus_sentences)
 
     def _load(self, corpus, corpus_sentences):
+        """
+        Calls parent _load() and sets additional parameters - caluclates number of syllables in each essay.
+        :param corpus: Tokenized essay Corpus.
+        :param corpus_sentences: Tokenized (by sentence) essay Corpus.
+        """
         super()._load(corpus, corpus_sentences)
         self.syllable_count = get_syllable_count(self.filtered_tokens)
 
     def calculate_all(self, selected_attributes, attribute_dictionary, callback=None, proportions=None, i=None):
-
+        """
+        Calculates all attributes in this module.
+        :param selected_attributes: Object with attributes to calculate (boolean flags). If None, calculate all.
+        :param attribute_dictionary: Attribute dicitionary which will be filled with calculated attributes.
+        :param callback: Callback update function for progressbar.
+        :param proportions: List of possible progressbar values.
+        :param i: Index of current progressbar value.
+        :return: i (index of progressbar value).
+        """
         if selected_attributes is None or selected_attributes.cbGunningFogIndex:
             gunning_fog_index = self.calculate_gunning_fog()
             print("Gunning Fog index:", gunning_fog_index)
@@ -90,22 +108,39 @@ class ReadabilityMeasures(BaseModule):
         return i
 
     def calculate_gunning_fog(self):
+        """
+        Calculates Gunning fog index. (https://en.wikipedia.org/wiki/Gunning_fog_index)
+        :return: Gunning fog index for each essay.
+        """
         complex_words = np.array([len([w for w in doc if len(w) > 7]) for doc in self.corpus.tokens])
         gunning_fog_index = 0.4 * ((self.num_of_words / self.num_of_sentences) +
                                    100 * (complex_words / self.num_of_words))
         return gunning_fog_index
 
     def calculate_flesch_reading_ease(self):
+        """
+        Calculates Flesch reading ease. (https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests)
+        :return: Flesch reading ease for each essay.
+        """
         flesch_reading_ease = 206.835 - 1.015 * (self.num_of_words / self.num_of_sentences) - \
                               84.6 * (self.syllable_count / self.num_of_words)
         return flesch_reading_ease
 
     def calculate_flesch_kincaid_grade(self):
+        """
+        Calculates Flesch-Kincaid grade level. (https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests)
+        :return: Flesch-Kincaid grade level for each essay.
+        """
         flesch_kincaid_grade_level = 0.39 * (self.num_of_words / self.num_of_sentences) + \
                                      11.8 * (self.syllable_count / self.num_of_words) - 15.59
         return flesch_kincaid_grade_level
 
     def calculate_dale_chall_readability(self):
+        """
+        Calculates Dale-Chall readability formula. (https://en.wikipedia.org/wiki/Dale%E2%80%93Chall_readability_formula)
+        A set of about 3000 "hard" words is used.
+        :return: Dale-Chall readability formula for each essay.
+        """
         stemmer = nltk.stem.PorterStemmer()
         word_list = []
         # TODO: lematizacija, trenutno mislim da so nekolk previsoki rezultati; tudi ce to resim so potem problem utf-8 punctuationi...
@@ -122,6 +157,10 @@ class ReadabilityMeasures(BaseModule):
         return dale_chall_readability_formula
 
     def calculate_automated_readability_index(self):
+        """
+        Calculates Automated redability index. (https://en.wikipedia.org/wiki/Automated_readability_index)
+        :return: Automated readability index for each essay.
+        """
         # TODO: nekolk velke score dobim (+1)
         num_letters_numbers = np.array([sum([len(token) for token in doc]) for doc in self.filtered_tokens])
         automated_readability_index = 4.71 * (num_letters_numbers / self.num_of_words) + \
@@ -130,6 +169,10 @@ class ReadabilityMeasures(BaseModule):
         return automated_readability_index
 
     def calculate_simple_measure_gobbledygook(self):
+        """
+        Calculates Simple measure of Gobbledygook ("SMOG"). (https://en.wikipedia.org/wiki/SMOG)
+        :return: Simple measure of Gobbledygook for each essay.
+        """
         # TODO: zlogi se cist nedelajo ampak mislm da je dost dobra ocena dejanske vrednosti
         num_of_polysyllables = np.array([len([token for token in doc if get_syllable_count_word(token) >= 3])
                                          for doc in self.filtered_tokens])
@@ -137,6 +180,10 @@ class ReadabilityMeasures(BaseModule):
         return simple_measure_of_gobbledygook
 
     def calculate_lix(self):
+        """
+        Calculates LIX readability test. (https://en.wikipedia.org/wiki/Lix_(readability_test))
+        :return: LIX for each essay.
+        """
         # TODO: zgleda okish ampak je tud ena simplificiran verzija; periods == sentences???
         # Number of periods (defined by period, colon or capital first letter) -- TODO?: manjka capital first leter
         num_of_periods = np.array([len([c for c in doc if c == '.' or c == ',']) for doc in self.corpus.documents])
@@ -146,6 +193,10 @@ class ReadabilityMeasures(BaseModule):
         return lix
 
     def calculate_word_variation_index(self):
+        """
+        Calculates word variation index. (https://www.aclweb.org/anthology/W11-4627.pdf)
+        :return: Word variation index for each essay.
+        """
         # TODO: REFERENCE: https://www.semanticscholar.org/paper/Automatic-summarization-as-means-of-simplifying-an-Smith-J%C3%B6nsson/76d562cbda4d4bfc74bbc9488570615b3f78841e
         # http://aclweb.org/anthology/W/W11/W11-4627.pdf
         # TODO: division by zero -napou poravlen
@@ -156,6 +207,10 @@ class ReadabilityMeasures(BaseModule):
         return ovix
 
     def calculate_nominal_ratio(self):
+        """
+        Calculates nominal ratio. Uses POS tags. (https://www.aclweb.org/anthology/W11-4627.pdf)
+        :return: Nominal ratio for each essay.
+        """
         pos_tag_counter = [collections.Counter([x for x in doc]) for doc in self.corpus.pos_tags]
         # clean stopwords
         pos_tag_counter = [{key: value for key, value in doc.items() if key not in string.punctuation and key != "''"}

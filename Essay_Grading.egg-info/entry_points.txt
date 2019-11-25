@@ -1,3 +1,6 @@
+[orange.canvas.help]
+html-index = orangecontrib.essaygrading.widgets:WIDGET_HELP_PATH
+
 [orange.widgets]
 Essay Grading = orangecontrib.essaygrading.widgets
 

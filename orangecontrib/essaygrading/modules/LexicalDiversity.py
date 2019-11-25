@@ -11,7 +11,15 @@ class LexicalDiversity(BaseModule):
     name = "Lexical diversity"
 
     def calculate_all(self, selected_attributes, attribute_dictionary, callback=None, proportions=None, i=None):
-        
+        """
+        Calculates all attributes in this module.
+        :param selected_attributes: Object with attributes to calculate (boolean flags). If None, calculate all.
+        :param attribute_dictionary: Attribute dicitionary which will be filled with calculated attributes.
+        :param callback: Callback update function for progressbar.
+        :param proportions: List of possible progressbar values.
+        :param i: Index of current progressbar value.
+        :return: i (index of progressbar value).
+        """
         if selected_attributes is None or selected_attributes.cbTypeTokenRatio:
             type_token_ratio = self.calculate_type_token_ratio()
             print("Type Token Ratio: ", type_token_ratio)
@@ -57,15 +65,27 @@ class LexicalDiversity(BaseModule):
         return i
 
     def calculate_type_token_ratio(self):
+        """
+        Calculates Type-token ratio.
+        :return: Type-token ratio for each essay.
+        """
         return self.num_of_different_words / self.num_of_words
 
     # https://pdfs.semanticscholar.org/a93b/a9b8f746800dc06ebeda02284cd8148d238a.pdf
     def calculate_guirauds_index(self):
+        """
+        Calculates Guiraud's index. (https://pdfs.semanticscholar.org/a93b/a9b8f746800dc06ebeda02284cd8148d238a.pdf)
+        :return: Guiraud's index for each essay.
+        """
         return self.num_of_different_words / np.sqrt(self.num_of_words)
 
     # https://www.mitpressjournals.org/doi/pdf/10.1162/COLI_a_00228
     # https://swizec.com/blog/measuring-vocabulary-richness-with-python/swizec/2528
     def calculate_yules_k(self):
+        """
+        Calculates Yule's K. (https://www.mitpressjournals.org/doi/pdf/10.1162/COLI_a_00228)
+        :return:
+        """
         m1 = np.array([len(fw) for fw in self.freq_words])
         stemmer = nltk.stem.porter.PorterStemmer()
         # group frequencies and check nmumber of words
@@ -86,6 +106,11 @@ class LexicalDiversity(BaseModule):
         return yules_k
 
     def calculate_d_estimate(self):
+        """
+        Calculate the D estimate.
+        (http://dl.ndl.go.jp/view/download/digidepo_3500542_po_01.pdf?contentNo=1; some math required to get final formula)
+        :return: D estimate for each essay.
+        """
         # TODO: https://www.oit.ac.jp/japanese/toshokan/tosho/kiyou/jinshahen/55-2/01.pdf.
         # TODO: http://dl.ndl.go.jp/view/download/digidepo_3500542_po_01.pdf?contentNo=1&alternativeNo=
         # D = - (N * TTR**2) / (2 * (TTR - 1))
@@ -97,9 +122,17 @@ class LexicalDiversity(BaseModule):
         return d_estimate
 
     def calculate_hapax_legomena(self):
+        """
+        Calculates hapax legomena. (Number of words that appear only once in an essay.)
+        :return: Hapax legomena for each essay.
+        """
         return [len([word for word, freq in doc.items() if freq == 1]) for doc in self.freq_words]
 
     def calculate_advanced_guirauds_index(self):
+        """
+        Calculates Advanced Guiraud's index. (https://sci-hub.tw/10.1093/applin/24.2.197) TODO: tole je scihub :D
+        :return: Advanced Guiraud's index for each essay.
+        """
         # LINK: https://sci-hub.tw/10.1093/applin/24.2.197
         # advanced_tokens / sqrt(all_tokens)
         # https://pdfs.semanticscholar.org/a93b/a9b8f746800dc06ebeda02284cd8148d238a.pdf

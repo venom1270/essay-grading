@@ -8,7 +8,7 @@
 BACKGROUND = "light-blue"
 
 
-'''
+
 
 # Location of widget help files.
 WIDGET_HELP_PATH = (
@@ -22,7 +22,6 @@ WIDGET_HELP_PATH = (
     # Url should point to a page with a section Widgets. This section should
     # includes links to documentation pages of each widget. Matching is
     # performed by comparing link caption to widget name.
-    ("https://orange3-text.readthedocs.io/en/latest/", "")
+    ("https://orange3-essaygradingTODO.readthedocs.io/en/latest/", "")
 )
 
-'''

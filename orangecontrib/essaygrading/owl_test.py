@@ -189,7 +189,11 @@ uniqueURIRef['Pred'].append(stemedUniqueURIRefp)
 print("MY ESSAY")
 
 #test_essay = ["Lisa is a girl.", "She likes all kinds of sports.", "Lisa likes tennis the most.", "Tennis is a fast sport."]
-test_essay = ["Tennis is a fast sport.", "Lisa doesn't like fast sport.", "Lisa likes tennis."] #TODO: zrihtaj za mnozino 'fast sportS'
+#test_essay = ["Tennis is a fast sport.", "Lisa doesn't like fast sports.", "She likes tennis."]
+test_essay = ["Tennis is a fast sport.", "Lisa doesn't like fast sports.", "Lisa likes tennis."]
+#test_essay = ["Lisa doesn't like spicy pizza.", "Pizza is spicy.", "Lisa likes pizza."] # TODO: tale je mal tricky
+#test_essay = ["Tennis is a fast sport.", "Tennis is a slow sport."]
+#test_essay = ["Peter likes pizza.", "Peter doesn't like food."]
 #test_essay = ["Lisa likes tennis.", "Lisa hates tennis."] # wordnet nima ustreznih protipomenk za 'hate'
 #test_essay = ["Boris likes Tina.", "Tina likes Boris.", "Boris doesn't like Tina."]
 #test_essay = ["Lisa is a boy.", "Lisa is a girl."]
@@ -207,12 +211,14 @@ if use_coref:
     essay = " ".join(test_essay)
     doc = nlp(essay)
     test_essay = doc._.coref_resolved.split(". ")
+    # Make sure it ends with a full stop.
+    test_essay = [e if e[-1] == '.' else str(e)+"." for e in test_essay]
     print(test_essay)
     nlp.remove_pipe("neuralcoref")
 
 
 
-extractionManager = ExtractionManager.ExtractionManager()
+extractionManager = ExtractionManager.ExtractionManager(turbo=True)
 chunks = extractionManager.getChunks(test_essay)
 print(extractionManager.mergeEssayAndChunks(test_essay, chunks["np"], "SubjectObject"))
 print(extractionManager.mergeEssayAndChunks(test_essay, chunks["vp"], "Predicate"))
@@ -227,10 +233,6 @@ print(URIs)
 # ALA: URIs_predicates = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['Pred'])
 print("UNIQUE URI REF: " + str(uniqueURIRef["SubObj"]))
 # TUKAJ imamo zdej isto razclenjenoe predikate in objekte, ampak so zraven še "Ref" vozlisca
-
-
-# TODO NUJNO!!! : POFIXEJ TO DA SE CUDNO APPENDA - najprej ne stematiziran, potem stematizirano v drugacni obliki arraya - problem je ker ne najde "femal" v URIRefs...
-
 
 # ADD OPENIE EXTRACTIONS TO ONTOLOGY
 openie = OpenIEExtraction.ClausIE()

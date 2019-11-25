@@ -1,9 +1,13 @@
 Orange3>=3.4.3
 language-check
+neuralcoref
 nltk>=3.0.5
 numpy
+pyclausie
 pyspellchecker
+rdflib
 scikit-learn
 scipy
 setuptools-git
 spacy
+textacy

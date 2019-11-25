@@ -195,7 +195,7 @@ class OpenIE5(OpenIEExtraction):
         with open("input.txt", "w", encoding="utf8") as input_file:
             for essay_sentences in sentences:
                 sent_num.append(len(essay_sentences))
-                essay_sentences = lemmatizeSentences(essay_sentences)
+                #essay_sentences = lemmatizeSentences(essay_sentences)
                 for sentence in essay_sentences:
                     if len(sentence) < 5:
                         print(sentence)
@@ -234,20 +234,27 @@ class OpenIE5(OpenIEExtraction):
                             # dodaj v triple objekt
                             triple = {}
                             if len(t_split) == 3:
-                                triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[2]}
+                                #triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[2]}
+                                triple = Triple(t_split[0], t_split[1], t_split[2])
                             else:
-                                if t_split[2].startswith("T:"):
-                                    triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[3], 'time': t_split[2]}
-                                elif t_split[3].startswith("T:"):
-                                    triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[2], 'time': t_split[3]}
+                                if t_split[2].startswith("T:") or t_split[2].startswith("L:"):
+                                    #triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[3], 'time': t_split[2]}
+                                    triple = Triple(t_split[0], t_split[1], t_split[3], t_split[2])
+                                elif t_split[3].startswith("T:") or t_split[3].startswith("L:"):
+                                    #triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[2], 'time': t_split[3]}
+                                    triple = Triple(t_split[0], t_split[1], t_split[2], t_split[3])
                                 else:
                                     print("ERROR")
                                     print(t_split)
-                                    triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[2]}
+                                    #triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[2]}
+                                    triple = Triple(t_split[0], t_split[1], t_split[2])
                                     sentence_triples.append(triple)
-                                    triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[3]}
+                                    #triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[3]}
+                                    triple = Triple(t_split[0], t_split[1], t_split[3])
                             #sentence_triples.append((confidence, t_split))
-                            out_file.write(str(essay_index) + " " + str(j) + " (" + triple["subject"] + "; " + triple["predicate"] + "; " + triple["object"] + ")\n")
+                            #out_file.write(str(essay_index) + " " + str(j) + " (" + triple["subject"] + "; " + triple["predicate"] + "; " + triple["object"] + ")\n")
+                            out_file.write(str(essay_index) + " " + str(j) + " (" + triple.subject + "; " +
+                                           triple.predicate + "; " + triple.object + ")\n")
                             sentence_triples.append(triple)
                     fi += 2
                     essay_triples.append(sentence_triples)
@@ -257,10 +264,18 @@ class OpenIE5(OpenIEExtraction):
         return triples
 
 
+class Triple:
 
+    subject = ""
+    predicate = ""
+    object = ""
+    time = ""
 
-
-
+    def __init__(self, sub, pred, obj, time=""):
+        self.subject = sub
+        self.predicate = pred
+        self.object = obj
+        self.time = time
 
 
 if __name__ == "__main__":

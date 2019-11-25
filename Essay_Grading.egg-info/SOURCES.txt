@@ -7,9 +7,12 @@ Essay_Grading.egg-info/namespace_packages.txt
 Essay_Grading.egg-info/not-zip-safe
 Essay_Grading.egg-info/requires.txt
 Essay_Grading.egg-info/top_level.txt
+doc/conf.py
+doc/widgets/__init__.py
 orangecontrib/__init__.py
 orangecontrib/essaygrading/__init__.py
 orangecontrib/essaygrading/manual_owl_test.py
+orangecontrib/essaygrading/new_hermit_test.py
 orangecontrib/essaygrading/old_tests.py
 orangecontrib/essaygrading/owl_test.py
 orangecontrib/essaygrading/spacy_coref_test.py

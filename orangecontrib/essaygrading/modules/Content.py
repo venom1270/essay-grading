@@ -16,12 +16,30 @@ class Content(BaseModule):
     name = "Content"
 
     def __init__(self, corpus, corpus_sentences, grades, source_texts=None, graded_corpus=None):
+        """
+        Overrides parent __init__ and calls _load().
+        Special: some attributes require comparison with an already graded essay ("training set"). This is "graded_corpus".
+        If None, those attributes will be skipped.
+        :param corpus: Tokenized essay Corpus.
+        :param corpus_sentences: Tokenized (by sentence) essay Corpus.
+        :param grades: Array of essay grades (ints)
+        :param source_texts: Corpus of source texts (optional)
+        :param graded_corpus: Corpus with grades ("training set").
+        """
         self._load(corpus, corpus_sentences, grades, source_texts=source_texts, graded_corpus=graded_corpus)
 
     # graded corpus is used when comparing "Score point level for maximum cosine similarity over all score points"
     # and "max cosine sim"
     # if empty, just compare with "leave one out" method
     def _load(self, corpus, corpus_sentences, grades, source_texts=None, graded_corpus=None):
+        """
+        Calls parent _load() and sets additional parameters. Initializes spellchecker.
+        :param corpus: Tokenized essay Corpus.
+        :param corpus_sentences: Tokenized (by sentence) essay Corpus.
+        :param grades: Array of essay grades
+        :param source_texts: Corpus of source texts (optional)
+        :param graded_corpus: Corpus with grades ("training set").
+        """
         if corpus is not None and corpus_sentences is not None:
             super()._load(corpus, corpus_sentences)
             self.source_texts = source_texts
@@ -43,10 +61,12 @@ class Content(BaseModule):
 
             self.graded_corpus = graded_corpus
 
-
     def _cosine_preparation(self):
-        tfidf_vectorizer = TfidfVectorizer(max_features=200000, stop_words="english",
-                                           use_idf=True)
+        """
+        Calculates word embeddings and cosine similarities between essays.
+        Results are stored in internal variables.
+        """
+        tfidf_vectorizer = TfidfVectorizer(max_features=200, stop_words="english")
 
         docs = lemmatizeTokens(self.corpus, join=True)
         # append source/prompt text
@@ -73,16 +93,27 @@ class Content(BaseModule):
             print(cosine_similarity(tfidf))
             self.cosine_graded = cosine_similarity(tfidf)[:len(self.corpus), len(self.corpus):]
             #self.essay_scores = list(np.floor(self.graded_corpus.X[:, 5] / 2))
-            self.essay_scores = list(np.floor(self.essay_scores / 2))
+            #self.essay_scores = list(np.floor(self.essay_scores / 2))
+            self.essay_scores = list(np.floor(self.essay_scores))
             print("COSINE GRADED")
             print(self.cosine_graded)
         else:
             # TODO: kaj je to???
-            self.essay_scores = list(np.floor(self.essay_scores / 2))
+            #self.essay_scores = list(np.floor(self.essay_scores / 2))
+            self.essay_scores = list(np.floor(self.essay_scores))
 
         print("Cosine preparation finished")
 
     def calculate_all(self, selected_attributes, attribute_dictionary, callback=None, proportions=None, i=None):
+        """
+        Calculates all attributes in this module.
+        :param selected_attributes: Object with attributes to calculate (boolean flags). If None, calculate all.
+        :param attribute_dictionary: Attribute dictionary which will be filled with calculated attributes.
+        :param callback: Callback update function for progressbar.
+        :param proportions: List of possible progressbar values.
+        :param i: Index of current progressbar value.
+        :return: i (index of progressbar value).
+        """
         # Useful: https://community.languagetool.org/rule/list?lang=en
 
         # Load language-check library if necessary (takes a while)
@@ -160,23 +191,43 @@ class Content(BaseModule):
         return i
 
     def calculate_num_spellcheck_errors(self):
+        """
+        Calculates number of spellchecking errors.
+        :return: Number of spellchecking errors of each essay.
+        """
         errors = np.array([len(self.spellchecker.unknown(tokens)) for tokens in self.corpus.tokens])
         return errors
 
     def calculate_num_capitalization_errors(self):
+        """
+        Calculates number of capitalization errors.
+        :return: Number of capitalization errors of each essay.
+        """
         capitalization_errors = [sum([1 for e in doc_errors if e.category == "Capitalization"])
                                  for doc_errors in self.lang_check_errors]
         return capitalization_errors
 
     def calculate_num_punctuation_errors(self):
+        """
+        Calculates number of punctuation errors.
+        :return: Number of punctuation errors of each essay.
+        """
         punctuation_errors = [sum([1 for e in doc_errors if e.category == "Punctuation" or e.category == "Miscellaneous"])
                               for doc_errors in self.lang_check_errors]
         return punctuation_errors
 
     def calculate_cosine_source_text(self):
+        """
+        Calculates cosine similarity with source text.
+        :return: Cosine similarity with source text for each essay.
+        """
         return self.cosine[-1][:-1]
 
     def calculate_cosine_max(self):
+        """
+        Calculates/"predicts" grade of essay by taking the grade of the essay it's most similar to (based on cosine similarity).
+        :return: Grades of essays that essays are most similar to.
+        """
         # TODO: nisem ziher: score point dokumenta kateremu je najbolj podoben?
         max_similarity_scores = []
 
@@ -203,6 +254,10 @@ class Content(BaseModule):
             return max_similarity_scores
 
     def calculate_cosine_best_essays(self):
+        """
+        Calculates cosine similarity with top 5 essays of the corpus. TODO
+        :return: Cosine similarities with top essays.
+        """
         # average cosine similarity with top x% score essays
         # TODO: now take 5 essay, change to relative (eg 5%)
 
@@ -232,14 +287,20 @@ class Content(BaseModule):
         return top_essay_similarities
 
     def calculate_cosine_pattern(self):
+        """
+        Calculates "Cosine pattern".
+        :return: Cosine pattern for each essay.
+        """
         # sum (score*ranking) ; ranking je lahko 1. vrstni red po podobnosti; ali 2. podobnosti po vrsti
         cos_patterns = []
 
+        n_max = int(max(self.essay_scores)) + 1
+        n_min = int(min(self.essay_scores))
         # Two cases again
         for ii in range(len(self.corpus.documents)):
             # od 1 do 12 so score pointi
             cos_correlation_values = []
-            for sp in range(1, int(max(self.essay_scores))):
+            for sp in range(n_min, n_max):
                 sp_essays = [index for index, value in enumerate(self.essay_scores) if value == sp and index != ii]
                 if self.graded_corpus is None:
                     sp_cos = [self.cosine[ii][x] for x in sp_essays]
@@ -250,21 +311,31 @@ class Content(BaseModule):
                 else:
                     sp_cos = sum(sp_cos) / len(sp_cos)
                 cos_correlation_values.append(sp_cos)
-            cos_ratings = np.argsort(cos_correlation_values)
-            cos_score_points = np.array(range(1, int(max(self.essay_scores))))
+            cos_ratings = np.argsort(np.argsort(cos_correlation_values)) + 1  # twice, to get correct 'rankings'
+            cos_score_points = np.array(range(n_min, n_max))
             cos_pattern = np.sum(cos_score_points * cos_ratings)
+            # NORMALIZATION - works
+            pat_max = np.dot(np.array(range(n_min, n_max)), np.array(range(n_min, n_max)))
+            pat_min = np.dot(np.array(range(n_min, n_max)), np.flip(np.array(range(n_min, n_max))))
+            cos_pattern = (n_max - n_min - 1) * (cos_pattern - pat_min) / (pat_max - pat_min) + n_min
             cos_patterns.append(cos_pattern)
-            # TODO: normalize with (12**2 + 11**2 ...) ??
+
         return cos_patterns
 
     def calculate_cosine_correlation_values(self):
+        """
+        Calculates "Cosine correlation values".
+        :return: Cosine weighted sum of correlation values for each essay.
+        """
         # sesstejs cosine zgornje polovice, odstejes cosine spodne polovice
         cos_weighted_sum = []
 
+        n_max = int(max(self.essay_scores)) + 1
+        n_min = int(min(self.essay_scores))
         # Two cases again
         for ii in range(len(self.corpus.documents)):
             cos_correlation_values = []
-            for sp in range(1, int(max(self.essay_scores))):
+            for sp in range(n_min, n_max):
                 sp_essays = [index for index, value in enumerate(self.essay_scores) if value == sp and index != ii]
                 if self.graded_corpus is None:
                     sp_cos = [self.cosine[ii][x] for x in sp_essays]
@@ -273,13 +344,20 @@ class Content(BaseModule):
                 if len(sp_cos) == 0:
                     sp_cos = 0
                 else:
-                    sp_cos = sum(sp_cos) / len(sp_cos)
+                    sp_cos = sum(sp_cos) / len(sp_cos)  # TODO: do we use average or just the highest???
                 cos_correlation_values.append(sp_cos)
-            cos_weighted_sum.append(sum(cos_correlation_values[3:]) - sum(cos_correlation_values[:3]))
+            # Now we have an array of cosine values (lowest to highest SP), define lower and upper half and subtract
+            half = int((n_max - n_min) / 2)
+            cos_weighted_sum.append(sum(cos_correlation_values[half:]) - sum(cos_correlation_values[:half]))
         return cos_weighted_sum
 
     # For optimization resaons, we check for grammar errors in Content.py module instead of Grammar.py module.
     def calculate_num_grammar_errors(self):
+        """
+        Calculates number of grammar errors.
+        For optimization reasons, this method is in this module. It would be more precise if it was in Grammar.py.
+        :return:
+        """
         # TODO: https: // www.tutorialspoint.com / python / python_spelling_check.htm
         grammar_errors = [sum([1 for e in doc_errors if e.category == "Grammar"])
                           for doc_errors in self.lang_check_errors]

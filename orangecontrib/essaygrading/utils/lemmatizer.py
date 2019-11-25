@@ -10,6 +10,7 @@ def lemmatizeTokens(corpus, join=False):
         tokens = [" ".join(t) for t in tokens]
     return tokens
 
+
 def lemmatizeSentences(sentences, stem_ing=False):
     lemmatizer = nltk.stem.WordNetLemmatizer()
     lemmatized_sentences = []
@@ -24,6 +25,7 @@ def lemmatizeSentences(sentences, stem_ing=False):
                                              for token in tokens]))
     return lemmatized_sentences
 
+
 def stemSentences(sentences):
     stemmer = nltk.stem.PorterStemmer()
     stemmed_sentences = []
@@ -34,6 +36,7 @@ def stemSentences(sentences):
         # Used for ClausIE because it has some problems with -ing verbs - it crashes.
         stemmed_sentences.append(" ".join([stemmer.stem(token) for token in tokens]))
     return stemmed_sentences
+
 
 def breakToWords(s):
     charIndex = 0
@@ -47,6 +50,17 @@ def breakToWords(s):
             sBroken = sBroken + c
         charIndex = charIndex + 1
     return(sBroken)
+
+
+def get_pos_tags(s, simplify=True):
+    tokens = nltk.word_tokenize(s)
+    # Remove 1 letter words
+    #tokens = [t for t in tokens if len(t) > 1]
+    pos = nltk.pos_tag(tokens)
+    if simplify:
+        pos = [(p[0], get_wordnet_pos(p[1])) for p in pos]
+    return pos
+
 
 def get_wordnet_pos(treebank_tag):
     if treebank_tag.startswith('J'):

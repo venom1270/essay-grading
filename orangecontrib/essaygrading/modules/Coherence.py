@@ -17,9 +17,26 @@ class Coherence(BaseModule):
     name = "Coherence and semantics"
 
     def __init__(self, corpus, corpus_sentences, grades, source_texts=None, word_embeddings="TF-IDF"):
+        # TODO: ZAKAJ IMAMO TUKAJ 'grades', saj jih nikjer ne uporabljamo??!!
+        """
+        Overrides parent __init__ and calls _load().
+        :param corpus: Tokenized essay Corpus.
+        :param corpus_sentences: Tokenized (by sentence) essay Corpus.
+        :param grades: Array of essay grades (ints)
+        :param source_texts: Corpus of source texts (optional)
+        :param word_embeddings: Word embeddings to use ('TF-IDF' or 'GloVe')
+        """
         self._load(corpus, corpus_sentences, grades, source_texts, word_embeddings)
 
     def _load(self, corpus, corpus_sentences, grades, source_texts=None, word_embeddings="TF-IDF"):
+        """
+        Calls parent _load() and sets additional parameters.
+        :param corpus: Tokenized essay Corpus.
+        :param corpus_sentences: Tokenized (by sentence) essay Corpus.
+        :param grades: Array of essay grades
+        :param source_texts: Corpus of source texts (optional)
+        :param word_embeddings: Word embeddings to use ('TF-IDF' or 'GloVe')
+        """
         if corpus is not None and corpus_sentences is not None:
             super()._load(corpus, corpus_sentences)
 
@@ -38,6 +55,15 @@ class Coherence(BaseModule):
                 self.use_glove = True
 
     def calculate_all(self, selected_attributes, attribute_dictionary, callback=None, proportions=None, i=None):
+        """
+        Calculates all attributes in this module.
+        :param selected_attributes: Object with attributes to calculate (boolean flags). If None, calculate all.
+        :param attribute_dictionary: Attribute dicitionary which will be filled with calculated attributes.
+        :param callback: Callback update function for progressbar.
+        :param proportions: List of possible progressbar values.
+        :param i: Index of current progressbar value.
+        :return: i (index of progressbar value).
+        """
 
         self.preprocess()
 
@@ -153,6 +179,11 @@ class Coherence(BaseModule):
         return i
 
     def calculate_neighbour_distances(self, D):
+        """
+        Calculates average, minimum, maximum distances between neighbours and their index.
+        :param D: Distance matrix.
+        :return: Average distances, minimum distances, maximum distances, indexes (4 parameters, each is an array).
+        """
         averages = []
         minimums = []
         maximums = []
@@ -171,6 +202,11 @@ class Coherence(BaseModule):
         return averages, minimums, maximums, indexes
 
     def calculate_any_point_distances(self, D):
+        """
+        Calculates average and maximum distances between any two points.
+        :param D: Distance matrix.
+        :return: Average distances, maximum distances (2 parameters, each is an array).
+        """
         averages = []
         maximums = []
         for d in D:
@@ -181,6 +217,11 @@ class Coherence(BaseModule):
         return averages, maximums
 
     def calculate_nn_distances(self, D):
+        """
+        Calculate Clark-Evans distances, Average distances between nearest neighbours and Cumulative frequency distances.
+        :param D: Distance matrix.
+        :return: Clark-Evans distances, average distances, cumulative frequency distances (3 parameters, each is an array).
+        """
         # TODO: tale n>1 je hack.. popravi
         clark_evans = []
         averages = []
@@ -204,6 +245,11 @@ class Coherence(BaseModule):
         return clark_evans, averages, cumulative_freq # TODO: za cfreq nism zihr :/
 
     def calculate_centroid_distances(self, C):
+        """
+        Calculates average, minimum, maximum distances to centroid and their indexes.
+        :param C: Distance matrix to centroid.
+        :return: Average distances, minimum distances, maximum distances, indexes (4 parameters, each is an array).
+        """
         averages = []
         minimums = []
         maximums = []
@@ -218,6 +264,11 @@ class Coherence(BaseModule):
         return averages, minimums, maximums, indexes
 
     def calculate_standard_distance(self, C):
+        """
+        Calculates standard distance and relative distance.
+        :param C: Distance matrix to centroid.
+        :return: Standard distances, relative distances (2 parameters, each is an array).
+        """
         # C = centroids
         standard_distances = []
         relative_distances = []
@@ -249,12 +300,22 @@ class Coherence(BaseModule):
         return standard_distances, relative_distances
 
     def calculate_determinant(self, D):
+        """
+        Calculates matrix determinant.
+        :param D: Input matrix. In our case it's the distance matrix.
+        :return: Determinants of distance matrices.
+        """
         determinants = []
         for doc in D:
             determinants.append(np.linalg.det(doc))
         return determinants
 
     def calculate_morans_i(self, C):
+        """
+        Calculates Moran's I. (https://en.wikipedia.org/wiki/Moran%27s_I)
+        :param C: Distance matrix to centroid.
+        :return: Moran's I for each essay.
+        """
         morans_i = []
         for doc_i in range(len(self.tfidf_parts)):
             doc = self.tfidf_parts[doc_i]
@@ -295,6 +356,11 @@ class Coherence(BaseModule):
 
 
     def calculate_gearys_c(self, C):
+        """
+        Calculates Geary's C. (https://en.wikipedia.org/wiki/Geary%27s_C)
+        :param C: Distance matrix to centroids.
+        :return: Geary's C for each essay.
+        """
         gearys_c = []
         for doc_i in range(len(self.tfidf_parts)):
             doc = self.tfidf_parts[doc_i]
@@ -345,6 +411,12 @@ class Coherence(BaseModule):
     # distance_threshold = array of avg distance between any two points
     # D_mat = distance matrix
     def calculate_getis_g(self, D_mat, distance_threshold):
+        """
+        Calculates Gettis-Ord General G.
+        :param D_mat: Distance matrix.
+        :param distance_threshold: Array of average distance between any two points.
+        :return: Gettis' G for each essay.
+        """
         getis_g = []
         for doc_i in range(len(self.tfidf_parts)):
             doc = self.tfidf_parts[doc_i]
@@ -389,6 +461,10 @@ class Coherence(BaseModule):
         return getis_g
 
     def calculate_centroids(self):
+        """
+        Calculates centroids using euclidean and cosine distance metric.
+        :return: Centroids, Centroid distance matrix (euclidean), Centroid distance matrix (cosine) (3 parameters)
+        """
         C = []
         CD_euc = [] # centroid distance matrix
         CD_cos = []
@@ -428,10 +504,18 @@ class Coherence(BaseModule):
         return C, CD_euc, CD_cos
 
     def euclidean_distance(self, x, y):
+        """
+        Euclidean distance between two points (arrays of points).
+        :param x: Points x.
+        :param y: Points y.
+        :return: Euclidean distance between points x and y.
+        """
         return np.sqrt(np.sum((x - y) ** 2))
 
     def preprocess(self):
-
+        """
+        Preprocessing of input Corpora. Creates word embeddings. Results are stored in internal variables.
+        """
         tfidf_vectorizer = TfidfVectorizer(max_features=10000, stop_words="english",
                                            use_idf=True)
 
@@ -502,7 +586,8 @@ class Coherence(BaseModule):
                 #print(essay_word_embedding)
                 self.tfidf_parts.append(np.array(essay_word_embedding))
 
-        self.essay_scores = list(np.floor(self.grades / 2))
+        #self.essay_scores = list(np.floor(self.grades / 2))
+        self.essay_scores = list(np.round(self.grades))
 
         #print(self.tfidf_parts)
 
@@ -511,6 +596,12 @@ class Coherence(BaseModule):
         print("TFIDF windows done")
 
     def calculate_distance_matrix(self, metric='euclidean'):
+        """
+        Calculates distance matrix of internal word embeddings with specified distance metric.
+        Execution of preprocess() method is required beforehand.
+        :param metric: 'euclidean' or 'cosine'. Specifies distance metric to use for calculation of distance matrix.
+        :return: Return calculated distance matrices (for each essay).
+        """
         D = []
 
         for doc in self.tfidf_parts:

@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 import unittest
+from os import path, walk
 from setuptools import setup, find_packages
 
 try:
@@ -60,9 +61,9 @@ ENTRY_POINTS = {
     ),
 
     # Register widget help
-    #"orange.canvas.help": (
-        #'html-index = orangecontrib.text.widgets:WIDGET_HELP_PATH',
-    #),
+    "orange.canvas.help": (
+        'html-index = orangecontrib.essaygrading.widgets:WIDGET_HELP_PATH'
+    ),
 }
 
 
@@ -113,6 +114,20 @@ def get_version_info():
     return FULL_VERSION, GIT_REVISION
 
 
+def include_documentation(local_dir, install_dir):
+    global DATA_FILES
+    if 'bdist_wheel' in sys.argv and not path.exists(local_dir):
+        print("Directory '{}' does not exist. "
+              "Please build documentation before running bdist_wheel."
+              .format(path.abspath(local_dir)))
+        sys.exit(0)
+
+    doc_files = []
+    for dirpath, dirs, files in walk(local_dir):
+        doc_files.append((dirpath.replace(local_dir, install_dir),
+                          [path.join(dirpath, f) for f in files]))
+    DATA_FILES.extend(doc_files)
+
 def write_version_py(filename='orangecontrib/essaygrading/version.py'):
     """ Copied from numpy setup.py. """
     cnt = """
@@ -142,8 +157,13 @@ INSTALL_REQUIRES = sorted(set(
     for line in open(os.path.join(os.path.dirname(__file__), 'requirements.txt'))
 ) - {''})
 
+DATA_FILES = [
+    # Data files that will be installed outside site-packages folder
+]
+
 if __name__ == '__main__':
     write_version_py()
+    #include_documentation('doc/_build/htmlhelp', 'help/orange3-essaygrading')
     setup(
         name=NAME,
         description=DESCRIPTION,
@@ -158,7 +178,6 @@ if __name__ == '__main__':
         install_requires=INSTALL_REQUIRES,
         entry_points=ENTRY_POINTS,
         keywords=KEYWORDS,
-        #namespace_packages=['orangecontrib'],
         namespace_packages=['orangecontrib'],
         zip_safe=False,
         #test_suite='orangecontrib.text.tests.suite'

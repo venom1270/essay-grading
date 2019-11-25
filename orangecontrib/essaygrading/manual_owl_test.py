@@ -45,9 +45,9 @@ predSet = []
 count = 0
 
 COSMO = Namespace("http://micra.com/COSMO/COSMO.owl#")
-g.add((COSMO["SlowSport"], RDF.type, OWL.Class))
-for meaning in g.objects(COSMO["SlowSport"], COSMO.wnsense):
-    print(meaning)
+#g.add((COSMO["SlowSport"], RDF.type, OWL.Class))
+#for meaning in g.objects(COSMO["SlowSport"], COSMO.wnsense):
+#    print(meaning)
 #exit()
 
 '''
@@ -70,11 +70,87 @@ URI_likes = COSMO["likes"]
 URI_not_likes = COSMO["notLikes"]
 URI_tennis = COSMO["Tennis"]
 URI_sport = COSMO["Sport"]
+URI_fast = COSMO["Fast"]
+URI_slow = COSMO["Slow"]
 
-for e in g.objects(URI_sport, RDFS.subClassOf):
-    print(str(e))
+
+
+print("Adding 'fast'...")
+g.add((URI_fast, RDF.type, OWL.Class))
+
+print("Addding 'slow'...")
+g.add((URI_slow, OWL.type, OWL.Class))
+
+print("Addding slow disjointWith fast")
+g.add((URI_slow, OWL.disjointWith, URI_fast))
+
+print("Addding fast disjointWith slow")
+g.add((URI_fast, OWL.disjointWith, URI_slow))
+
+hermit.check_unsatisfiable_cases(g)
+
+print("Adding TENNIS IS FAST")
+g.add((URI_tennis, RDF.type, URI_fast))
+hermit.check_unsatisfiable_cases(g)
+print("ADDING TENNIS IS SLOW")
+g.add((URI_tennis, RDF.type, URI_slow))
+hermit.check_unsatisfiable_cases(g)
 
 exit()
+
+'''
+
+print("Adding 'fast'...")
+g.add((URI_fast, RDF.type, OWL.ObjectProperty))
+
+print("Addding 'slow'...")
+g.add((URI_slow, OWL.type, OWL.ObjectProperty))
+
+print("Addding slow disjointWith fast")
+g.add((URI_slow, OWL.propertyDisjointWith, URI_fast))
+
+print("Addding fast disjointWith slow")
+g.add((URI_fast, OWL.propertyDisjointWith, URI_slow))
+
+hermit.check_unsatisfiable_cases(g)
+
+print("Adding TENNIS IS FAST")
+g.add((URI_tennis, URI_is, URI_fast))
+hermit.check_unsatisfiable_cases(g)
+print("ADDING TENNIS IS SLOW")
+g.add((URI_tennis, URI_is, URI_slow))
+hermit.check_unsatisfiable_cases(g)
+
+exit()
+
+'''
+'''
+print("Adding 'fast'...")
+g.add((URI_fast, RDF.type, OWL.ObjectProperty))
+
+print("Addding 'slow'...")
+g.add((URI_slow, OWL.type, OWL.ObjectProperty))
+
+print("Addding slow disjointWith fast")
+g.add((URI_slow, OWL.propertyDisjointWith, URI_fast))
+
+print("Addding fast disjointWith slow")
+g.add((URI_fast, OWL.propertyDisjointWith, URI_slow))
+
+hermit.check_unsatisfiable_cases(g)
+
+print("Adding TENNIS IS FAST")
+g.add((URI_tennis, RDF.type, URI_fast))
+hermit.check_unsatisfiable_cases(g)
+print("ADDING TENNIS IS SLOW")
+g.add((URI_tennis, RDF.type, URI_slow))
+hermit.check_unsatisfiable_cases(g)
+
+exit()
+
+'''
+
+
 
 
 print((URI_be, RDF.type, OWL.ObjectProperty) in g)
