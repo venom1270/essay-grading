@@ -1,0 +1,11 @@
+8863
+Consistency errors: 2
+Semantic errors: 1
+Sum: 3
+** EXPLANATION 0**
+'Lisa is Boy'.
+Concepts Boy and Girl are opposite/disjoint.
+'Lisa is Girl'.
+
+
+****

@@ -1,0 +1,392 @@
+cbNumberOfCharacters = settings.Setting(1)
+    cbNumberOfWords = settings.Setting(1)
+    cbNumberOfLongWords = settings.Setting(1)
+    cbNumberOfShortWords = settings.Setting(1)
+    cbMostFrequentWordLength = settings.Setting(1)
+    cbAverageWordLength = settings.Setting(1)
+    cbNumberOfSentences = settings.Setting(1)
+    cbNumberOfLongSentences = settings.Setting(1)
+    cbNumberOfShortSentences = settings.Setting(1)
+    cbMostFrequentSentenceLength = settings.Setting(1)
+    cbAverageSentenceLength = settings.Setting(1)
+    cbNumberOfDifferentWords = settings.Setting(1)
+    cbNumberOfStopwords = settings.Setting(1)
+
+    cbGunningFogIndex = settings.Setting(1)
+    cbFleschReadingEase = settings.Setting(1)
+    cbFleschKincaidGradeLevel = settings.Setting(1)
+    cbDaleChallReadabilityFormula = settings.Setting(1)
+    cbAutomatedReadabilityIndex = settings.Setting(1)
+    cbSimpleMeasureOfGobbledygook = settings.Setting(1)
+    cbLix = settings.Setting(1)
+    cbWordVariationIndex = settings.Setting(1)
+    cbNominalRatio = settings.Setting(1)
+
+    cbTypeTokenRatio = settings.Setting(1)
+    cbGuiraudsIndex = settings.Setting(1)
+    cbYulesK = settings.Setting(1)
+    cbTheDEstimate = settings.Setting(1)
+    cbHapaxLegomena = settings.Setting(1)
+    cbAdvancedGuirardIndex = settings.Setting(1)
+    cbNumberOfDifferentPosTags = settings.Setting(1)
+    cbSentenceStructureTreeHeight = settings.Setting(1)
+    cbCorrectVerbForm = settings.Setting(1)
+    cbNumberOfGrammarErrors = settings.Setting(1)
+
+    cbPosCoordinatingConjunction = settings.Setting(1)
+    cbPosCardinalNumber = settings.Setting(1)
+    cbPosDeterminer = settings.Setting(1)
+    cbPosExistentialThere = settings.Setting(1)
+    cbPosForeignWord = settings.Setting(1)
+    cbPosPrepositionSubordinatingConjunction = settings.Setting(1)
+    cbPosAdjective = settings.Setting(1)
+    cbPosComparativeAdjective = settings.Setting(1)
+    cbPosSuperlativeAdjective = settings.Setting(1)
+    cbPosListItemMarker = settings.Setting(1)
+    cbPosModal = settings.Setting(1)
+    cbPosSingularMassCommonNoun = settings.Setting(1)
+    cbPosPluralCommonNoun = settings.Setting(1)
+    cbPosSingularProperNoun = settings.Setting(1)
+    cbPosPluralProperNoun = settings.Setting(1)
+    cbPosPredeterminer = settings.Setting(1)
+    cbPosPossessiveEnding = settings.Setting(1)
+    cbPosPersonalPronoun = settings.Setting(1)
+    cbPosPossessivePronoun = settings.Setting(1)
+    cbPosAdverb = settings.Setting(1)
+    cbPosComparativeAdverb = settings.Setting(1)
+    cbPosSuperlativeAdverb = settings.Setting(1)
+    cbPosParticle = settings.Setting(1)
+    cbPosSymbol = settings.Setting(1)
+    cbPosTo = settings.Setting(1)
+    cbPosInterjection = settings.Setting(1)
+    cbPosVerbBaseForm = settings.Setting(1)
+    cbPosVerbPastTense = settings.Setting(1)
+    cbPosVerbPresentParticiple = settings.Setting(1)
+    cbPosVerbPastParticiple = settings.Setting(1)
+    cbPosVerbNonThirdPersonSingularPresent = settings.Setting(1)
+    cbPosVerbThirdPersonSingularPresent = settings.Setting(1)
+    cbPosWhDeterminer = settings.Setting(1)
+    cbPosWhPronoun = settings.Setting(1)
+    cbPosPossessiveWhPronoun = settings.Setting(1)
+    cbPosWhAdverb = settings.Setting(1)
+
+    cbNumberOfSpellcheckingErrors = settings.Setting(1)
+    cbNumberOfCapitalizationErrors = settings.Setting(1)
+    cbNumberOfPunctuationErrors = settings.Setting(1)
+
+    cbCosineSimilaritySourceText = settings.Setting(1)
+    cbCosineSimilarityMax = settings.Setting(1)
+    cbCosineSimilarityBestEssays = settings.Setting(1)
+    cbCosinePattern = settings.Setting(1)
+    cbCosineSumOfCorrelationValues = settings.Setting(1)
+
+    cbBasicCoherenceMeasures = settings.Setting(1)
+    cbSpatialDataAnalysis = settings.Setting(1)
+    cbSpatialAutocorrelation = settings.Setting(1)
+
+
+
+
+-------------------------------------------
+
+
+self.attributeSelectionBox = gui.widgetBox(self.controlArea, "Attribute selection")
+
+        self.tabWidget = gui.tabWidget(self.attributeSelectionBox)
+        self.tabLexicalSophistication = gui.createTabPage(self.tabWidget, "Lexical sophistication", canScroll=True)
+        self.tabGrammar = gui.createTabPage(self.tabWidget, "Grammar", canScroll=True)
+        self.tabMechanics = gui.createTabPage(self.tabWidget, "Mechanics", canScroll=True)
+        self.tabCoherence = gui.createTabPage(self.tabWidget, "Coherence and Spatial analysis", canScroll=True)
+
+        self.lexicalSophisticationBox = gui.widgetBox(self.tabLexicalSophistication, orientation=0)
+
+        self.basicBox = gui.widgetBox(self.lexicalSophisticationBox, "Basic measures")
+        gui.checkBox(self.basicBox, self, "cbNumberOfCharacters", "Number of characters")
+        gui.checkBox(self.basicBox, self, "cbNumberOfWords", "Number of words")
+        gui.checkBox(self.basicBox, self, "cbNumberOfLongWords", "Number of long words")
+        gui.checkBox(self.basicBox, self, "cbNumberOfShortWords", "Number of short words")
+        gui.checkBox(self.basicBox, self, "cbMostFrequentWordLength", "Most frequent word length")
+        gui.checkBox(self.basicBox, self, "cbAverageWordLength", "Average word length")
+        gui.checkBox(self.basicBox, self, "cbNumberOfSentences", "Number of sentences")
+        gui.checkBox(self.basicBox, self, "cbNumberOfLongSentences", "Number of long sentences")
+        gui.checkBox(self.basicBox, self, "cbNumberOfShortSentences", "Number of short sentences")
+        gui.checkBox(self.basicBox, self, "cbMostFrequentSentenceLength",
+                     "Most frequent sentence length")
+        gui.checkBox(self.basicBox, self, "cbAverageSentenceLength", "Average sentence length")
+        gui.checkBox(self.basicBox, self, "cbNumberOfDifferentWords", "Number of different words")
+        gui.checkBox(self.basicBox, self, "cbNumberOfStopwords", "Number of stopwords")
+
+        self.readabilityMeasuresBox = gui.widgetBox(self.lexicalSophisticationBox, "Readability measures")
+        gui.checkBox(self.readabilityMeasuresBox, self, "cbGunningFogIndex", "Gunning Fog index")
+        gui.checkBox(self.readabilityMeasuresBox, self, "cbFleschReadingEase", "Flesch reading ease")
+        gui.checkBox(self.readabilityMeasuresBox, self, "cbFleschKincaidGradeLevel", "Flesch Kincaid grade level")
+        gui.checkBox(self.readabilityMeasuresBox, self,
+                     "cbDaleChallReadabilityFormula", "Dale-Chall readability formula")
+        gui.checkBox(self.readabilityMeasuresBox, self, "cbAutomatedReadabilityIndex", "Automated readability index")
+        gui.checkBox(self.readabilityMeasuresBox, self,
+                     "cbSimpleMeasureOfGobbledygook", "Simple measure of Gobbledygook")
+        gui.checkBox(self.readabilityMeasuresBox, self, "cbLix", "LIX")
+        gui.checkBox(self.readabilityMeasuresBox, self, "cbWordVariationIndex", "Word variation index")
+        gui.checkBox(self.readabilityMeasuresBox, self, "cbNominalRatio", "Nominal ratio")
+
+        self.lexicalDiversityBox = gui.widgetBox(self.lexicalSophisticationBox, "Lexical diversity")
+        gui.checkBox(self.lexicalDiversityBox, self, "cbTypeTokenRatio", "Type-token-ratio")
+        gui.checkBox(self.lexicalDiversityBox, self, "cbGuiraudsIndex", "Guiraud's index")
+        gui.checkBox(self.lexicalDiversityBox, self, "cbYulesK", "Yule's K")
+        gui.checkBox(self.lexicalDiversityBox, self, "cbTheDEstimate", "The D estimate TODO")
+        gui.checkBox(self.lexicalDiversityBox, self, "cbHapaxLegomena", "Hapax legomena - words occuring only once")
+        gui.checkBox(self.lexicalDiversityBox, self, "cbAdvancedGuirardIndex", "Advanced Guiraud's index")
+
+        self.grammarBox = gui.widgetBox(self.tabGrammar)
+
+        self.grammarGeneralBox = gui.widgetBox(self.grammarBox, "General", orientation=0)
+        gui.checkBox(self.grammarGeneralBox, self, "cbNumberOfDifferentPosTags", "Number of different POS tags")
+        gui.checkBox(self.grammarGeneralBox, self, "cbSentenceStructureTreeHeight", "Height of sentence parse tree")
+        gui.checkBox(self.grammarGeneralBox, self, "cbCorrectVerbForm", "Correct verb form")
+        gui.checkBox(self.grammarGeneralBox, self, "cbNumberOfGrammarErrors", "Number of grammar errors")
+
+        self.numberOfEachPosTagBox = gui.widgetBox(self.grammarBox, "Number of each PoS tag", orientation=0)
+        self.posGroup1 = gui.widgetBox(self.numberOfEachPosTagBox)
+        gui.checkBox(self.posGroup1, self, "cbPosCoordinatingConjunction", "CC - Coordinating conjunction")
+        gui.checkBox(self.posGroup1, self, "cbPosCardinalNumber", "CD - Cardinal number")
+        gui.checkBox(self.posGroup1, self, "cbPosDeterminer", "DT - Determiner")
+        gui.checkBox(self.posGroup1, self, "cbPosExistentialThere", "EX - Existential there")
+        gui.checkBox(self.posGroup1, self, "cbPosForeignWord", "FW - Foreign word")
+        gui.checkBox(self.posGroup1, self, "cbPosPrepositionSubordinatingConjunction",
+                     "IN - Preposition or subordinating conjunction")
+        gui.checkBox(self.posGroup1, self, "cbPosAdjective", "JJ - Adjective")
+        gui.checkBox(self.posGroup1, self, "cbPosComparativeAdjective", "JJR - Adjective, comparative")
+        gui.checkBox(self.posGroup1, self, "cbPosSuperlativeAdjective", "JJS - Adjective, superlative")
+        gui.checkBox(self.posGroup1, self, "cbPosListItemMarker", "LS - List item marker")
+        gui.checkBox(self.posGroup1, self, "cbPosModal", "MD - Modal")
+        gui.checkBox(self.posGroup1, self, "cbPosSingularMassCommonNoun", "NN - Noun, singular or mass")
+        gui.checkBox(self.posGroup1, self, "cbPosPluralCommonNoun", "NNS - Noun, plural")
+        gui.checkBox(self.posGroup1, self, "cbPosSingularProperNoun", "NNP - Proper noun, singular")
+        gui.checkBox(self.posGroup1, self, "cbPosPluralProperNoun", "NNPS - Proper noun, plural")
+        gui.checkBox(self.posGroup1, self, "cbPosPredeterminer", "PDT - Predeterminer")
+        gui.checkBox(self.posGroup1, self, "cbPosPossessiveEnding", "POS - Possesive ending")
+        gui.checkBox(self.posGroup1, self, "cbPosPersonalPronoun", "PRP - Personal pronoun")
+        self.posGroup2 = gui.widgetBox(self.numberOfEachPosTagBox)
+        gui.checkBox(self.posGroup2, self, "cbPosPossessivePronoun", "PRP$ - Possessive pronoun")
+        gui.checkBox(self.posGroup2, self, "cbPosAdverb", "RB - Adverb")
+        gui.checkBox(self.posGroup2, self, "cbPosComparativeAdverb", "RBR - Adverb, comparative")
+        gui.checkBox(self.posGroup2, self, "cbPosSuperlativeAdverb", "RBS - Adverb, superlative")
+        gui.checkBox(self.posGroup2, self, "cbPosParticle", "RP - Particle")
+        gui.checkBox(self.posGroup2, self, "cbPosSymbol", "SYM - Symbol")
+        gui.checkBox(self.posGroup2, self, "cbPosTo", "TO - to")
+        gui.checkBox(self.posGroup2, self, "cbPosInterjection", "UH - Interjection")
+        gui.checkBox(self.posGroup2, self, "cbPosVerbBaseForm", "VB - Verb, base form")
+        gui.checkBox(self.posGroup2, self, "cbPosVerbPastTense", "VBD - Verb, past tense")
+        gui.checkBox(self.posGroup2, self, "cbPosVerbPresentParticiple", "VBG - Verb, present participle")
+        gui.checkBox(self.posGroup2, self, "cbPosVerbPastParticiple", "VBN - Verb, past participle")
+        gui.checkBox(self.posGroup2, self, "cbPosVerbNonThirdPersonSingularPresent",
+                     "VBP - Verb, non-3rd person singular present")
+        gui.checkBox(self.posGroup2, self, "cbPosVerbThirdPersonSingularPresent",
+                     "VBP - Verb, 3rd person singular present")
+        gui.checkBox(self.posGroup2, self, "cbPosWhDeterminer", "WDT - Wh-determiner")
+        gui.checkBox(self.posGroup2, self, "cbPosWhPronoun", "WP - Wh-pronoun")
+        gui.checkBox(self.posGroup2, self, "cbPosPossessiveWhPronoun", "WP$ - Possessive wh-pronoun")
+        gui.checkBox(self.posGroup2, self, "cbPosWhAdverb", "WRB - Wh-adverb")
+
+        self.mechanicsBox = gui.widgetBox(self.tabMechanics)
+        self.writingErrorsBox = gui.widgetBox(self.mechanicsBox, "Writing errors")
+        gui.checkBox(self.writingErrorsBox, self, "cbNumberOfSpellcheckingErrors", "Number of spellchecking errors")
+        gui.checkBox(self.writingErrorsBox, self, "cbNumberOfCapitalizationErrors", "Number of capitalization errors")
+        gui.checkBox(self.writingErrorsBox, self, "cbNumberOfPunctuationErrors", "Number of punctuation errors")
+
+        self.cosineBox = gui.widgetBox(self.mechanicsBox, "Content similarity")
+        gui.checkBox(self.cosineBox, self, "cbCosineSimilaritySourceText", "Cosine similarity with source text")
+        gui.checkBox(self.cosineBox, self, "cbCosineSimilarityMax", "Score point level for maximum cosine similarity "
+                                                                    "over all score points")
+        gui.checkBox(self.cosineBox, self, "cbCosineSimilarityBestEssays", "Cosine similarity with essays that have "
+                                                                           "highest score point level")
+        gui.checkBox(self.cosineBox, self, "cbCosinePattern", "Pattern cosine")
+        gui.checkBox(self.cosineBox, self, "cbCosineSumOfCorrelationValues", "Weighted sum of all cosine correlation "
+                                                                             "values")
+
+        #self.cosineBox = gui.widgetBox(self.tabCoherence, "Basic coherence measures")
+        gui.checkBox(self.tabCoherence, self, "cbBasicCoherenceMeasures", "Basic coherence measures")
+        gui.checkBox(self.tabCoherence, self, "cbSpatialDataAnalysis", "Spatial data analysis")
+        #self.spatialAutocorrelationBox = gui.widgetBox(self.tabCoherence, "Spatial autocorrelation")
+        gui.checkBox(self.tabCoherence, self, "cbSpatialAutocorrelation", "Spatial autocorrelation")
+
+-------------------------------------------------------------------------------------------------
+
+
+a = Attributes()
+        a.cbNumberOfCharacters = self.cbNumberOfCharacters
+        a.cbNumberOfWords = self.cbNumberOfWords
+        a.cbNumberOfLongWords = self.cbNumberOfLongWords
+        a.cbNumberOfShortWords = self.cbNumberOfShortWords
+        a.cbMostFrequentWordLength = self.cbMostFrequentWordLength
+        a.cbAverageWordLength = self.cbAverageWordLength
+        a.cbNumberOfSentences = self.cbNumberOfSentences
+        a.cbNumberOfLongSentences = self.cbNumberOfLongSentences
+        a.cbNumberOfShortSentences = self.cbNumberOfShortSentences
+        a.cbMostFrequentSentenceLength = self.cbMostFrequentSentenceLength
+        a.cbAverageSentenceLength = self.cbAverageSentenceLength
+        a.cbNumberOfDifferentWords = self.cbNumberOfDifferentWords
+        a.cbNumberOfStopwords = self.cbNumberOfStopwords
+
+        a.cbGunningFogIndex = self.cbGunningFogIndex
+        a.cbFleschReadingEase = self.cbFleschReadingEase
+        a.cbFleschKincaidGradeLevel = self.cbFleschKincaidGradeLevel
+        a.cbDaleChallReadabilityFormula = self.cbDaleChallReadabilityFormula
+        a.cbAutomatedReadabilityIndex = self.cbAutomatedReadabilityIndex
+        a.cbSimpleMeasureOfGobbledygook = self.cbSimpleMeasureOfGobbledygook
+        a.cbLix = self.cbLix
+        a.cbWordVariationIndex = self.cbWordVariationIndex
+        a.cbNominalRatio = self.cbNominalRatio
+
+        a.cbTypeTokenRatio = self.cbTypeTokenRatio
+        a.cbGuiraudsIndex = self.cbGuiraudsIndex
+        a.cbYulesK = self.cbYulesK
+        a.cbTheDEstimate = self.cbTheDEstimate
+        a.cbHapaxLegomena = self.cbHapaxLegomena
+        a.cbAdvancedGuirardIndex = self.cbAdvancedGuirardIndex
+        a.cbNumberOfDifferentPosTags = self.cbNumberOfDifferentPosTags
+        a.cbSentenceStructureTreeHeight = self.cbSentenceStructureTreeHeight
+        a.cbCorrectVerbForm = self.cbCorrectVerbForm
+        a.cbNumberOfGrammarErrors = self.cbNumberOfGrammarErrors
+
+        a.cbPosCoordinatingConjunction = self.cbPosCoordinatingConjunction
+        a.cbPosCardinalNumber = self.cbPosCardinalNumber
+        a.cbPosDeterminer = self.cbPosDeterminer
+        a.cbPosExistentialThere = self.cbPosExistentialThere
+        a.cbPosForeignWord = self.cbPosForeignWord
+        a.cbPosPrepositionSubordinatingConjunction = self.cbPosPrepositionSubordinatingConjunction
+        a.cbPosAdjective = self.cbPosAdjective
+        a.cbPosComparativeAdjective = self.cbPosComparativeAdjective
+        a.cbPosSuperlativeAdjective = self.cbPosSuperlativeAdjective
+        a.cbPosListItemMarker = self.cbPosListItemMarker
+        a.cbPosModal = self.cbPosModal
+        a.cbPosSingularMassCommonNoun = self.cbPosSingularMassCommonNoun
+        a.cbPosPluralCommonNoun = self.cbPosPluralCommonNoun
+        a.cbPosSingularProperNoun = self.cbPosSingularProperNoun
+        a.cbPosPluralProperNoun = self.cbPosPluralProperNoun
+        a.cbPosPredeterminer = self.cbPosPredeterminer
+        a.cbPosPossessiveEnding = self.cbPosPossessiveEnding
+        a.cbPosPersonalPronoun = self.cbPosPersonalPronoun
+        a.cbPosPossessivePronoun = self.cbPosPossessivePronoun
+        a.cbPosAdverb = self.cbPosAdverb
+        a.cbPosComparativeAdverb = self.cbPosComparativeAdverb
+        a.cbPosSuperlativeAdverb = self.cbPosSuperlativeAdverb
+        a.cbPosParticle = self.cbPosParticle
+        a.cbPosSymbol = self.cbPosSymbol
+        a.cbPosTo = self.cbPosTo
+        a.cbPosInterjection = self.cbPosInterjection
+        a.cbPosVerbBaseForm = self.cbPosVerbBaseForm
+        a.cbPosVerbPastTense = self.cbPosVerbPastTense
+        a.cbPosVerbPresentParticiple = self.cbPosVerbPresentParticiple
+        a.cbPosVerbPastParticiple = self.cbPosVerbPastParticiple
+        a.cbPosVerbNonThirdPersonSingularPresent = self.cbPosVerbNonThirdPersonSingularPresent
+        a.cbPosVerbThirdPersonSingularPresent = self.cbPosVerbThirdPersonSingularPresent
+        a.cbPosWhDeterminer = self.cbPosWhDeterminer
+        a.cbPosWhPronoun = self.cbPosWhPronoun
+        a.cbPosPossessiveWhPronoun = self.cbPosPossessiveWhPronoun
+        a.cbPosWhAdverb = self.cbPosWhAdverb
+
+        a.cbNumberOfSpellcheckingErrors = self.cbNumberOfSpellcheckingErrors
+        a.cbNumberOfCapitalizationErrors = self.cbNumberOfCapitalizationErrors
+        a.cbNumberOfPunctuationErrors = self.cbNumberOfPunctuationErrors
+
+        a.cbCosineSimilaritySourceText = self.cbCosineSimilaritySourceText
+        a.cbCosineSimilarityMax = self.cbCosineSimilarityMax
+        a.cbCosineSimilarityBestEssays = self.cbCosineSimilarityBestEssays
+        a.cbCosinePattern = self.cbCosinePattern
+        a.cbCosineSumOfCorrelationValues = self.cbCosineSumOfCorrelationValues
+
+        a.cbBasicCoherenceMeasures = self.cbBasicCoherenceMeasures
+        a.cbSpatialDataAnalysis = self.cbSpatialDataAnalysis
+        a.cbSpatialAutocorrelation = self.cbSpatialAutocorrelation
+
+        -------------------------------------------
+
+
+        class Attributes:
+    def __init__(self):
+        self.cbNumberOfCharacters = None
+        self.cbNumberOfWords = None
+        self.cbNumberOfLongWords = None
+        self.cbNumberOfShortWords = None
+        self.cbMostFrequentWordLength = None
+        self.cbAverageWordLength = None
+        self.cbNumberOfSentences = None
+        self.cbNumberOfLongSentences = None
+        self.cbNumberOfShortSentences = None
+        self.cbMostFrequentSentenceLength = None
+        self.cbAverageSentenceLength = None
+        self.cbNumberOfDifferentWords = None
+        self.cbNumberOfStopwords = None
+
+        self.cbGunningFogIndex = None
+        self.cbFleschReadingEase = None
+        self.cbFleschKincaidGradeLevel = None
+        self.cbDaleChallReadabilityFormula = None
+        self.cbAutomatedReadabilityIndex = None
+        self.cbSimpleMeasureOfGobbledygook = None
+        self.cbLix = None
+        self.cbWordVariationIndex = None
+        self.cbNominalRatio = None
+
+        self.cbTypeTokenRatio = None
+        self.cbGuiraudsIndex = None
+        self.cbYulesK = None
+        self.cbTheDEstimate = None
+        self.cbHapaxLegomena = None
+        self.cbAdvancedGuirardIndex = None
+        self.cbNumberOfDifferentPosTags = None
+        self.cbSentenceStructureTreeHeight = None
+        self.cbCorrectVerbForm = None
+        self.cbNumberOfGrammarErrors = None
+
+        self.cbPosCoordinatingConjunction = None
+        self.cbPosCardinalNumber = None
+        self.cbPosDeterminer = None
+        self.cbPosExistentialThere = None
+        self.cbPosForeignWord = None
+        self.cbPosPrepositionSubordinatingConjunction = None
+        self.cbPosAdjective = None
+        self.cbPosComparativeAdjective = None
+        self.cbPosSuperlativeAdjective = None
+        self.cbPosListItemMarker = None
+        self.cbPosModal = None
+        self.cbPosSingularMassCommonNoun = None
+        self.cbPosPluralCommonNoun = None
+        self.cbPosSingularProperNoun = None
+        self.cbPosPluralProperNoun = None
+        self.cbPosPredeterminer = None
+        self.cbPosPossessiveEnding = None
+        self.cbPosPersonalPronoun = None
+        self.cbPosPossessivePronoun = None
+        self.cbPosAdverb = None
+        self.cbPosComparativeAdverb = None
+        self.cbPosSuperlativeAdverb = None
+        self.cbPosParticle = None
+        self.cbPosSymbol = None
+        self.cbPosTo = None
+        self.cbPosInterjection = None
+        self.cbPosVerbBaseForm = None
+        self.cbPosVerbPastTense = None
+        self.cbPosVerbPresentParticiple = None
+        self.cbPosVerbPastParticiple = None
+        self.cbPosVerbNonThirdPersonSingularPresent = None
+        self.cbPosVerbThirdPersonSingularPresent = None
+        self.cbPosWhDeterminer = None
+        self.cbPosWhPronoun = None
+        self.cbPosPossessiveWhPronoun = None
+        self.cbPosWhAdverb = None
+
+        self.cbNumberOfSpellcheckingErrors = None
+        self.cbNumberOfCapitalizationErrors = None
+        self.cbNumberOfPunctuationErrors = None
+
+        self.cbCosineSimilaritySourceText = None
+        self.cbCosineSimilarityMax = None
+        self.cbCosineSimilarityBestEssays = None
+        self.cbCosinePattern = None
+        self.cbCosineSumOfCorrelationValues = None
+
+        self.cbBasicCoherenceMeasures = None
+        self.cbSpatialDataAnalysis = None
+        self.cbSpatialAutocorrelation = None

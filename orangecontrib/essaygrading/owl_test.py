@@ -46,7 +46,8 @@ import spacy
 #onto.load()
 
 g = Graph()
-g.parse("data/COSMO-Serialized.owl", format="xml")
+#g.parse("data/COSMO-Serialized.owl", format="xml")
+g.parse("data/DS3_new.owl", format="xml")
 bicycleURI = URIRef("http://micra.com/COSMO/COSMO.owl#Bicycle")
 t = g.triples((None, None, None))
 print("Num of triples: ", len(g))
@@ -193,6 +194,7 @@ print("MY ESSAY")
 test_essay = ["Tennis is a fast sport.", "Lisa doesn't like fast sports.", "Lisa likes tennis."]
 #test_essay = ["Lisa doesn't like spicy pizza.", "Pizza is spicy.", "Lisa likes pizza."] # TODO: tale je mal tricky
 #test_essay = ["Tennis is a fast sport.", "Tennis is a slow sport."]
+#test_essay = ["Tennis is a fast sport.", "Lisa likes slow sports and doesn't like fast sports.", "Lisa likes tennis."]
 #test_essay = ["Peter likes pizza.", "Peter doesn't like food."]
 #test_essay = ["Lisa likes tennis.", "Lisa hates tennis."] # wordnet nima ustreznih protipomenk za 'hate'
 #test_essay = ["Boris likes Tina.", "Tina likes Boris.", "Boris doesn't like Tina."]
@@ -203,7 +205,7 @@ test_essay = ["Tennis is a fast sport.", "Lisa doesn't like fast sports.", "Lisa
 
 
 # TODO: to se razmisli kako polepsat
-use_coref = False
+use_coref = True
 if use_coref:
     nlp = spacy.load("en_core_web_lg")
     coref = neuralcoref.NeuralCoref(nlp.vocab)
@@ -218,7 +220,7 @@ if use_coref:
 
 
 
-extractionManager = ExtractionManager.ExtractionManager(turbo=True)
+extractionManager = ExtractionManager.ExtractionManager(turbo=False)
 chunks = extractionManager.getChunks(test_essay)
 print(extractionManager.mergeEssayAndChunks(test_essay, chunks["np"], "SubjectObject"))
 print(extractionManager.mergeEssayAndChunks(test_essay, chunks["vp"], "Predicate"))

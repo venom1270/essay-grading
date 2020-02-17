@@ -2,11 +2,14 @@ import numpy as np
 import string
 import language_check
 import collections
+import spacy
+from orangecontrib.essaygrading.utils import globals
 from orangecontrib.essaygrading.modules.BaseModule import BaseModule
 from orangecontrib.essaygrading.utils.lemmatizer import lemmatizeTokens
 from spellchecker import SpellChecker
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from flair.embeddings import WordEmbeddings, FlairEmbeddings, DocumentPoolEmbeddings, Sentence
 
 name = "Content"
 
@@ -15,7 +18,8 @@ class Content(BaseModule):
 
     name = "Content"
 
-    def __init__(self, corpus, corpus_sentences, grades, source_texts=None, graded_corpus=None):
+    def __init__(self, corpus, corpus_sentences, grades, source_texts=None, graded_corpus=None,
+                 word_embeddings=globals.EMBEDDING_TFIDF):
         """
         Overrides parent __init__ and calls _load().
         Special: some attributes require comparison with an already graded essay ("training set"). This is "graded_corpus".
@@ -25,13 +29,16 @@ class Content(BaseModule):
         :param grades: Array of essay grades (ints)
         :param source_texts: Corpus of source texts (optional)
         :param graded_corpus: Corpus with grades ("training set").
+        :param word_embeddings: specify which word embeddings to use (TF-IDF or GloVe).
         """
-        self._load(corpus, corpus_sentences, grades, source_texts=source_texts, graded_corpus=graded_corpus)
+        self._load(corpus, corpus_sentences, grades, source_texts=source_texts, graded_corpus=graded_corpus,
+                   word_embeddings=word_embeddings)
 
     # graded corpus is used when comparing "Score point level for maximum cosine similarity over all score points"
     # and "max cosine sim"
     # if empty, just compare with "leave one out" method
-    def _load(self, corpus, corpus_sentences, grades, source_texts=None, graded_corpus=None):
+    def _load(self, corpus, corpus_sentences, grades, source_texts=None, graded_corpus=None,
+              word_embeddings=globals.EMBEDDING_TFIDF):
         """
         Calls parent _load() and sets additional parameters. Initializes spellchecker.
         :param corpus: Tokenized essay Corpus.
@@ -39,6 +46,7 @@ class Content(BaseModule):
         :param grades: Array of essay grades
         :param source_texts: Corpus of source texts (optional)
         :param graded_corpus: Corpus with grades ("training set").
+        :param word_embeddings: specify which word embeddings to use (TF-IDF or GloVe).
         """
         if corpus is not None and corpus_sentences is not None:
             super()._load(corpus, corpus_sentences)
@@ -48,8 +56,8 @@ class Content(BaseModule):
 
             self.pos_tag_counter = [collections.Counter([x for x in doc]) for doc in self.corpus.pos_tags]
             # clean stopwords
-            self.pos_tag_counter = [{key: value for key, value in doc.items() if key not in string.punctuation and key != "''"}
-                               for doc in self.pos_tag_counter]
+            self.pos_tag_counter = [{key: value for key, value in doc.items()
+                                     if key not in string.punctuation and key != "''"} for doc in self.pos_tag_counter]
 
             self.spellchecker = SpellChecker()
             self.lang_check = None
@@ -59,6 +67,8 @@ class Content(BaseModule):
             self.essay_scores = np.array(grades)
             self.cosine = None
 
+            self.word_embeddings = word_embeddings
+
             self.graded_corpus = graded_corpus
 
     def _cosine_preparation(self):
@@ -66,21 +76,47 @@ class Content(BaseModule):
         Calculates word embeddings and cosine similarities between essays.
         Results are stored in internal variables.
         """
-        tfidf_vectorizer = TfidfVectorizer(max_features=200, stop_words="english")
+
+        spacy_embeddings = None
+        flair_embeddings = None
+        if self.word_embeddings == globals.EMBEDDING_GLOVE_SPACY:
+            spacy_embeddings = spacy.load("en_vectors_web_lg")
+            print("GloVe (SpaCy) vectors loaded!")
+        elif self.word_embeddings == globals.EMBEDDING_GLOVE_FLAIR:
+            flair_embeddings = DocumentPoolEmbeddings([WordEmbeddings("glove")])
+            print("GloVe (Flair) vectors loaded!")
+
+        tfidf_vectorizer = TfidfVectorizer(max_features=None, stop_words="english")
 
         docs = lemmatizeTokens(self.corpus, join=True)
         # append source/prompt text
         if self.source_texts is not None:
             docs.append((lemmatizeTokens(self.source_texts, join=True)[0]))
 
-        #print(docs)
-        self.tfidf_matrix = tfidf_vectorizer.fit_transform(docs)
-        #self.tfidf_matrix = self.tfidf_matrix * self.tfidf_matrix.T
+        # print(docs)
+
+        if self.word_embeddings == globals.EMBEDDING_TFIDF:
+            self.tfidf_matrix = tfidf_vectorizer.fit_transform(docs)
+        elif self.word_embeddings == globals.EMBEDDING_GLOVE_SPACY:
+            self.tfidf_matrix = []
+            for doc in docs:
+                self.tfidf_matrix.append(spacy_embeddings(doc).vector)
+            self.tfidf_matrix = np.array(self.tfidf_matrix)
+        else:
+            # FLAIR
+            self.tfidf_matrix = []
+            for doc in docs:
+                document = Sentence(doc)
+                flair_embeddings.embed(document)
+                self.tfidf_matrix.append(np.array(document.get_embedding().detach().numpy()))
+            self.tfidf_matrix = np.array(self.tfidf_matrix)
+
+        # self.tfidf_matrix = self.tfidf_matrix * self.tfidf_matrix.T
         print(self.tfidf_matrix)
 
         self.cosine = cosine_similarity(self.tfidf_matrix)
         print(self.cosine)
-        #print(self.cosine[-1][:-1])
+        # print(self.cosine[-1][:-1])
 
         # Now calculate cosine for ungraded vs graded essays
         if self.graded_corpus:
@@ -92,14 +128,14 @@ class Content(BaseModule):
             print("ALL")
             print(cosine_similarity(tfidf))
             self.cosine_graded = cosine_similarity(tfidf)[:len(self.corpus), len(self.corpus):]
-            #self.essay_scores = list(np.floor(self.graded_corpus.X[:, 5] / 2))
-            #self.essay_scores = list(np.floor(self.essay_scores / 2))
+            # self.essay_scores = list(np.floor(self.graded_corpus.X[:, 5] / 2))
+            # self.essay_scores = list(np.floor(self.essay_scores / 2))
             self.essay_scores = list(np.floor(self.essay_scores))
             print("COSINE GRADED")
             print(self.cosine_graded)
         else:
             # TODO: kaj je to???
-            #self.essay_scores = list(np.floor(self.essay_scores / 2))
+            # self.essay_scores = list(np.floor(self.essay_scores / 2))
             self.essay_scores = list(np.floor(self.essay_scores))
 
         print("Cosine preparation finished")
@@ -130,21 +166,21 @@ class Content(BaseModule):
             print("Number of spellcecking errors: ", errors)
             attribute_dictionary["numberOfSpellcheckingErrors"] = errors
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbNumberOfCapitalizationErrors:
             capitalization_errors = self.calculate_num_capitalization_errors()
             print("Number of capitalization errors: ", capitalization_errors)
             attribute_dictionary["numberOfCapitalizationErrors"] = capitalization_errors
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbNumberOfPunctuationErrors:
             punctuation_errors = self.calculate_num_punctuation_errors()
             print("Number of punctuation errors: ", punctuation_errors)
             attribute_dictionary["numberOfPunctuationErrors"] = punctuation_errors
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbCosineSumOfCorrelationValues or selected_attributes.cbCosinePattern \
                 or selected_attributes.cbCosineSimilarityBestEssays or selected_attributes.cbCosineSimilarityMax \
@@ -158,35 +194,35 @@ class Content(BaseModule):
             print("Cosine similarity with source text: ", cosine_source_text)
             attribute_dictionary["cosineWithSourceText"] = cosine_source_text
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbCosineSimilarityMax:
             max_similarity_scores = self.calculate_cosine_max()
             print("Cosine similarity Max: ", max_similarity_scores)
             attribute_dictionary["scoreCosineSimilarityMax"] = max_similarity_scores
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbCosineSimilarityBestEssays:
             top_essay_similarities = self.calculate_cosine_best_essays()
             print("Cosine similarity with best essay: ", top_essay_similarities)
             attribute_dictionary["cosineTopEssaySimilarityAverage"] = top_essay_similarities
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbCosinePattern:
             cos_patterns = self.calculate_cosine_pattern()
             print("Cosine Patterns: ", cos_patterns)
             attribute_dictionary["cosinePattern"] = cos_patterns
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbCosineSumOfCorrelationValues:
             cos_weighted_sum = self.calculate_cosine_correlation_values()
             print("cos_weighted_sum: ", cos_weighted_sum)
             attribute_dictionary["cosineSumOfCorrelationValues"] = cos_weighted_sum
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         return i
 
@@ -249,7 +285,7 @@ class Content(BaseModule):
             for ii in range(len(self.corpus.documents)):
                 row = self.cosine_graded[ii][:]
                 most_similar_doc_index = list(row).index(sorted(row, reverse=True)[0])
-                #print(ii, most_similar_doc_index)
+                # print(ii, most_similar_doc_index)
                 max_similarity_scores.append(self.essay_scores[most_similar_doc_index])
             return max_similarity_scores
 
@@ -267,9 +303,9 @@ class Content(BaseModule):
         if self.graded_corpus is None:
             for ii in range(len(self.corpus.documents)):
                 c = [self.cosine[ii][x] for x in top_essay_indexes if x != ii]
-                #if len(c) == 0:
+                # if len(c) == 0:
                 #    c = 0
-                #else:
+                # else:
                 #    c = sum(c) / len(c)
                 c = sum(c) / max(1, len(c))
                 top_essay_similarities.append(c)
@@ -277,9 +313,9 @@ class Content(BaseModule):
         else:
             for ii in range(len(self.corpus.documents)):
                 c = [self.cosine_graded[ii][x] for x in top_essay_indexes]
-                #if len(c) == 0:
+                # if len(c) == 0:
                 #    c = 0
-                #else:
+                # else:
                 #    c = sum(c) / len(c)
                 c = sum(c) / max(1, len(c))
                 top_essay_similarities.append(c)

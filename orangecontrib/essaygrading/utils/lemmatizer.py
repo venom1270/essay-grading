@@ -25,7 +25,6 @@ def lemmatizeSentences(sentences, stem_ing=False):
                                              for token in tokens]))
     return lemmatized_sentences
 
-
 def stemSentences(sentences):
     stemmer = nltk.stem.PorterStemmer()
     stemmed_sentences = []

@@ -24,10 +24,10 @@ from orangecontrib.text import Corpus
 from orangecontrib.text import preprocess
 from orangecontrib.text.tag import pos
 from orangecontrib.text.widgets.utils import CheckListLayout
+from orangecontrib.essaygrading.utils import globals
 from orangecontrib.essaygrading.utils.task import Task
 from orangecontrib.essaygrading.modules import BasicMeasures, ReadabilityMeasures, LexicalDiversity, Grammar, Content, \
     Coherence
-
 
 
 class OWAttributeSelection(OWWidget):
@@ -47,8 +47,8 @@ class OWAttributeSelection(OWWidget):
 
     class Error(OWWidget.Error):
         pass
-        #need_discrete_data = Msg("Need some discrete data to work with.")
-        #no_disc_features = Msg("Discrete features required but data has none.")
+        # need_discrete_data = Msg("Need some discrete data to work with.")
+        # no_disc_features = Msg("Discrete features required but data has none.")
 
     class Warning(OWWidget.Warning):
         no_test_data = Msg("No test data (ungraded essays) present.")
@@ -62,7 +62,7 @@ class OWAttributeSelection(OWWidget):
     selected_attributes = []
     selected_attributes_names = []
 
-    coherence_word_embeddings = "TF-IDF"
+    coherence_word_embeddings = globals.EMBEDDING_TFIDF
 
     want_main_area = False
 
@@ -98,7 +98,9 @@ class OWAttributeSelection(OWWidget):
         parametersBox = gui.widgetBox(self.controlArea, "Options")
 
         self.cb_word_embedding_info = gui.widgetLabel(parametersBox, 'Word Embedding: ')
-        self.cb_coherence_word_embeddings = gui.comboBox(widget=parametersBox, master=self, items=("TF-IDF", "GloVe"),
+        self.cb_coherence_word_embeddings = gui.comboBox(widget=parametersBox, master=self,
+                                                         items=(globals.EMBEDDING_TFIDF, globals.EMBEDDING_GLOVE_SPACY,
+                                                                globals.EMBEDDING_GLOVE_FLAIR),
                                                          value="coherence_word_embeddings", sendSelectedValue=True)
 
         self.optionsBox = gui.widgetBox(self.controlArea, "Controls")
@@ -110,17 +112,21 @@ class OWAttributeSelection(OWWidget):
     def set_graded_data(self, dataset):
         if dataset is not None:
 
-            corpus, corpus_sentences = self.prepare_data(dataset)
+            # corpus, corpus_sentences = self.prepare_data(dataset)
 
             essay_scores = []
 
             # domain 1 scores
             #print(corpus.X[:,5])
             offset = 1
-            for i, value in enumerate(corpus.X[0][offset:]):
+            '''for i, value in enumerate(corpus.X[0][offset:]):
                 print(str(i) + " --- " + str(value))
                 if is_number(value):
-                    essay_scores.append(corpus.X[:, i+offset])
+                    essay_scores.append(corpus.X[:, i+offset])'''
+            for i, value in enumerate(dataset.X[0][offset:]):
+                print(str(i) + " --- " + str(value))
+                if is_number(value):
+                    essay_scores.append(dataset.X[:, i + offset])
 
             self.corpus_grades = np.array(essay_scores).transpose()
 
@@ -135,17 +141,17 @@ class OWAttributeSelection(OWWidget):
 
             self.selection()
 
-            self.corpus = corpus
-            self.corpus_sentences = corpus_sentences
+            self.corpus = dataset
+            # self.corpus_sentences = corpus_sentences
 
             print(dataset)
 
             self.infoa.setText('%d instances in graded input dataset' % len(dataset))
 
-            print(corpus.tokens[0])
-            print(corpus.pos_tags[0])
-            print(corpus.documents[0])
-            print(corpus.attributes)
+            # print(corpus.tokens[0])
+            # print(corpus.pos_tags[0])
+            # print(corpus.documents[0])
+            # print(corpus.attributes)
             print(self.corpus_grades)
 
         else:
@@ -164,17 +170,17 @@ class OWAttributeSelection(OWWidget):
             p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
                                         transformers=[preprocess.LowercaseTransformer()],
                                         pos_tagger=pos.AveragedPerceptronTagger())
-            self.source_texts = p(source_texts)
+            self.source_texts = source_texts  # p(source_texts)
         else:
             self.source_texts = None
 
     @Inputs.ungraded_essays
     def set_ungraded_data(self, ungraded_essays):
         if ungraded_essays is not None:
-            corpus, corpus_sentences = self.prepare_data(ungraded_essays)
+            # corpus, corpus_sentences = self.prepare_data(ungraded_essays)
 
-            self.ungraded_corpus = corpus
-            self.ungraded_corpus_sentences = corpus_sentences
+            self.ungraded_corpus = ungraded_essays  # corpus
+            # self.ungraded_corpus_sentences = corpus_sentences
 
             self.infob.setText('%d instances in ungraded input dataset' % len(ungraded_essays))
 
@@ -185,14 +191,15 @@ class OWAttributeSelection(OWWidget):
             self.ungraded_corpus_sentences = None
             self.infob.setText('No ungraded data on input yet, waiting to get something.')
             self.Outputs.attributes_ungraded.send(None)
-            #self.optionsBox.setDisabled(True)
+            # self.optionsBox.setDisabled(True)
 
     def prepare_data(self, data):
         self.dataset = data.copy()
         p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
                                     transformers=[preprocess.LowercaseTransformer()],
                                     pos_tagger=pos.AveragedPerceptronTagger(),
-                                    normalizer=preprocess.WordNetLemmatizer())
+                                    normalizer=preprocess.WordNetLemmatizer(),
+                                    filters=preprocess.StopwordsFilter())
         p_sentences = preprocess.Preprocessor(tokenizer=preprocess.PunktSentenceTokenizer())
 
         corpus = p(data)
@@ -200,6 +207,17 @@ class OWAttributeSelection(OWWidget):
         corpus_sentences = p_sentences(data)
 
         return corpus, corpus_sentences
+
+    def prepare_source_texts(self, source_texts):
+        if source_texts is not None:
+            p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
+                                        transformers=[preprocess.LowercaseTransformer()],
+                                        pos_tagger=pos.AveragedPerceptronTagger())
+            self.source_texts = p(source_texts)
+        else:
+            self.source_texts = None
+
+        return self.source_texts
 
     def selection(self):
         if self.dataset is None:
@@ -219,13 +237,16 @@ class OWAttributeSelection(OWWidget):
             self.cancel()
         assert self._task is None
 
-        if self.corpus is None or self.corpus_sentences is None:
+        if self.corpus is None:  # or self.corpus_sentences is None:
             return
+
+        #self.corpus, self.corpus_sentences = self.prepare_data(self.corpus)
+        #self.source_texts = self.prepare_source_texts(self.source_texts)
 
         calculate_attributes_func = partial(
             calculateAttributes,
             graded_corpus=self.corpus,
-            graded_corpus_sentences=self.corpus_sentences,
+            graded_corpus_sentences=None,  # self.corpus_sentences,
             ungraded_corpus=self.ungraded_corpus,
             ungraded_corpus_sentences=self.ungraded_corpus_sentences,
             grades=self.corpus_grades,
@@ -355,6 +376,7 @@ class OWAttributeSelection(OWWidget):
         self.attributeDictionaryUngraded = {}
         self._update()
 
+
 def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, ungraded_corpus, grades,
                         ungraded_corpus_sentences, attr, callback, word_embeddings, METHODS):
     word_length_threshold = 7
@@ -362,13 +384,24 @@ def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, un
     lemmatizer = WordNetLemmatizer()
     #new_corpus = self.new_corpus
 
+    callback(0.01)
+
+    # Prepare data
+    graded_corpus, graded_corpus_sentences = prepare_data(graded_corpus)
+    source_texts = prepare_source_texts(source_texts)
+    if ungraded_corpus is not None:
+        ungraded_corpus, ungraded_corpus_sentences = prepare_data(ungraded_corpus)
+
     print(source_texts)
+
+
 
     # proportions = np.linspace(0.0, 1.0, 80 * 2, endpoint=True)[1:]
     if ungraded_corpus is None:
         proportions = np.linspace(0.0, 1.0, len(attr) + 1, endpoint=True)[1:]
     else:
         proportions = np.linspace(0.0, 1.0, len(attr)*2 + 1, endpoint=True)[1:]
+
 
     #for i in range(len(new_corpus)):
     #    for j in range(len(new_corpus.tokens[i])):
@@ -392,7 +425,7 @@ def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, un
         if m.startswith("Coherence"):
             module = module(graded_corpus, graded_corpus_sentences, grades, source_texts, word_embeddings)
         elif m.startswith("Content"):
-            module = module(graded_corpus, graded_corpus_sentences, grades, source_texts)
+            module = module(graded_corpus, graded_corpus_sentences, grades, source_texts, word_embeddings=word_embeddings)
         else:
             module = module(graded_corpus, graded_corpus_sentences)
         modules[m] = module
@@ -450,7 +483,7 @@ def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, un
                 module = module(ungraded_corpus, ungraded_corpus_sentences, grades, source_texts, word_embeddings)
             elif m.startswith("Content"):
                 module = module(ungraded_corpus, ungraded_corpus_sentences, grades, source_texts,
-                                graded_corpus=graded_corpus)
+                                graded_corpus=graded_corpus, word_embeddings=word_embeddings)
             else:
                 module = module(ungraded_corpus, ungraded_corpus_sentences)
             modules[m] = module
@@ -467,6 +500,33 @@ def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, un
 
     print(attributeDictionaryGraded)
     return attributeDictionaryGraded, attributeDictionaryUngraded
+
+def prepare_data(data):
+
+    p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
+                                transformers=[preprocess.LowercaseTransformer()],
+                                pos_tagger=pos.AveragedPerceptronTagger(),
+                                normalizer=preprocess.WordNetLemmatizer(),
+                                filters=preprocess.StopwordsFilter())
+    p_sentences = preprocess.Preprocessor(tokenizer=preprocess.PunktSentenceTokenizer())
+
+    corpus = p(data)
+    corpus = copy.deepcopy(corpus)
+    corpus_sentences = p_sentences(data)
+
+    return corpus, corpus_sentences
+
+
+def prepare_source_texts(source_texts):
+    if source_texts is not None:
+        p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
+                                    transformers=[preprocess.LowercaseTransformer()],
+                                    pos_tagger=pos.AveragedPerceptronTagger())
+        st = p(source_texts)
+    else:
+        st = None
+
+    return st
 
 
 def is_number(n):

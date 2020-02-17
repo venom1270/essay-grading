@@ -48,63 +48,63 @@ class ReadabilityMeasures(BaseModule):
             print("Gunning Fog index:", gunning_fog_index)
             attribute_dictionary["gunningFogIndex"] = gunning_fog_index
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbFleschReadingEase:
             flesch_reading_ease = self.calculate_flesch_reading_ease()
             print("Flesch reading ease:", flesch_reading_ease)
             attribute_dictionary["fleschReadingEase"] = flesch_reading_ease
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbFleschKincaidGradeLevel:
             flesch_kincaid_grade_level = self.calculate_flesch_kincaid_grade()
             print("Flesch Kincaid grade level:", flesch_kincaid_grade_level)
             attribute_dictionary["fleschKincaidGradeLevel"] = flesch_kincaid_grade_level
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbDaleChallReadabilityFormula:
             dale_chall_readability_formula = self.calculate_dale_chall_readability()
             print("Dale Chall readability formula:", dale_chall_readability_formula)
             attribute_dictionary["daleChallReadabilityFormula"] = dale_chall_readability_formula
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbAutomatedReadabilityIndex:
             automated_readability_index = self.calculate_automated_readability_index()
             print("Automated readability index:", automated_readability_index)
             attribute_dictionary["automatedReadabilityIndex"] = automated_readability_index
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbSimpleMeasureOfGobbledygook:
             simple_measure_of_gobbledygook = self.calculate_simple_measure_gobbledygook()
             print("Simple measure of Gobbledygook: ", simple_measure_of_gobbledygook)
             attribute_dictionary["simpleMeasureOfGobbledygook"] = simple_measure_of_gobbledygook
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbLix:
             lix = self.calculate_lix()
             print("LIX:", lix)
             attribute_dictionary["lix"] = lix
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbWordVariationIndex:
             ovix = self.calculate_word_variation_index()
             print("Ovix: ", ovix)
             attribute_dictionary["wordVariationIndex"] = ovix
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbNominalRatio:
             nominal_ratio = self.calculate_nominal_ratio()
             print("nominalRatio: ", nominal_ratio)
             attribute_dictionary["nominalRatio"] = nominal_ratio
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         return i
 
@@ -144,7 +144,8 @@ class ReadabilityMeasures(BaseModule):
         """
         stemmer = nltk.stem.PorterStemmer()
         word_list = []
-        # TODO: lematizacija, trenutno mislim da so nekolk previsoki rezultati; tudi ce to resim so potem problem utf-8 punctuationi...
+        # TODO: lematizacija, trenutno mislim da so nekolk previsoki rezultati; tudi ce to resim so potem problem
+        #  utf-8 punctuationi...
 
         file_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/data/dale_chall_word_list.txt"
         # "C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangecontrib/essaygrading/data/dale_chall_word_list.txt"
@@ -200,13 +201,14 @@ class ReadabilityMeasures(BaseModule):
         Calculates word variation index. (https://www.aclweb.org/anthology/W11-4627.pdf)
         :return: Word variation index for each essay.
         """
-        # TODO: REFERENCE: https://www.semanticscholar.org/paper/Automatic-summarization-as-means-of-simplifying-an-Smith-J%C3%B6nsson/76d562cbda4d4bfc74bbc9488570615b3f78841e
+        # TODO: REFERENCE: https://www.semanticscholar.org/paper/Automatic-summarization-as-means-of-simplifying-an-Sm
+        #  ith-J%C3%B6nsson/76d562cbda4d4bfc74bbc9488570615b3f78841e
         # http://aclweb.org/anthology/W/W11/W11-4627.pdf
         # TODO: division by zero -napou poravlen
         result = np.log(self.num_of_words) / \
                  np.log(2 - (np.log(self.num_of_different_words) / np.log(self.num_of_words)))
         # problem ker ma en kratek stavk enako stevilo uniqe besed kot vseh besed - popravek
-        ovix = np.array([val if val < 99999 else 1 for val in result])
+        ovix = np.array([val if val < 99999 else 0 for val in result])
         return ovix
 
     def calculate_nominal_ratio(self):
@@ -220,11 +222,11 @@ class ReadabilityMeasures(BaseModule):
                            for doc in pos_tag_counter]
         num_of_nouns = np.array([tags.get("NN", 0) + tags.get("NNP", 0) + tags.get("NNS", 0) + tags.get("NNPS", 0)
                                  for tags in pos_tag_counter])
-        num_of_prepositions = np.array([tags.get("IN", 0)
+        num_of_prepositions = np.array([tags.get("IN", 0) + tags.get("TO", 0)
                                         for tags in pos_tag_counter])
-        num_of_participles = np.array([tags.get("VGB", 0) + tags.get("VGN", 0)
+        num_of_participles = np.array([tags.get("VBG", 0) + tags.get("VBN", 0)
                                        for tags in pos_tag_counter])
-        num_of_pronouns = np.array([tags.get("PRP", 0) + tags.get("PRP$", 0)
+        num_of_pronouns = np.array([tags.get("PRP", 0) + tags.get("PRP$", 0) + tags.get("WP", 0) + tags.get("WP$", 0)
                                     for tags in pos_tag_counter])
         num_of_adverbs = np.array([tags.get("RB", 0) + tags.get("RBR", 0) + tags.get("RBS", 0)
                                    for tags in pos_tag_counter])

@@ -7,7 +7,7 @@ class HermiT:
     def __init__(self):
         self.path = "C:/Users/zigsi/Desktop/OIE/HermiT/"
 
-    def check_unsatisfiable_cases(self, ontology, remove=True, explain=False):
+    def check_unsatisfiable_cases(self, ontology, remove=True, explain=False, i=0):
         '''
         :param ontology:
         :param remove:
@@ -23,18 +23,18 @@ class HermiT:
 
         '''
         os.chdir(self.path)
-        onto_path = "ontologies/ontology_tmp_test_qwe.owl"
+        onto_path = "ontologies/ontology_tmp_test_" + str(i) + ".owl"
         ontology.serialize(onto_path, format='pretty-xml')
         IRI = "file:///" + self.path + onto_path
         print("Hermit call")
         if explain:
             output = subprocess.call(['java', '-jar', self.path + "HermiT.jar", '-U', IRI, '-X'],
-                                     stdout=open('ontologies/logs/logfile.log', 'w'),
-                                     stderr=open('ontologies/logs/logfile.err', 'w'))
+                                     stdout=open('ontologies/logs/logfile_' + str(i) + '.log', 'w'),
+                                     stderr=open('ontologies/logs/logfile_' + str(i) + '.err', 'w'))
         else:
             output = subprocess.call(['java', '-jar', self.path + "HermiT.jar", '-U', IRI],
-                                     stdout=open('ontologies/logs/logfile.log', 'w'),
-                                     stderr=open('ontologies/logs/logfile.err', 'w'))
+                                     stdout=open('ontologies/logs/logfile_' + str(i) + '.log', 'w'),
+                                     stderr=open('ontologies/logs/logfile_' + str(i) + '.err', 'w'))
 
         print("Finished")
         if remove:
@@ -49,12 +49,12 @@ class HermiT:
             print("Ourput != 0:")
             print(output)
             print("LOG")
-            with open('ontologies/logs/logfile.log', 'r') as f:
+            with open('ontologies/logs/logfile_' + str(i) + '.log', 'r') as f:
                 read = f.read()
                 f.close()
                 print(read)
             print("ERR")
-            with open('ontologies/logs/logfile.err', 'r') as f:
+            with open('ontologies/logs/logfile_' + str(i) + '.err', 'r') as f:
                 read = f.read()
                 f.close()
                 print(read)
@@ -65,7 +65,7 @@ class HermiT:
 
         else:
             print("Output == 0")
-            with open('ontologies/logs/logfile.log', 'r') as f:
+            with open('ontologies/logs/logfile_' + str(i) + '.log', 'r') as f:
                 read = f.read()
                 f.close()
                 print(read)
@@ -125,24 +125,26 @@ class HermiT:
         print(explanation)
         print("Printing text")
         #print(text)
-        parsed_explanation = []
+        parsed_explanation = None
         if text:
             #for i in range(1, num_groups+1):
             #    print(text.group(i))
             typ = text.group(1)
             exp_text = ""
             if typ == "ObjectPropertyAssertion":
-                exp_text = "Relation not consistent: " + str(text.group(3)) + " " + str(text.group(2)) + " " + str(text.group(4)) + "."
+                exp_text = "Relation not consistent: " + self.url_to_readable_string(text.group(3)) + " " + self.url_to_readable_string(text.group(2)) + " " + self.url_to_readable_string(text.group(4)) + "."
                 print(exp_text)
             elif typ == "DisjointObjectProperties":
-                exp_text = "Relations " + str(text.group(2)) + " and " + str(text.group(3)) + " are opposite/disjoint."
+                exp_text = "Relations " + self.url_to_readable_string(text.group(2)) + " and " + self.url_to_readable_string(text.group(3)) + " are opposite/disjoint."
                 print(exp_text)
             elif typ == "DisjointClasses":
-                exp_text = "Concepts " + str(text.group(2)) + " and " + str(text.group(3)) + " are opposite/disjoint."
+                exp_text = "Concepts " + self.url_to_readable_string(text.group(2)) + " and " + self.url_to_readable_string(text.group(3)) + " are opposite/disjoint."
             elif typ == "ClassAssertion":
-                exp_text = "'" + str(text.group(3)) + " is " + str(text.group(2)) + "'."
+                exp_text = "'" + self.url_to_readable_string(text.group(3)) + " is " + self.url_to_readable_string(text.group(2)) + "'."
             else:
                 print("Unknown relation type: " + str(typ))
-            parsed_explanation.append(exp_text)
+            parsed_explanation = exp_text
         return parsed_explanation
 
+    def url_to_readable_string(self, URL):
+        return str(URL).split("#")[1]

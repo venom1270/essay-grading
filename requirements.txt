@@ -9,5 +9,11 @@ pyspellchecker
 spacy
 rdflib
 textacy
-#pyclausie # + se moji popravki (treba je dat v neko mapo na repotu in povedat nej iz tm instalira)
-#neuralcoref # problem, ker je nekompatibilen s starim numpyom in novim spacyem
+pyclausie # + se moji popravki (treba je dat v neko mapo na repotu in povedat nej iz tm instalira)
+neuralcoref # problem, ker je nekompatibilen s starim numpyom in novim spacyem
+flair
+
+
+
+# conda install pytorch torchvision cpuonly -c pytorch   ## TO JE DELALO!!!
+# pip install flair

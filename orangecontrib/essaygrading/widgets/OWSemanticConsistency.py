@@ -7,8 +7,6 @@
 
 
 import copy
-import string
-import numpy as np
 import concurrent.futures
 from functools import partial
 
@@ -16,7 +14,6 @@ from functools import partial
 import Orange.data
 from Orange.widgets.widget import OWWidget, Input, Output, Msg
 from Orange.widgets import gui
-from Orange.widgets import settings
 from Orange.widgets.utils.widgetpreview import WidgetPreview
 from Orange.widgets.utils.concurrent import (
     ThreadExecutor, FutureWatcher, methodinvoke
@@ -27,9 +24,11 @@ from AnyQt.QtCore import QThread, pyqtSlot
 from orangecontrib.text import Corpus
 from orangecontrib.text import preprocess
 from orangecontrib.text.tag import pos
-from orangecontrib.text.widgets.utils import CheckListLayout
 from orangecontrib.essaygrading.utils.task import Task
 from orangecontrib.essaygrading.utils import OntologyUtils
+from orangecontrib.essaygrading.utils.widgets import FileWidget
+
+from nltk import sent_tokenize
 
 
 class OWSemanticConsistency(OWWidget):
@@ -40,33 +39,28 @@ class OWSemanticConsistency(OWWidget):
 
     class Inputs:
         essays = Input("Essays", Corpus)
-        source_texts = Input("Source texts", Corpus)
 
     class Outputs:
         feedback = Output("Feedback", Orange.data.Table)
 
     class Error(OWWidget.Error):
-        pass
-        #need_discrete_data = Msg("Need some discrete data to work with.")
-        #no_disc_features = Msg("Discrete features required but data has none.")
+        read_file = Msg("Can't read file {} ({})")
+        # need_discrete_data = Msg("Need some discrete data to work with.")
+        # no_disc_features = Msg("Discrete features required but data has none.")
 
     class Warning(OWWidget.Warning):
-        pass
-        #no_test_data = Msg("No test data (ungraded essays) present.")
-
-
-    attributeDictionary = {}
-
-    selected_attributes = []
-    selected_attributes_names = ["Basic Measures",
-                                 "Readability Measures",
-                                 "Lexical Diversity",
-                                 "Grammar",
-                                 "Content",
-                                 "Coherence and Semantics"]
+        invalid_source_file = Msg("Invalid source file. Only files with one line are valid.")
+        # no_test_data = Msg("No test data (ungraded essays) present.")
 
     openie_system = "ClausIE"
     use_coreference = False
+
+    dlgFormats = (
+        "All readable files ({});;".format(
+            '*' + ' *'.join(Orange.data.io.FileFormat.readers.keys())) +
+        ";;".join("{} (*{})".format(f.DESCRIPTION, ' *'.join(f.EXTENSIONS))
+                  for f in sorted(set(Orange.data.io.FileFormat.readers.values()),
+                                  key=list(Orange.data.io.FileFormat.readers.values()).index)))
 
     want_main_area = False
 
@@ -79,6 +73,7 @@ class OWSemanticConsistency(OWWidget):
         self.ungraded_corpus = None
         self.ungraded_corpus_sentences = None
         self.dataset = None # I don't really need this
+        self.source_text_file = None
 
         #: The current evaluating task (if any)
         self._task = None  # type: Optional[Task]
@@ -88,10 +83,8 @@ class OWSemanticConsistency(OWWidget):
         # GUI
         box = gui.widgetBox(self.controlArea, "Info")
         self.infoa = gui.widgetLabel(box, 'No essays on input. Waiting to get something.')
-
-        #self.controlArea.layout().addWidget(
-        #    CheckListLayout("Attribute selection", self, "selected_attributes", self.selected_attributes_names, cols=2)
-        #)
+        self.source_text_info = gui.widgetLabel(box, "")
+        self.update_file_info()
 
         parametersBox = gui.widgetBox(self.controlArea, "Options")
 
@@ -100,6 +93,20 @@ class OWSemanticConsistency(OWWidget):
         self.label_openie_system = gui.widgetLabel(parametersBox, 'OpenIE system: ')
         self.cb_openie_system = gui.comboBox(widget=parametersBox, master=self, items=("ClausIE", "OpenIE-5.0"),
                                                          value="openie_system", sendSelectedValue=True)
+
+        fbox = gui.widgetBox(self.controlArea, "Optional source text file", orientation=0)
+        self.file_widget = FileWidget(
+            recent_files=None,
+            icon_size=(16, 16),
+            on_open=self.open_file,
+            dialog_format=self.dlgFormats,
+            dialog_title='Open Source text file',
+            reload_label='Reload',
+            browse_label='Browse',
+            allow_empty=False,
+            minimal_width=250,
+        )
+        fbox.layout().addWidget(self.file_widget)
 
         self.optionsBox = gui.widgetBox(self.controlArea, "Controls")
         gui.button(self.optionsBox, self, "Apply", callback=self._invalidate_results)
@@ -110,9 +117,6 @@ class OWSemanticConsistency(OWWidget):
         if dataset is not None:
 
             corpus, corpus_sentences = self.prepare_data(dataset)
-
-            # domain 1 scores
-            #print(corpus.X[:,5])
 
             self.optionsBox.setDisabled(False)
 
@@ -128,17 +132,6 @@ class OWSemanticConsistency(OWWidget):
             self.Outputs.errors.send(None)
             self.optionsBox.setDisabled(True)
 
-    @Inputs.source_texts
-    def set_source_texts(self, source_texts):
-        if source_texts is not None:
-            p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
-                                        transformers=[preprocess.LowercaseTransformer()],
-                                        pos_tagger=pos.AveragedPerceptronTagger())
-            self.source_texts = p(source_texts)
-        else:
-            self.source_texts = None
-
-
     def prepare_data(self, data):
         self.dataset = data.copy()
         p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
@@ -146,7 +139,7 @@ class OWSemanticConsistency(OWWidget):
                                     pos_tagger=pos.AveragedPerceptronTagger(),
                                     normalizer=preprocess.WordNetLemmatizer())
         p_sentences = preprocess.Preprocessor(tokenizer=preprocess.PunktSentenceTokenizer(),
-                                              #transformers=[preprocess.LowercaseTransformer()],
+                                              # transformers=[preprocess.LowercaseTransformer()],
                                               # ce je to vklopljeno, pol neki nedela cist prov.
                                               pos_tagger=pos.AveragedPerceptronTagger(),
                                               )
@@ -159,6 +152,38 @@ class OWSemanticConsistency(OWWidget):
 
         return corpus, corpus_sentences
 
+    def open_file(self, path=None, data=None):
+        self.Error.clear()
+        if data:
+            self.source_texts = data
+        elif path:
+            try:
+                file = open(path, "r", encoding="utf8")
+                self.source_text_file = file.name.split("/")[-1]
+                self.source_texts = file.readlines()
+                file.close()
+            except BaseException as err:
+                self.Error.read_file(path, str(err))
+        else:
+            self.source_texts = None
+            self.source_text_file = None
+
+        self.update_file_info()
+
+    def update_file_info(self):
+        self.Warning.invalid_source_file.clear()
+        if self.source_texts is not None:
+            self.source_text_info.setText("Source text file present: " + self.source_text_file)
+
+            if len(self.source_texts) != 1:
+                self.source_text_info.setText("No source text file present.")
+                self.Warning.invalid_source_file()
+            else:
+                self.source_texts = sent_tokenize(self.source_texts[0])
+                print(self.source_texts)
+        else:
+            self.source_text_info.setText("No source text file present.")
+
     def selection(self):
         if self.dataset is None:
             return
@@ -168,7 +193,7 @@ class OWSemanticConsistency(OWWidget):
             self.commit()
 
     def handleNewSignals(self):
-        pass #to je ce bi meu commitOnChange
+        pass  # to je ce bi meu commitOnChange
 
     def _update(self):
         if self._task is not None:
@@ -181,15 +206,13 @@ class OWSemanticConsistency(OWWidget):
 
         print(self.corpus_sentences.tokens)
 
-        calculate_attributes_func = partial(
-            calculateAttributes,
+        check_semantic_errors_func = partial(
+            checkSemanticErrors,
             sentences=self.corpus_sentences.tokens,
             openie_system=self.openie_system,
-            use_coreference=self.use_coreference
+            use_coreference=self.use_coreference,
+            source_text=self.source_texts  # [3] # TODO: zaenkrat se tukaj izbere keri source text bi radi
         )
-
-        #print(self.cb_coherence_word_embeddings)
-        #exit()
 
         # setup the task state
         self._task = task = Task()
@@ -209,7 +232,7 @@ class OWSemanticConsistency(OWWidget):
             set_progress(finished * 100)
 
         # capture the callback in the partial function
-        calculate_attributes_func = partial(calculate_attributes_func, callback=callback)
+        calculate_attributes_func = partial(check_semantic_errors_func, callback=callback)
 
         self.progressBarInit()
         # Submit the evaluation function to the executor and fill in the
@@ -277,15 +300,27 @@ class OWSemanticConsistency(OWWidget):
     def _invalidate_results(self):
         self._update()
 
-def calculateAttributes(sentences, openie_system="ClausIE", use_coreference=False, callback=None):
+def checkSemanticErrors(sentences, openie_system="ClausIE", use_coreference=False, callback=None, source_text=None):
 
     print(sentences)
 
-    f = OntologyUtils.run_semantic_consistency_check(sentences, use_coref=use_coreference, openie_system=openie_system)
+    # TODO izboljšaj if... preveri če je že ontolgija itd.
+
+    if source_text is not None:
+        print("************ SOURCE TEXT ONTOLOGY PRERPARATION *************")
+
+        f = OntologyUtils.run_semantic_consistency_check(None, use_coref=use_coreference, openie_system=openie_system,
+                                                         source_text=source_text, ontology_name="DS5_ontology.owl")
+        print(f)
+
+    print("****************** ESSAY PROCESSING *******************")
+
+    f = OntologyUtils.run_semantic_consistency_check([sentences[0]], use_coref=use_coreference, openie_system=openie_system,
+                                                     source_text=source_text, num_threads=8, orig_ontology_name="DS5_ontology.owl")
+
     print(f)
 
     return f
-
 
 
 if __name__ == "__main__":
@@ -293,6 +328,5 @@ if __name__ == "__main__":
     #WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/set1_train.tsv"),
     #                                  set_source_texts=Corpus.from_file("../datasets/source_texts.tsv"))
 
-    WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/small_set.tsv"),
-                                      set_source_texts=Corpus.from_file("../datasets/source_texts.tsv"))
+    WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/All datasets/set5_utf8.tsv")) #set3_small_2.tsv
 

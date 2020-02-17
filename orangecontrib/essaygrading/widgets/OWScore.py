@@ -144,7 +144,13 @@ class OWScore(OWWidget):
             print(self.true_scores)
 
             pred = np.array([round(x[0]) for x in self.predictions])
+            folds = []
+            print(self.predictions)
+            if self.predictions.metas is not None:
+                folds = np.array([x[0] for x in self.predictions.metas])
             true = np.array([x[0] for x in self.true_scores])
+
+            print(folds)
 
             for i in range(len(self.predictions)):
                 if pred[i] == true[i]:
@@ -160,8 +166,25 @@ class OWScore(OWWidget):
             print("true")
             print(true)
 
+            kappa_folds = []
+            exact_folds = []
+            num_folds = 10
+            if len(folds) > 0:
+                for i in range(num_folds): # TODO: dynamic
+                    print(i+1)
+                    p_scores = np.array([pred[x] for x in range(len(pred)) if folds[x] == i])
+                    t_scores = np.array([true[x] for x in range(len(true)) if folds[x] == i])
+                    print(p_scores)
+                    print(t_scores)
+                    print(folds)
+                    kappa_folds.append(quadratic_weighted_kappa(t_scores, p_scores))
+                    exact_folds.append((len(p_scores) - sum(np.abs(p_scores-t_scores))) / len(p_scores))
+
             self.outDictionary["exactAgreement"] = s / len(self.predictions)
+            self.outDictionary["exactAgreementFolds"] = sum(exact_folds) / num_folds
             self.outDictionary["weightedKappa"] = quadratic_weighted_kappa(true, pred)
+            self.outDictionary["weightedKappaFolds"] = sum(kappa_folds) / num_folds
+
 
             domain = Orange.data.Domain([Orange.data.ContinuousVariable.make(key) for key in self.outDictionary])
 
@@ -172,7 +195,6 @@ class OWScore(OWWidget):
             out = Orange.data.Table.from_numpy(domain, np.array(arr).transpose())
 
         self.Outputs.scores.send(out)
-
 
 
 # The following 3 functions have been taken from Ben Hamner's github repository
@@ -239,10 +261,10 @@ def quadratic_weighted_kappa(y, y_pred):
     if max_rating is None:
         max_rating = max(max(rater_a), max(rater_b))
 
-    print(rater_a)
-    print(rater_b)
-    print(min_rating)
-    print(max_rating)
+    #print(rater_a)
+    #print(rater_b)
+    #print(min_rating)
+    #print(max_rating)
     conf_mat = confusion_matrix(rater_a, rater_b,
                                 min_rating, max_rating)
     num_ratings = len(conf_mat)

@@ -6,7 +6,7 @@ from orangecontrib.essaygrading.modules.BaseModule import BaseModule
 
 name = "Lexical diversity"
 
-
+# TODO: zanimivo https://quanteda.io/reference/textstat_lexdiv.html
 class LexicalDiversity(BaseModule):
 
     name = "Lexical diversity"
@@ -21,49 +21,64 @@ class LexicalDiversity(BaseModule):
         :param i: Index of current progressbar value.
         :return: i (index of progressbar value).
         """
+
+        if selected_attributes is None or selected_attributes.cbLexicalDiversity:
+            lexical_diversity = self.calculate_lexical_diversity()
+            print("Lexical diversity: ", lexical_diversity)
+            attribute_dictionary["lexicalDiversity"] = lexical_diversity
+
+        # i = self._update_progressbar(callback, proportions, i)
+
         if selected_attributes is None or selected_attributes.cbTypeTokenRatio:
             type_token_ratio = self.calculate_type_token_ratio()
             print("Type Token Ratio: ", type_token_ratio)
             attribute_dictionary["typeTokenRatio"] = type_token_ratio
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbGuiraudsIndex:
             guirauds_index = self.calculate_guirauds_index()
             print("Guirauds Index: ", guirauds_index)
             attribute_dictionary["guiraudsIndex"] = guirauds_index
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbYulesK:
             yules_k = self.calculate_yules_k()
             print("Yule's K: ", yules_k)
             attribute_dictionary["yulesK"] = yules_k
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbTheDEstimate:
             d_estimate = self.calculate_d_estimate()
             print("D Estimate: ", d_estimate)
             attribute_dictionary["theDEstimate"] = d_estimate
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbHapaxLegomena:
             num_of_words_once = self.calculate_hapax_legomena()
             print("Hapax Legomena: ", num_of_words_once)
             attribute_dictionary["hapaxLegomena"] = num_of_words_once
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         if selected_attributes is None or selected_attributes.cbAdvancedGuirardIndex:
             advanced_guiraud = self.calculate_advanced_guirauds_index()
             print("Advanced Guirauds index: ", advanced_guiraud)
             attribute_dictionary["advancedGuiraudIndex"] = advanced_guiraud
 
-        #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
 
         return i
+
+    def calculate_lexical_diversity(self):
+        """
+        Calculates Lexical diversity ratio.
+        :return: Lexical diversity for each essay.
+        """
+        return self.num_of_words / self.num_of_different_words
 
     def calculate_type_token_ratio(self):
         """
@@ -95,12 +110,12 @@ class LexicalDiversity(BaseModule):
             v = collections.defaultdict(list)
             for key, value in sorted(doc.items()):
                 v[value].append(stemmer.stem(key))
-                #v[value].append(key)
+                # v[value].append(key)
             grouped_frequencies.append(v)
         m2 = np.array(
             [sum([freq ** 2 * len(tokens) for freq, tokens in doc.items()]) for doc in grouped_frequencies])
         # TODO: check zero division
-        yules_k = 0
+        # yules_k = 0
         yules_k = 10000 * ((m2 - m1) / (m1 * m1))
         # Yule's I
         # yules_k = 1 / yules_k
@@ -119,7 +134,7 @@ class LexicalDiversity(BaseModule):
         ttr = self.calculate_type_token_ratio()
         n = np.array([len(tokens) for tokens in self.corpus.tokens])
         d_estimate = - (n * ttr ** 2) / (2 * (ttr - 1))
-        d_estimate = np.array([0 if np.isinf(val) else val for val in d_estimate]) # TODO: verjentno nepotrebno
+        d_estimate = np.array([0 if np.isinf(val) else val for val in d_estimate])  # TODO: verjentno nepotrebno
         return d_estimate
 
     def calculate_hapax_legomena(self):
@@ -127,7 +142,10 @@ class LexicalDiversity(BaseModule):
         Calculates hapax legomena. (Number of words that appear only once in an essay.)
         :return: Hapax legomena for each essay.
         """
-        return [len([word for word, freq in doc.items() if freq == 1]) for doc in self.freq_words]
+        hl = [len([word for word, freq in doc.items() if freq == 1]) for doc in self.freq_words]
+        # Normalization
+        hl = [hl[i] / self.num_of_words[i] for i in range(len(self.corpus))]
+        return hl
 
     def calculate_advanced_guirauds_index(self):
         """
@@ -149,5 +167,5 @@ class LexicalDiversity(BaseModule):
                         difficult_words.append(token)
                 num_difficult_words.append(len(difficult_words))
         num_difficult_words = np.array(num_difficult_words)
-        advanced_guiraud = num_difficult_words / self.num_of_words
+        advanced_guiraud = num_difficult_words / np.sqrt(self.num_of_words)
         return advanced_guiraud

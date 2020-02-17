@@ -1,11 +1,13 @@
 from orangecontrib.essaygrading.modules.BaseModule import BaseModule
 from sklearn.feature_extraction.text import TfidfVectorizer
-from orangecontrib.essaygrading.utils.lemmatizer import lemmatizeTokens
+from orangecontrib.essaygrading.utils.lemmatizer import lemmatizeTokens, breakToWords
+from orangecontrib.essaygrading.utils import globals
 from scipy.spatial import distance
 from scipy.sparse import issparse
 import numpy as np
 import spacy
 import math
+from flair.embeddings import WordEmbeddings, FlairEmbeddings, DocumentPoolEmbeddings, Sentence
 
 name = "Coherence"
 
@@ -16,7 +18,7 @@ class Coherence(BaseModule):
 
     name = "Coherence and semantics"
 
-    def __init__(self, corpus, corpus_sentences, grades, source_texts=None, word_embeddings="TF-IDF"):
+    def __init__(self, corpus, corpus_sentences, grades, source_texts=None, word_embeddings=globals.EMBEDDING_TFIDF):
         # TODO: ZAKAJ IMAMO TUKAJ 'grades', saj jih nikjer ne uporabljamo??!!
         """
         Overrides parent __init__ and calls _load().
@@ -28,7 +30,7 @@ class Coherence(BaseModule):
         """
         self._load(corpus, corpus_sentences, grades, source_texts, word_embeddings)
 
-    def _load(self, corpus, corpus_sentences, grades, source_texts=None, word_embeddings="TF-IDF"):
+    def _load(self, corpus, corpus_sentences, grades, source_texts=None, word_embeddings=globals.EMBEDDING_TFIDF):
         """
         Calls parent _load() and sets additional parameters.
         :param corpus: Tokenized essay Corpus.
@@ -49,10 +51,7 @@ class Coherence(BaseModule):
             self.essay_scores = []
             self.distance_matrix = []
 
-            if word_embeddings == "TF-IDF":
-                self.use_glove = False
-            else:
-                self.use_glove = True
+            self.word_embeddings = word_embeddings
 
     def calculate_all(self, selected_attributes, attribute_dictionary, callback=None, proportions=None, i=None):
         """
@@ -70,7 +69,6 @@ class Coherence(BaseModule):
         D_euc = self.calculate_distance_matrix('euclidean')
         D_cos = self.calculate_distance_matrix('cosine')
         C, CD_euc, CD_cos = self.calculate_centroids()
-
 
         if selected_attributes is None or selected_attributes.cbBasicCoherenceMeasures:
             # Avg/Min/Max/Index neighbour and any points, Clark Evans, Avg to NN, Cumulative frequency
@@ -277,7 +275,7 @@ class Coherence(BaseModule):
             # formula n=doc.shape[1], N=doc.shape[0]
             s = 0
             # tole rabi kar dolgo
-            #for k in range(doc.shape[1]):
+            # for k in range(doc.shape[1]):
             #    for i in range(doc.shape[0]):
             #        s += (doc[i,k] - C[doc_i][k]) ** 2
 
@@ -336,7 +334,8 @@ class Coherence(BaseModule):
 
                 m += numerator / denominator
             '''
-            # treba je narest v dveh delih, ker so notrnji >1 in <n elementi dvakrat v formuli (stevec), imenovalec je isti
+            # treba je narest v dveh delih, ker so notrnji >1 in <n elementi dvakrat v formuli (stevec), imenovalec
+            # je isti
             D = doc - C[doc_i]
             Di = np.delete(D, -1, axis=0)
             Dj = np.delete(D, 0, axis=0)
@@ -354,11 +353,10 @@ class Coherence(BaseModule):
 
         return morans_i
 
-
     def calculate_gearys_c(self, C):
         """
         Calculates Geary's C. (https://en.wikipedia.org/wiki/Geary%27s_C)
-        :param C: Distance matrix to centroids.
+        :param C: Distance matrix to centroids. |||| FIX: Centroid matrix ("mean centre matrix")
         :return: Geary's C for each essay.
         """
         gearys_c = []
@@ -366,13 +364,14 @@ class Coherence(BaseModule):
             doc = self.tfidf_parts[doc_i]
             if issparse(doc):
                 doc = doc.todense()
-            N = doc.shape[0] # st. tock
-            n = doc.shape[1] # st. komponent
-            S = (N - 1)*2 # vsota utezi TODO: je to res: sosedov je n-1 ?? JA?
-            c = 0 # sprotna vsota
+            N = doc.shape[0]  # st. tock
+            n = doc.shape[1]  # st. komponent
+            S = (N - 1)*2  # vsota utezi
+            c = 0  # sprotna vsota
             D = doc - C[doc_i]
-            '''
-            for k in range(doc.shape[1]):
+            D_mean = doc - C[doc_i]
+
+            '''for k in range(doc.shape[1]):
                 # utez je ena smao, ce sta soseda - torej pride v postev samo i in i+1
                 numerator = 0
                 denominator = 0
@@ -381,29 +380,33 @@ class Coherence(BaseModule):
                         if abs(i-j) == 1:
                             numerator += ((doc[i,k] - doc[j,k])**2)
                 for i in range(doc.shape[0]):
-                    for j in range(doc.shape[0]):
-                        if abs(i-j) == 1:
-                            denominator += (D[i,k]**2)
+                    #for j in range(doc.shape[0]):
+                        #if abs(i-j) == 1:
+                    denominator += (D[i,k]**2)
 
                 if denominator != 0:
-                    c += numerator / denominator
-            '''
-            # treba je narest v dveh delih, ker so notrnji >1 in <n elementi dvakrat v formuli (stevec), imenovalec je isti
+                    c += numerator / denominator'''
+
+            # treba je narest v dveh delih, ker so notrnji >1 in <n elementi dvakrat v formuli (stevec),
+            # imenovalec je isti
             D = doc
             Di = np.delete(D, -1, axis=0)
             Dj = np.delete(D, 0, axis=0)
             D_numerator = np.sum(np.power(np.subtract(Di, Dj), 2), axis=0)
-            D_denominator = np.sum(np.power(Di - C[doc_i], 2), axis=0)
+            # D_denominator = np.sum(np.power(Di - C[doc_i], 2), axis=0)
             Dj = np.delete(D, -1, axis=0)
             Di = np.delete(D, 0, axis=0)
             D_numerator += np.sum(np.power(np.subtract(Di, Dj), 2), axis=0)
-            D_denominator += np.sum(np.power(Di - C[doc_i], 2), axis=0)
+            # D_denominator += np.sum(np.power(Di - C[doc_i], 2), axis=0)
+            D_denominator = np.sum(np.power(D_mean, 2), axis=0)
             c = np.sum(np.divide(D_numerator, D_denominator))
+
+            S = (N - 1) * 2
 
             if N < 2:
                 c = 0
             else:
-                c = ((N-1)/2) * (c/n)
+                c = ((N-1)/(2*S)) * (c/n)
             gearys_c.append(c)
 
         return gearys_c
@@ -444,9 +447,11 @@ class Coherence(BaseModule):
             '''
             # nimam blage veze kaj je ta black magic z broadcastanjem, ampak dela :DDDD
             D = doc
-            W = np.where(D_mat[doc_i] <= distance_threshold[doc_i], 1, 0) # matrika utezi (1 ali 0) veliksoti NxN - katere vsote pridejo v postev
+            # matrika utezi (1 ali 0) veliksoti NxN - katere vsote pridejo v postev
+            W = np.where(D_mat[doc_i] <= distance_threshold[doc_i], 1, 0)
             D = np.array(D)
-            multiplied = np.multiply(D[None,:,:], D[:,None,:]) # broadcastanje - iz tega rata pol 3D array, vsak element (vrstica) z vsakim - 3D zato, ker je vec komponent
+            # broadcastanje - iz tega rata pol 3D array, vsak element (vrstica) z vsakim - 3D zato, ker je vec komponent
+            multiplied = np.multiply(D[None,:,:], D[:,None,:])
             weighted = multiplied * W[:,:,None] # braodcastamo in mnozimo se z utezmi
             D_numerator = np.sum(weighted, axis=(1,0)) #
             D_denominator = np.sum(multiplied, axis=(1,0))
@@ -462,7 +467,7 @@ class Coherence(BaseModule):
 
     def calculate_centroids(self):
         """
-        Calculates centroids using euclidean and cosine distance metric.
+        Calculates centroids and distances using euclidean and cosine metrics
         :return: Centroids, Centroid distance matrix (euclidean), Centroid distance matrix (cosine) (3 parameters)
         """
         C = []
@@ -473,23 +478,20 @@ class Coherence(BaseModule):
             cd_euc = []
             cd_cos = []
 
-            if issparse(doc): # TODO: NAREDI LEPSE: pri tfidfju je sprse matrika in je tuki mal kolobocije pdoatke dobit...
+            if issparse(doc):
                 centroid = np.sum(doc, axis=0).A[0] / doc.shape[0]
                 d = np.append(doc.todense(), [centroid], axis=0)
             else:
                 centroid = np.sum(doc, axis=0) / doc.shape[0]
                 d = np.append(doc, [centroid], axis=0)
 
-            #for i in range(doc.shape[0]):
+            # for i in range(doc.shape[0]):
             #    cd_euc.append(self.euclidean_distance(doc[i].toarray(), centroid))
             #    cd_cos.append(cosine_similarity(doc[i].toarray(), [centroid]).tolist()[0][0])
 
+            # c_mat = np.tile(centroid, (doc.shape[0],1))
 
-
-            c_mat = np.tile(centroid, (doc.shape[0],1))
-
-
-            #d = np.append(doc.todense(), [centroid], axis=0)
+            # d = np.append(doc.todense(), [centroid], axis=0)
 
             cd_euc = distance.cdist(d, d, metric='euclidean')[-1]
             cd_cos = distance.cdist(d, d, metric='cosine')[-1]
@@ -516,54 +518,70 @@ class Coherence(BaseModule):
         """
         Preprocessing of input Corpora. Creates word embeddings. Results are stored in internal variables.
         """
-        tfidf_vectorizer = TfidfVectorizer(max_features=10000, stop_words="english",
-                                           use_idf=True)
+        tfidf_vectorizer = TfidfVectorizer(max_features=None, stop_words="english")
 
         # TOLE SEM PRESTAVIL GOR IN docs UPORABIL ZA
-        corpus_sentences = lemmatizeTokens(self.corpus, join=True)
+        # corpus_sentences = lemmatizeTokens(self.corpus, join=True)
         corpus_tokens = lemmatizeTokens(self.corpus, join=False)
+        # corpus_tokens = self.corpus.tokens
         # append source/prompt text
         # TODO: source_text rabimo sploh?
-        #docs.append((lemmatizeTokens(self.source_texts, join=True)[0]))
-
+        # docs.append((lemmatizeTokens(self.source_texts, join=True)[0]))
 
         # WINDOW PARAMETERS #
-        step = 10 # Steps of 10 words
-        window_size_factor = 0.25 # 25% of average words in all essays
+        step = 10  # Steps of 10 words
+        window_size_factor = 0.25  # 25% of average words in all essays
         avg_essays_words = sum([len(tokens) for tokens in corpus_tokens]) / len(corpus_tokens)
         window_size = int(avg_essays_words * window_size_factor)
 
         # Create corpus/essay parts
         for tokens in corpus_tokens:
+            wsize = window_size
+            while len(tokens) <= wsize:  # ce je okno preveliko za nek zelo kratek esej, potem zmanjsaj okno
+                wsize = int(wsize / 2)
             parts = []
             i = 0
-            j = window_size
-            #if USE_GLOVE:
-            #    parts.append(tokens[i:min(j, len(tokens))]) #za GLOVE verjetno
-            #else: #TFIDF
+            j = wsize
             parts.append(" ".join(tokens[i:min(j, len(tokens))]))
             while j <= len(tokens):
                 i += step
                 j += step
-                #parts.append(tokens[i:min(j, len(tokens))])
-                #if USE_GLOVE:
-                    #parts.append(tokens[i:j]) # za GLOVE verjetno
-                #else: #TFIDF
                 parts.append(" ".join(tokens[i:j]))
 
             self.corpus_parts.append(parts)
 
         # TODO: preveri, ce je pravilno
 
-        nlp = None
-        if self.use_glove:
-            nlp = spacy.load("en_vectors_web_lg")
-            print("GLOVE vectors loaded!")
+        glove_embeddings = None
+        flair_embeddings = None
+        if self.word_embeddings == globals.EMBEDDING_GLOVE_SPACY:
+            glove_embeddings = spacy.load("en_vectors_web_lg")
+            print("GloVe (SpaCy) vectors loaded!")
+        elif self.word_embeddings == globals.EMBEDDING_GLOVE_FLAIR:
+            flair_embeddings = DocumentPoolEmbeddings([WordEmbeddings("glove")])
+            print("GloVe (Flair) vectors loaded!")
 
         self.tfidf_parts = []
         for parts in self.corpus_parts:
-            if not self.use_glove:
-                self.tfidf_parts.append(tfidf_vectorizer.fit_transform(parts))
+            if self.word_embeddings == globals.EMBEDDING_TFIDF:
+                # Try/catch if string empty or contains stopwords
+                try:
+                    self.tfidf_parts.append(tfidf_vectorizer.fit_transform(parts))
+                except Exception:
+                    print("Warning: empty string or stopwords only in tfidf essay part! Appending zeros!")
+                    self.tfidf_parts.append(np.zeros((len(parts),len(parts))))
+            elif self.word_embeddings == globals.EMBEDDING_GLOVE_FLAIR:
+                essay_word_embedding = []
+                # vocab = nlp.vocab
+                for essay_part in parts:
+                    # FLAIR
+                    essay_part_sentences = Sentence(essay_part)
+                    if essay_part == "":
+                        continue
+                    flair_embeddings.embed(essay_part_sentences)
+                    essay_word_embedding.append(np.array(essay_part_sentences.get_embedding().detach().numpy()))
+
+                self.tfidf_parts.append(np.array(essay_word_embedding))
             else:
 
                 ''' 
@@ -580,20 +598,24 @@ class Coherence(BaseModule):
                 print(np.sum(np.square(queen-man)))
                 '''
                 essay_word_embedding = []
-                #vocab = nlp.vocab
+                # vocab = nlp.vocab
                 for essay_part in parts:
-                    essay_word_embedding.append(np.array(nlp(essay_part).vector))
-                #print(essay_word_embedding)
+                    # SPACY
+                    essay_word_embedding.append(np.array(glove_embeddings(essay_part).vector))  # spacy
+                    # FLAIR
+                    # print(essay_part)
+                    # essay_part_sentences = Sentence(essay_part)
+                    # flair_embeddings.embed(essay_part_sentences)
+                    # essay_word_embedding.append(np.array(essay_part_sentences.get_embedding().detach().numpy()))
+                # print(essay_word_embedding)
+                # print(essay_word_embedding)
                 self.tfidf_parts.append(np.array(essay_word_embedding))
 
-        #self.essay_scores = list(np.floor(self.grades / 2))
         self.essay_scores = list(np.round(self.grades))
 
-        #print(self.tfidf_parts)
+        # print(self.tfidf_parts[0])
 
-        print(self.tfidf_parts[0])
-
-        print("TFIDF windows done")
+        print("Word embedding windows done")
 
     def calculate_distance_matrix(self, metric='euclidean'):
         """
@@ -623,5 +645,5 @@ class Coherence(BaseModule):
                             d[j,i] = dist
             '''
             D.append(d)
-        #print(D)
+        # print(D)
         return D

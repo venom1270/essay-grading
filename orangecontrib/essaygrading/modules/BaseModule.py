@@ -2,6 +2,7 @@ import string
 import nltk
 import numpy as np
 
+# https://charactercounttool.com/
 
 class BaseModule:
 
@@ -37,9 +38,10 @@ class BaseModule:
         self.filtered_tokens = [[token.lower() for token in doc if token not in string.punctuation] for doc in
                                 corpus.tokens]
         self.num_of_characters = np.array([len(doc) for doc in corpus.documents])
+        self.num_of_characters_no_spaces = np.array([len(doc.replace(" ", "")) for doc in corpus.documents])
         self.num_of_words = np.array([len(doc) for doc in self.filtered_tokens])
         self.num_of_sentences = np.array([len(doc) for doc in corpus_sentences.tokens])
-        self.num_of_long_words = [len([x for x in doc if len(x) >= self.word_length_threshold])
+        self.num_of_long_words = [len([x for x in doc if len(x) >= self.long_word_threshold])
                                   for doc in corpus.tokens]
         self.num_of_different_words = np.array([len(set(doc)) for doc in corpus.tokens])
         self.freq_words = [nltk.probability.FreqDist(doc) for doc in self.filtered_tokens]
@@ -50,8 +52,15 @@ class BaseModule:
         :param corpus: Tokenized essay Corpus.
         :param corpus_sentences: Tokenized (by sentence) essay Corpus.
         """
-        self.word_length_threshold = 5
-        self.sentence_length_threshold = 90
+        self.word_length_threshold = 5  # old?
+
+        self.short_word_threshold = 3
+        self.long_word_threshold = 7
+
+        self.sentence_length_threshold = 90  # old?
+        self.short_sentence_threshold = 5
+        self.long_sentence_threshold = 30
+
 
         self.corpus = corpus
         self.corpus_sentences = corpus_sentences
