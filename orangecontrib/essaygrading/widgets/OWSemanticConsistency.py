@@ -315,8 +315,8 @@ def checkSemanticErrors(sentences, openie_system="ClausIE", use_coreference=Fals
 
     print("****************** ESSAY PROCESSING *******************")
 
-    f = OntologyUtils.run_semantic_consistency_check([sentences[0]], use_coref=use_coreference, openie_system=openie_system,
-                                                     source_text=source_text, num_threads=8, orig_ontology_name="DS5_ontology.owl")
+    f = OntologyUtils.run_semantic_consistency_check(sentences, use_coref=use_coreference, openie_system=openie_system,
+                                                     source_text=source_text, num_threads=4, orig_ontology_name="DS5_ontology.owl")
 
     print(f)
 

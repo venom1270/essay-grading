@@ -3,38 +3,12 @@
 # python -m spacy download en
 
 
-from orangecontrib.essaygrading.modules import BasicMeasures, ReadabilityMeasures, LexicalDiversity, Grammar, Content, Coherence
-
 import numpy as np
 
 import Orange.data
-from Orange.regression import neural_network
 from Orange.widgets.widget import OWWidget, Input, Output, Msg
 from Orange.widgets import gui
 from Orange.widgets import settings
-from Orange.widgets.utils.widgetpreview import WidgetPreview
-
-from orangecontrib.text import Corpus
-from orangecontrib.text import preprocess
-from orangecontrib.text.tag import pos
-
-from orangecontrib.text.widgets.utils import CheckListLayout
-
-from orangecontrib.essaygrading.utils.task import Task
-
-from functools import partial
-
-
-import copy
-import string
-from nltk.stem import WordNetLemmatizer
-
-import concurrent.futures
-from Orange.widgets.utils.concurrent import (
-    ThreadExecutor, FutureWatcher, methodinvoke
-)
-
-from AnyQt.QtCore import QThread, pyqtSlot
 
 
 class OWScore(OWWidget):
@@ -44,8 +18,9 @@ class OWScore(OWWidget):
     priority = 10
 
     class Inputs:
-        predictions = Input("Predicted scores", Orange.data.Table)
-        true_scores = Input("Actual scores", Orange.data.Table)
+        data = Input("True scores and predictions", Orange.data.Table)
+        # predictions = Input("Predicted scores", Orange.data.Table)
+        # true_scores = Input("Actual scores", Orange.data.Table)
 
     class Outputs:
         scores = Output("Score", Orange.data.Table)
@@ -68,29 +43,42 @@ class OWScore(OWWidget):
         self.predictions = None
         self.true_scores = None
 
-        '''
+        self.true_scores_list = []
+        self.true_scores_selection = 0
 
-        self.NN = neural_network.NNRegressionLearner()
-        return self.LEARNER(
-            hidden_layer_sizes=self.get_hidden_layers(),
-            activation=self.activation[self.activation_index],
-            solver=self.solver[self.solver_index],
-            alpha=self.alpha,
-            random_state=None,
-            max_iter=10000,
-            preprocessors=self.preprocessors)
+        self.predicted_scores_list = []
+        self.predicted_scores_selection = 0
 
-        '''
+        self.data = None
+
+        # Info
         box = gui.widgetBox(self.controlArea, "Info")
         self.infoa = gui.widgetLabel(box, 'No data on input yet, waiting to get something.')
 
+        # Score selection
+        true_scores_box = gui.widgetBox(self.controlArea, "Select true scores")
+        self.cb_true_scores = gui.comboBox(widget=true_scores_box, master=self,
+                                           items=self.true_scores_list,
+                                           value="true_scores_selection", sendSelectedValue=True)
+
+        predicted_scores_box = gui.widgetBox(self.controlArea, "Select predicted scores")
+        self.cb_predicted_scores = gui.comboBox(widget=predicted_scores_box, master=self,
+                                                items=self.predicted_scores_list,
+                                                value="predicted_scores_selection", sendSelectedValue=True)
+
+        # Results
+        results_box = gui.widgetBox(self.controlArea, "Results")
+        gui.widgetLabel(results_box, "Exact agreement: ")
+        self.info_ea = gui.widgetLabel(results_box, "")
+        gui.widgetLabel(results_box, "Quadratic weighted kappa: ")
+        self.info_qwk = gui.widgetLabel(results_box, "")
 
         self.optionsBox = gui.widgetBox(self.controlArea, "Controls")
         gui.checkBox(self.optionsBox, self, "commitOnChange", "Commit data on selection change")
         gui.button(self.optionsBox, self, "Apply", callback=self._update)
-        self.optionsBox.setDisabled(True)
+        self.optionsBox.setDisabled(False)
 
-    @Inputs.predictions
+    '''@Inputs.predictions
     def set_predictions(self, predictions):
         if predictions is not None:
 
@@ -112,6 +100,47 @@ class OWScore(OWWidget):
             self.optionsBox.setDisabled(False)
         else:
             self.true_scores = None
+            self.Outputs.scores.send(None)'''
+
+    @Inputs.data
+    def set_data(self, data):
+        if data is not None:
+            ts = [x.name for x in data.domain.class_vars]  # list(data.domain.class_vars)
+            ps = [x.name for x in data.domain.metas]  # list(data.domain.metas)
+            # ua.append(data.domain.metas)
+            print("--- UA ----")
+            print(ts)
+            print(ps)
+
+            self.true_scores_list = ts
+            self.cb_true_scores.addItems(ts)
+            self.predicted_scores_list = ps
+            self.cb_predicted_scores.addItems(ps)
+
+            if len(self.true_scores_list) > 0:
+                self.true_scores_selection = self.true_scores_list[0]
+            if len(self.predicted_scores_list) > 1:
+                self.predicted_scores_selection = self.predicted_scores_list[1]
+
+            self.data = data
+
+            # TODO: nastavi default vrednosti
+
+            '''self.true_scores = self.data.Y
+            if len(self.data.metas) >= 2:
+                self.predictions = self.data.metas[:, 1]'''
+        else:
+            self.data = None
+            self.true_scores = None
+            self.predictions = None
+            self.true_scores_list = []
+            self.true_scores_selection = 0
+            self.cb_true_scores.clear()
+            self.predicted_scores_list = []
+            self.predicted_scores_selection = 0
+            self.cb_predicted_scores.clear()
+            self.info_ea.clear()
+            self.info_qwk.clear()
             self.Outputs.scores.send(None)
 
     def selection(self):
@@ -126,12 +155,39 @@ class OWScore(OWWidget):
         if self.commitOnChange:
             self._update()
 
+    def update_feature_selection(self):
+        pass
+
     def _update(self):
 
+        if self.true_scores_selection != "":
+            index = self.true_scores_list.index(self.true_scores_selection) \
+                if self.true_scores_selection in self.true_scores_list else -1
+            if index >= 0:
+                if self.true_scores_selection == "score" and len(np.array(self.data.Y).shape) == 1:
+                    self.true_scores = self.data.Y
+                else:
+                    self.true_scores = self.data.Y[:, index] # TODO: za tole nism zihr, najbrz nikol do tega sploh ne pride?
+            else:
+                self.true_scores = None
+        else:
+            self.true_scores = None
 
+        if self.predicted_scores_selection != "":
+            index = self.predicted_scores_list.index(self.predicted_scores_selection) \
+                if self.predicted_scores_selection in self.predicted_scores_list else -1
+            if index >= 0:
+                self.predictions = self.data.metas[:, index]
+            else:
+                self.predictions = None
+        else:
+            self.predictions = None
+
+        print(self.true_scores)
+        print(self.predictions)
 
         out = None
-        if self.predictions and self.true_scores:
+        if self.predictions is not None and self.true_scores is not None:
             print("FINISHED")
 
             self.outDictionary = {}
@@ -139,16 +195,19 @@ class OWScore(OWWidget):
             self.outDictionary["weightedKappa"] = 0
 
             s = 0
+            folds = self.data.metas[:, -1] # TODO: kaj ce ni foldov???
 
             print(self.predictions)
             print(self.true_scores)
 
-            pred = np.array([round(x[0]) for x in self.predictions])
-            folds = []
+            # pred = np.array([round(x[0]) for x in self.predictions])
+            pred = np.array([round(x) for x in self.predictions])
+            # folds = []
             print(self.predictions)
-            if self.predictions.metas is not None:
-                folds = np.array([x[0] for x in self.predictions.metas])
-            true = np.array([x[0] for x in self.true_scores])
+            # if self.predictions.metas is not None:
+            #     folds = np.array([x[0] for x in self.predictions.metas])
+            # true = np.array([x[0] for x in self.true_scores])
+            true = self.true_scores
 
             print(folds)
 
@@ -168,7 +227,7 @@ class OWScore(OWWidget):
 
             kappa_folds = []
             exact_folds = []
-            num_folds = 10
+            num_folds = int(max(folds)) + 1
             if len(folds) > 0:
                 for i in range(num_folds): # TODO: dynamic
                     print(i+1)
@@ -185,6 +244,8 @@ class OWScore(OWWidget):
             self.outDictionary["weightedKappa"] = quadratic_weighted_kappa(true, pred)
             self.outDictionary["weightedKappaFolds"] = sum(kappa_folds) / num_folds
 
+            self.info_ea.setText(str(self.outDictionary["exactAgreement"]))
+            self.info_qwk.setText(str(self.outDictionary["weightedKappa"]))
 
             domain = Orange.data.Domain([Orange.data.ContinuousVariable.make(key) for key in self.outDictionary])
 

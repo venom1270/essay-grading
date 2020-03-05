@@ -32,7 +32,7 @@ from orangecontrib.essaygrading.modules import BasicMeasures, ReadabilityMeasure
 
 class OWAttributeSelection(OWWidget):
     name = "Attribute selection"
-    description = "Select desired attributes and preprocessing steps to be used in the model."
+    description = "Select attributes to be used in the model."
     icon = "../icons/DataSamplerA.svg"
     priority = 10
 
@@ -59,18 +59,20 @@ class OWAttributeSelection(OWWidget):
 
     attributeDictionary = {}
 
-    selected_attributes = []
+    selected_attributes = [BasicMeasures.BasicMeasures.name]
     selected_attributes_names = []
 
     coherence_word_embeddings = globals.EMBEDDING_TFIDF
 
+    METHODS = (BasicMeasures.BasicMeasures, ReadabilityMeasures.ReadabilityMeasures, LexicalDiversity.LexicalDiversity,
+               Grammar.Grammar, Content.Content, Coherence.Coherence)
+
     want_main_area = False
+    resizing_enabled = False
 
     def __init__(self):
         super().__init__()
 
-        self.METHODS = (BasicMeasures.BasicMeasures, ReadabilityMeasures.ReadabilityMeasures,
-                        LexicalDiversity.LexicalDiversity, Grammar.Grammar, Content.Content, Coherence.Coherence)
         self.selected_attributes_names = [m.name for m in self.METHODS]
 
         self.corpus = None
@@ -107,6 +109,9 @@ class OWAttributeSelection(OWWidget):
         gui.checkBox(self.optionsBox, self, "commitOnChange", "Commit data on selection change")
         gui.button(self.optionsBox, self, "Apply", callback=self._invalidate_results)
         self.optionsBox.setDisabled(True)
+
+
+        #gui.auto_apply(self.optionsBox, self, "autocommit")
 
     @Inputs.data
     def set_graded_data(self, dataset):
