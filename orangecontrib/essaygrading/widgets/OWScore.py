@@ -1,14 +1,9 @@
-# PACKAGE INSTALLATIONS
-# conda install spacy
-# python -m spacy download en
-
-
 import numpy as np
-
 import Orange.data
-from Orange.widgets.widget import OWWidget, Input, Output, Msg
-from Orange.widgets import gui
-from Orange.widgets import settings
+from Orange.widgets import gui, settings
+from Orange.widgets.widget import OWWidget, Input, Output
+
+
 
 
 class OWScore(OWWidget):
@@ -19,8 +14,6 @@ class OWScore(OWWidget):
 
     class Inputs:
         data = Input("True scores and predictions", Orange.data.Table)
-        # predictions = Input("Predicted scores", Orange.data.Table)
-        # true_scores = Input("Actual scores", Orange.data.Table)
 
     class Outputs:
         scores = Output("Score", Orange.data.Table)
@@ -78,30 +71,6 @@ class OWScore(OWWidget):
         gui.button(self.optionsBox, self, "Apply", callback=self._update)
         self.optionsBox.setDisabled(False)
 
-    '''@Inputs.predictions
-    def set_predictions(self, predictions):
-        if predictions is not None:
-
-            self.predictions = predictions
-            self.infoa.setText('Predictions set.')
-            self.optionsBox.setDisabled(False)
-
-        else:
-
-            self.infoa.setText('No data on input yet, waiting to get something.')
-            self.Outputs.scores.send(None)
-            self.optionsBox.setDisabled(True)
-            self.predictions = None
-
-    @Inputs.true_scores
-    def set_true_scores(self, true_scores):
-        if true_scores is not None:
-            self.true_scores = true_scores
-            self.optionsBox.setDisabled(False)
-        else:
-            self.true_scores = None
-            self.Outputs.scores.send(None)'''
-
     @Inputs.data
     def set_data(self, data):
         if data is not None:
@@ -113,10 +82,13 @@ class OWScore(OWWidget):
             print(ps)
 
             self.true_scores_list = ts
+            self.cb_true_scores.clear()
             self.cb_true_scores.addItems(ts)
             self.predicted_scores_list = ps
+            self.cb_predicted_scores.clear()
             self.cb_predicted_scores.addItems(ps)
 
+            # Nastavi default vrednosti
             if len(self.true_scores_list) > 0:
                 self.true_scores_selection = self.true_scores_list[0]
             if len(self.predicted_scores_list) > 1:
@@ -124,11 +96,6 @@ class OWScore(OWWidget):
 
             self.data = data
 
-            # TODO: nastavi default vrednosti
-
-            '''self.true_scores = self.data.Y
-            if len(self.data.metas) >= 2:
-                self.predictions = self.data.metas[:, 1]'''
         else:
             self.data = None
             self.true_scores = None
@@ -195,7 +162,7 @@ class OWScore(OWWidget):
             self.outDictionary["weightedKappa"] = 0
 
             s = 0
-            folds = self.data.metas[:, -1] # TODO: kaj ce ni foldov???
+            folds = self.data.metas[:, -1]  # TODO: kaj ce ni foldov???
 
             print(self.predictions)
             print(self.true_scores)
@@ -229,7 +196,7 @@ class OWScore(OWWidget):
             exact_folds = []
             num_folds = int(max(folds)) + 1
             if len(folds) > 0:
-                for i in range(num_folds): # TODO: dynamic
+                for i in range(num_folds): # TODO: dynamic EDIT: je že?
                     print(i+1)
                     p_scores = np.array([pred[x] for x in range(len(pred)) if folds[x] == i])
                     t_scores = np.array([true[x] for x in range(len(true)) if folds[x] == i])

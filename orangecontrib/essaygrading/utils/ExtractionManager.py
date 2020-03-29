@@ -93,7 +93,7 @@ class ExtractionManager:
                 print(entity["text"])
                 self.URIdict[URIRefs[0][similarNode]] = URIRefs[1][similarNode]
                 self.URIdict[URIRefs[2][similarNode]] = URIRefs[1][similarNode]
-                self.entities[type].append({"id": similarNode, "text": URIRefs[0][similarNode], "URI": URIRefs[1][similarNode], "original": entity["text"]})
+                self.entities[type].append({"id": similarNode, "text": URIRefs[0][similarNode], "URI": URIRefs[1][similarNode], "stemmed": URIRefs[2][similarNode], "original": entity["text"]})
                 URIs[URIRefs[0][similarNode]] = (URIRefs[1][similarNode], URIRefs[2][similarNode])
 
         return URIs
@@ -133,6 +133,9 @@ class ExtractionManager:
                 old_turbo = self.turbo
                 old_explanations = self.EXPLAIN
                 old_added_triples = copy.deepcopy(self.allAddedTriples)
+                old_URIRefsObjects = copy.deepcopy(URIRefsObjects)
+                old_URIRefsPredicates = copy.deepcopy(URIRefsPredicates)
+                old_entites = copy.deepcopy(self.entities)
                 repeatIteration = True
 
                 if len(t.object) == 0 or len(t.subject) == 0 or len(t.predicate) == 0:
@@ -224,6 +227,9 @@ class ExtractionManager:
                                                 repeatIteration = True
                                                 ONTO = copy.deepcopy(old_ONTO)
                                                 self.allAddedTriples = copy.deepcopy(old_added_triples)
+                                                URIRefsObjects = copy.deepcopy(old_URIRefsObjects)
+                                                URIRefsPredicates = copy.deepcopy(old_URIRefsPredicates)
+                                                self.entities = copy.deepcopy(old_entites)
 
                                     print("*** KONEC PRIDEVNIKOV ***")
                                 else:
@@ -248,6 +254,9 @@ class ExtractionManager:
                             print("CONTINUING...")
                             ONTO = copy.deepcopy(old_ONTO)
                             self.allAddedTriples = copy.deepcopy(old_added_triples)
+                            URIRefsObjects = copy.deepcopy(old_URIRefsObjects)
+                            URIRefsPredicates = copy.deepcopy(old_URIRefsPredicates)
+                            self.entities = copy.deepcopy(old_entites)
                             self.depth_warning = False
                             continue
                         ok = self.tryAddToOntology(ONTO, AURI, BURI, CURI, remove=False, explain=self.EXPLAIN, force=True, is_triple=True)
@@ -275,6 +284,9 @@ class ExtractionManager:
                                 repeatIteration = True
                                 ONTO = copy.deepcopy(old_ONTO)
                                 self.allAddedTriples = copy.deepcopy(old_added_triples)
+                                URIRefsObjects = copy.deepcopy(old_URIRefsObjects)
+                                URIRefsPredicates = copy.deepcopy(old_URIRefsPredicates)
+                                self.entities = copy.deepcopy(old_entites)
 
 
                 if not self.turbo and old_turbo is True and self.REITERATION:
@@ -337,6 +349,29 @@ class ExtractionManager:
 
     def checkSimilarNode(self, ONTO, element, URIRefs, elementType):
         # Check if similar node exists (nodes that were processed before starting this step)
+
+        # Najprej preveri, ce je podobna stvar v URIRefs... ce ni, spodaj gledamo self.entites (to so entiteta,
+        # ki se prej pomatachajo glede na NP in VP v eseju s 70%(?) ujemanjem
+        index, similarNode = self.similarNode(URIRefs[0], element, indepth=False, stem=False)
+        if similarNode is None:
+            index, similarNode = self.similarNode(URIRefs[0], element, indepth=False, stem=True)
+        '''if element == "like":
+            print(URIRefs)
+            print(element)
+            print(index)
+            print(similarNode)
+            exit()'''
+        if similarNode is not None:
+            URI = URIRefs[1][index]
+            return URI, URI
+
+        # Pogledamo tudi stemmane matche (self.entities)
+        stemmedEntites = [e["stemmed"] for e in self.entities[elementType]]
+        index, similarNode = self.similarNode(stemmedEntites, element, indepth=False, stem=False)
+        if similarNode is not None:
+            URI = self.entities[elementType][index]["URI"]
+            return URI, URI
+
         index, similarNode = self.similarNode([e["text"] for e in self.entities[elementType]], element, indepth=False)
         if similarNode is None:
             # to je za "fast sportS"
@@ -436,7 +471,7 @@ class ExtractionManager:
                         URI = elementURI
                         self.URIdict[element] = elementURI
                         self.URIdict[ontologyElement] = elementURI
-                        self.entities[elementType].append({"id": elementURI, "text": element, "URI": elementURI})
+                        self.entities[elementType].append({"id": elementURI, "text": element, "URI": elementURI, "stemmed": element}) # TODO?: "stemmed" is not really stemmed here
                         print("Adding element (in hypernim if) '" + element + "' to ontology as '" + str(
                             owlType) + "' '" + str(elementURI) + "'")
                         self.tryAddToOntology(ONTO, elementURI, rdflib.namespace.RDF.type, owlType)
@@ -704,7 +739,7 @@ class ExtractionManager:
         elementURI = rdflib.URIRef(self.COSMO[ontologyElement])
         self.URIdict[element] = elementURI
         self.URIdict[ontologyElement] = elementURI
-        self.entities[elementType].append({"id": elementURI, "text": element, "URI": elementURI})
+        self.entities[elementType].append({"id": elementURI, "text": element, "URI": elementURI, "stemmed": element}) # TODO?: "stemmed" is no really stemmed here
         # TODO if type == Subject/Object elif type == Predicate
         if elementType == "SubjectObject":
             owlType = rdflib.namespace.OWL.Class

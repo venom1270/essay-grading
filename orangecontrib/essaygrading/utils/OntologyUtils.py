@@ -173,7 +173,7 @@ def prepare_ontology(path):
 
     return g, uniqueURIRef
 
-def run_semantic_consistency_check(essays, use_coref=False, openie_system="ClausIE", source_text=None, num_threads=4, explain=False, orig_ontology_name="COSMO-Serialized.owl", ontology_name="QWE.owl"):
+def run_semantic_consistency_check(essays, use_coref=False, openie_system="ClausIE", source_text=None, num_threads=4, explain=False, orig_ontology_name="COSMO-Serialized.owl", ontology_name="QWE.owl", callback=None):
     '''
     TODO: ce je source text:
         1. naredi coref na source textu in poženi semantic analysys
@@ -186,7 +186,12 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
         OPTIONAL: shranjuj vmesne korake, če kaj crasha da lahko resumaš????
     '''
 
+    if callback is not None:
+        callback(0)
+
     print("Running semantic consistency check...")
+
+    # essays = [essays[0]]
 
     if use_coref:
         original_source_text = copy.deepcopy(source_text)
@@ -244,7 +249,7 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
 
     print("TIME: " + str(end_time - start_time))
 
-    with open('C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangecontrib/essaygrading/DS5Explanations/ALL.txt',
+    with open('C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangecontrib/essaygrading/DS6Explanations/ALL.txt',
               'w') as file:
         for i in results:
             file.write(str(i[0]) + "\t" + str(i[2][0]) + "\t" + str(i[2][1]) + "\t" + str(i[2][2]) + "\n")
@@ -319,7 +324,7 @@ def thread_func(tpl):
         exc = str(e)
 
     # Temporary? result saving
-    with open('C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangecontrib/essaygrading/DS5Explanations/' + str(i) + '.txt', 'w') as file:
+    with open('C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangecontrib/essaygrading/DS6Explanations/' + str(i) + '.txt', 'w') as file:
         file.write(str(i))
         file.write("\n")
         file.write("Consistency errors: " + str(errors[0]))

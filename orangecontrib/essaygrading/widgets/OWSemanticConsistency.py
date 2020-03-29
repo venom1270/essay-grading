@@ -7,13 +7,13 @@
 
 
 import copy
+import numpy as np
 import concurrent.futures
 from functools import partial
 
-
 import Orange.data
-from Orange.widgets.widget import OWWidget, Input, Output, Msg
 from Orange.widgets import gui
+from Orange.widgets.widget import OWWidget, Input, Output, Msg
 from Orange.widgets.utils.widgetpreview import WidgetPreview
 from Orange.widgets.utils.concurrent import (
     ThreadExecutor, FutureWatcher, methodinvoke
@@ -21,8 +21,7 @@ from Orange.widgets.utils.concurrent import (
 
 from AnyQt.QtCore import QThread, pyqtSlot
 
-from orangecontrib.text import Corpus
-from orangecontrib.text import preprocess
+from orangecontrib.text import Corpus, preprocess
 from orangecontrib.text.tag import pos
 from orangecontrib.essaygrading.utils.task import Task
 from orangecontrib.essaygrading.utils import OntologyUtils
@@ -53,6 +52,7 @@ class OWSemanticConsistency(OWWidget):
         # no_test_data = Msg("No test data (ungraded essays) present.")
 
     openie_system = "ClausIE"
+    explain = False
     use_coreference = False
 
     dlgFormats = (
@@ -75,9 +75,7 @@ class OWSemanticConsistency(OWWidget):
         self.dataset = None # I don't really need this
         self.source_text_file = None
 
-        #: The current evaluating task (if any)
         self._task = None  # type: Optional[Task]
-        #: An executor we use to submit learner evaluations into a thread pool
         self._executor = ThreadExecutor()
 
         # GUI
@@ -87,6 +85,8 @@ class OWSemanticConsistency(OWWidget):
         self.update_file_info()
 
         parametersBox = gui.widgetBox(self.controlArea, "Options")
+
+        self.cb_explain = gui.checkBox(parametersBox, self, "explain", "Return explanations")
 
         self.cb_use_coreference = gui.checkBox(parametersBox, self, "use_coreference", "Use coreference")
 
@@ -141,8 +141,7 @@ class OWSemanticConsistency(OWWidget):
         p_sentences = preprocess.Preprocessor(tokenizer=preprocess.PunktSentenceTokenizer(),
                                               # transformers=[preprocess.LowercaseTransformer()],
                                               # ce je to vklopljeno, pol neki nedela cist prov.
-                                              pos_tagger=pos.AveragedPerceptronTagger(),
-                                              )
+                                              pos_tagger=pos.AveragedPerceptronTagger())
 
         corpus = p(data)
         corpus = copy.deepcopy(corpus)
@@ -211,37 +210,23 @@ class OWSemanticConsistency(OWWidget):
             sentences=self.corpus_sentences.tokens,
             openie_system=self.openie_system,
             use_coreference=self.use_coreference,
-            source_text=self.source_texts  # [3] # TODO: zaenkrat se tukaj izbere keri source text bi radi
+            source_text=self.source_texts,
+            explain=self.explain
         )
 
-        # setup the task state
         self._task = task = Task()
-        # The learning_curve[_with_test_data] also takes a callback function
-        # to report the progress. We instrument this callback to both invoke
-        # the appropriate slots on this widget for reporting the progress
-        # (in a thread safe manner) and to implement cooperative cancellation.
         set_progress = methodinvoke(self, "setProgressValue", (float,))
 
         def callback(finished):
-            # check if the task has been cancelled and raise an exception
-            # from within. This 'strategy' can only be used with code that
-            # properly cleans up after itself in the case of an exception
-            # (does not leave any global locks, opened file descriptors, ...)
             if task.cancelled:
                 raise KeyboardInterrupt()
             set_progress(finished * 100)
 
-        # capture the callback in the partial function
         calculate_attributes_func = partial(check_semantic_errors_func, callback=callback)
 
         self.progressBarInit()
-        # Submit the evaluation function to the executor and fill in the
-        # task with the resultant Future.
         task.future = self._executor.submit(calculate_attributes_func)
-        # Setup the FutureWatcher to notify us of completion
         task.watcher = FutureWatcher(task.future)
-        # by using FutureWatcher we ensure `_task_finished` slot will be
-        # called from the main GUI thread by the Qt's event loop
         task.watcher.done.connect(self._task_finished)
 
     def cancel(self):
@@ -251,7 +236,6 @@ class OWSemanticConsistency(OWWidget):
         if self._task is not None:
             self._task.cancel()
             assert self._task.future.done()
-            # disconnect the `_task_finished` slot
             self._task.watcher.done.disconnect(self._task_finished)
             self._task = None
 
@@ -278,6 +262,68 @@ class OWSemanticConsistency(OWWidget):
 
         try:
             results = f.result()  # type: List[Results]
+            print(results)
+
+            output = {}
+            output["essay_id"] = []
+            output["feedback"] = []
+
+            # If feedback else error TODO: naredi da bo izpisal tudi errorje...
+            feedback_flag = True
+
+            output_list = []
+            for result in results:
+                essay_id = result[0]
+                essay_feedback = result[1]
+                essay_errors = result[2]
+
+                essay_feedback_string = ""
+
+                if len(essay_feedback) > 0:
+                    essay_feedback = essay_feedback[0] # TODO: nared, da nebo odvecnih arrayov...
+                    for ef in essay_feedback:
+                        essay_feedback_string += " ".join(ef) + "; "
+                        # output["feedback"].append(" ".join(ef))
+
+                output_list.append([essay_id, essay_errors[0], essay_errors[1], essay_errors[2], essay_feedback_string])
+
+
+
+            print(output["feedback"])
+
+            # domain = Orange.data.Domain([Orange.data.ContinuousVariable.make("feedback")])
+            domain = Orange.data.Domain([Orange.data.ContinuousVariable.make("essayId"),
+                                         Orange.data.ContinuousVariable.make("consistencyErrors"),
+                                         Orange.data.ContinuousVariable.make("semanticErrors"),
+                                         Orange.data.ContinuousVariable.make("sum")],
+                                        metas=[Orange.data.StringVariable("feedback")])
+
+            print(np.array(output_list)[:, -1].transpose())
+            #out = Orange.data.Table.from_numpy(domain, np.array([np.array(output_list)[:, :-1]]).transpose(),
+                                               #metas=np.array([np.array(output_list)[:, -1]]).transpose())
+            out = Orange.data.Table.from_list(domain, output_list)
+            # arr = np.array([[value] for _, value in output.items()])
+
+            # print(arr)
+
+            # print(Orange.data.Domain.from_numpy(np.array(output_list)))
+            # out = Orange.data.Table.from_numpy(domain, np.array(arr).transpose())
+            # out = Orange.data.Table.from_numpy(domain, np.array(output_list).transpose())
+            # print(np.array([np.array(output_list)[:,0]]).transpose())
+            # print(np.array([np.array(output_list)[:, 0]]))
+            # print(output_list)
+            # print(np.array(output_list)[:,0])
+            # print(np.array([np.array(output_list)[:,0]]))
+            # print(np.array([np.array(output_list)[:,0]]).transpose())
+            # Y = np.array([np.array(output_list)[:,0]]).transpose()[:, len(domain.attributes):]
+            # X = np.array([np.array(output_list)[:,0]]).transpose()[:, :len(domain.attributes)]
+            # print(X)
+            # print(Y)
+
+            # out = Orange.data.Table.from_list(Orange.data.Domain.from_numpy(np.array(output_list)), output_list)
+            print(out)
+            self.Outputs.feedback.send(out)
+
         except Exception as ex:
             import logging
             # Log the exception with a traceback
@@ -296,11 +342,13 @@ class OWSemanticConsistency(OWWidget):
             out = Orange.data.Table.from_numpy(domain, np.array(arr).transpose())
             self.Outputs.feedback.send(out)'''
 
-    # "reset"
+
     def _invalidate_results(self):
         self._update()
 
-def checkSemanticErrors(sentences, openie_system="ClausIE", use_coreference=False, callback=None, source_text=None):
+
+def checkSemanticErrors(sentences, openie_system="ClausIE", use_coreference=False, callback=None, source_text=None,
+                        explain=False):
 
     print(sentences)
 
@@ -310,13 +358,15 @@ def checkSemanticErrors(sentences, openie_system="ClausIE", use_coreference=Fals
         print("************ SOURCE TEXT ONTOLOGY PRERPARATION *************")
 
         f = OntologyUtils.run_semantic_consistency_check(None, use_coref=use_coreference, openie_system=openie_system,
-                                                         source_text=source_text, ontology_name="DS5_ontology.owl")
+                                                         source_text=source_text,
+                                                         explain=explain, callback=callback)
         print(f)
 
     print("****************** ESSAY PROCESSING *******************")
 
     f = OntologyUtils.run_semantic_consistency_check(sentences, use_coref=use_coreference, openie_system=openie_system,
-                                                     source_text=source_text, num_threads=4, orig_ontology_name="DS5_ontology.owl")
+                                                     source_text=source_text, num_threads=4,
+                                                     explain=explain, callback=callback)
 
     print(f)
 
@@ -328,5 +378,5 @@ if __name__ == "__main__":
     #WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/set1_train.tsv"),
     #                                  set_source_texts=Corpus.from_file("../datasets/source_texts.tsv"))
 
-    WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/All datasets/set5_utf8.tsv")) #set3_small_2.tsv
-
+    #WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/All datasets/set6.tsv"))  # set5_utf8.tsv"))  # set3_small_2.tsv
+    WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/Lisa.tsv"))
