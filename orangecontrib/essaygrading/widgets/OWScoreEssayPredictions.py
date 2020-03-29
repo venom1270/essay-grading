@@ -4,11 +4,9 @@ from Orange.widgets import gui, settings
 from Orange.widgets.widget import OWWidget, Input, Output
 
 
-
-
-class OWScore(OWWidget):
-    name = "Score"
-    description = "Score predictions."
+class OWScoreEssayPredictions(OWWidget):
+    name = "Score essay predictions"
+    description = "Score essay predictions."
     icon = "../icons/DataSamplerA.svg"
     priority = 10
 
