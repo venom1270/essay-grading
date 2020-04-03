@@ -136,6 +136,7 @@ class ExtractionManager:
                 old_URIRefsObjects = copy.deepcopy(URIRefsObjects)
                 old_URIRefsPredicates = copy.deepcopy(URIRefsPredicates)
                 old_entites = copy.deepcopy(self.entities)
+                old_URIdict = copy.deepcopy(self.URIdict)
                 repeatIteration = True
 
                 if len(t.object) == 0 or len(t.subject) == 0 or len(t.predicate) == 0:
@@ -230,6 +231,7 @@ class ExtractionManager:
                                                 URIRefsObjects = copy.deepcopy(old_URIRefsObjects)
                                                 URIRefsPredicates = copy.deepcopy(old_URIRefsPredicates)
                                                 self.entities = copy.deepcopy(old_entites)
+                                                self.URIdict = copy.deepcopy(old_URIdict)
 
                                     print("*** KONEC PRIDEVNIKOV ***")
                                 else:
@@ -257,6 +259,7 @@ class ExtractionManager:
                             URIRefsObjects = copy.deepcopy(old_URIRefsObjects)
                             URIRefsPredicates = copy.deepcopy(old_URIRefsPredicates)
                             self.entities = copy.deepcopy(old_entites)
+                            self.URIdict = copy.deepcopy(old_URIdict)
                             self.depth_warning = False
                             continue
                         ok = self.tryAddToOntology(ONTO, AURI, BURI, CURI, remove=False, explain=self.EXPLAIN, force=True, is_triple=True)
@@ -287,6 +290,7 @@ class ExtractionManager:
                                 URIRefsObjects = copy.deepcopy(old_URIRefsObjects)
                                 URIRefsPredicates = copy.deepcopy(old_URIRefsPredicates)
                                 self.entities = copy.deepcopy(old_entites)
+                                self.URIdict = copy.deepcopy(old_URIdict)
 
 
                 if not self.turbo and old_turbo is True and self.REITERATION:
@@ -352,6 +356,11 @@ class ExtractionManager:
 
         # Najprej preveri, ce je podobna stvar v URIRefs... ce ni, spodaj gledamo self.entites (to so entiteta,
         # ki se prej pomatachajo glede na NP in VP v eseju s 70%(?) ujemanjem
+
+        if element in self.URIdict:
+            print("URIDICT WORKS!!!")
+            return self.URIdict[element], self.URIdict[element]
+
         index, similarNode = self.similarNode(URIRefs[0], element, indepth=False, stem=False)
         if similarNode is None:
             index, similarNode = self.similarNode(URIRefs[0], element, indepth=False, stem=True)

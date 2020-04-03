@@ -1,39 +1,15 @@
 from rdflib.graph import Graph
-from rdflib.graph import Namespace
 from rdflib.namespace import RDF, OWL, RDFS
 import nltk
 import neuralcoref
 import time
 import copy
 import spacy
-import string
 import multiprocessing
 
 from orangecontrib.essaygrading.utils import ExtractionManager
 from orangecontrib.essaygrading.utils import OpenIEExtraction
 from orangecontrib.essaygrading.utils.lemmatizer import breakToWords
-
-'''
-TODO
-
-Kaja je sla nekako tako:
-
-rdflig graph.parse (COSMO)
-
-.triples razdelis na (O1, P, O2)
-grupiras [O1, O2] in [P]
-VSI teli konstrukti so oblike # isSubsetOf tko da jih locis glede na veliko zacetnico 
-(problem je ker so isaClass namesto isAClass) in stemmas
-
-nato je sla neki povezovat ID-je to se nevem tocno kaj je
-bistvo je to da hranis v arrayu vse triple [O1,P,O2], zraven pa vozis se ontologijo z ID-ji
-ID-ji so neki stringi npr. ClassBook (nevem ce je realen ampak primer)
-
-potem ma ona nekio funkcijo addEltToOntology, kjer najprej doda vse relacije in objekte v ontologijo in preveri ce gre skos
-in potem doda se zares v ontologijo (povezave? kaj tocno nevem?) in preveri s HermiTom
-
-
-'''
 
 
 def coreference_resolution(essays, source_text=None):
@@ -175,15 +151,7 @@ def prepare_ontology(path):
 
 def run_semantic_consistency_check(essays, use_coref=False, openie_system="ClausIE", source_text=None, num_threads=4, explain=False, orig_ontology_name="COSMO-Serialized.owl", ontology_name="QWE.owl", callback=None):
     '''
-    TODO: ce je source text:
-        1. naredi coref na source textu in poženi semantic analysys
-        2. shrani zadnjo ontologijo
-
-        3. nadaljuj normalno kot je zdaj:
-        3.1 vsem esejem prependi source text spredaj in naredi coref; nakonc odprependi
-        3.2 semantic analysys, s tem da uporabiš ontologijo od soruce texta
-
-        OPTIONAL: shranjuj vmesne korake, če kaj crasha da lahko resumaš????
+        TODO OPTIONAL: shranjuj vmesne korake, če kaj crasha da lahko resumaš????
     '''
 
     if callback is not None:
@@ -191,7 +159,7 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
 
     print("Running semantic consistency check...")
 
-    # essays = [essays[0]]
+    # essays = [essays[1]]
 
     if use_coref:
         original_source_text = copy.deepcopy(source_text)
@@ -205,6 +173,22 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
         else:
             essays = coreference_resolution(essays)
 
+    # LEMMATIZATION
+    '''nlp = spacy.load("en_core_web_lg")
+    e_tmp = []
+    for essay in essays:
+        e = []
+        for sent in essay:
+            doc = nlp(sent)
+            for token in doc:
+                print(token, token.lemma_)
+            s = " ".join([token.lemma_ for token in doc]).replace("-PRON-", "me")
+            e.append(s)
+        e_tmp.append(e)
+
+    essays = e_tmp
+    print(essays)'''
+    # END LEMMATIZATION
 
     print("Preparing ontology... " + orig_ontology_name)
 
@@ -226,7 +210,7 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
     for i, essay in enumerate(essays):
         print(essay)
         if len(essays) > 1:  # ce je len == 1, to pomeni da je samo source text -> gradnja ontologije
-            index = i + 11827
+            index = i + 1
         else:
             index = 0
         task_list.append((index, essays, original_ONTO, essay, uniqueURIRefs, openie, explain))
