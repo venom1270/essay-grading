@@ -72,12 +72,9 @@ class OWAttributeSelection(OWWidget):
         self.source_texts = None
         self.ungraded_corpus = None
         self.ungraded_corpus_sentences = None
-        self.dataset = None # I don't really need this
         self.corpus_grades = None
 
-        #: The current evaluating task (if any)
         self._task = None  # type: Optional[Task]
-        #: An executor we use to submit learner evaluations into a thread pool
         self._executor = ThreadExecutor()
 
         # GUI
@@ -96,16 +93,10 @@ class OWAttributeSelection(OWWidget):
         self.cb_coherence_word_embeddings = gui.comboBox(widget=parametersBox, master=self,
                                                          items=(globals.EMBEDDING_TFIDF, globals.EMBEDDING_GLOVE_SPACY,
                                                                 globals.EMBEDDING_GLOVE_FLAIR),
-                                                         value="coherence_word_embeddings", sendSelectedValue=True)
+                                                         value="coherence_word_embeddings", sendSelectedValue=True,
+                                                         callback=self.checkCommit)
 
-        # self.optionsBox = gui.widgetBox(self.controlArea, "Controls")
-        # gui.checkBox(self.optionsBox, self, "commitOnChange", "Commit data on selection change")
-        # gui.button(self.optionsBox, self, "Apply", callback=self._invalidate_results)
         gui.auto_apply(self.controlArea, self, "auto_commit", commit=self.commit)
-        # self.optionsBox.setDisabled(True)
-
-
-        #gui.auto_apply(self.optionsBox, self, "autocommit")
 
     @Inputs.data
     def set_graded_data(self, dataset):
@@ -129,13 +120,11 @@ class OWAttributeSelection(OWWidget):
                 self.Warning.no_grades.clear()
                 # self.optionsBox.setDisabled(False) TODO: ce bo auto_apply, se tega ne rabi!!
 
-            self.selection()
             self.corpus = dataset
             self.infoa.setText('%d instances in graded input dataset' % len(dataset))
             print(self.corpus_grades)
 
         else:
-            self.dataset = None
             self.corpus = None
             self.corpus_sentences = None
             self.infoa.setText('No graded data on input yet, waiting to get something.')
@@ -166,10 +155,6 @@ class OWAttributeSelection(OWWidget):
             self.ungraded_corpus_sentences = None
             self.infob.setText('No ungraded data on input yet, waiting to get something.')
             self.Outputs.attributes_ungraded.send(None)
-
-    def selection(self):
-        if self.dataset is None:
-            return
 
     def checkCommit(self):
         if self.auto_commit:

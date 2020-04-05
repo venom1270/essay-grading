@@ -22,7 +22,7 @@ class OWScoreEssayPredictions(OWWidget):
     class Warning(OWWidget.Warning):
         pass
 
-    commitOnChange = settings.Setting(0)
+    auto_commit = settings.Setting(False)
 
     outDictionary = {}
 
@@ -50,12 +50,14 @@ class OWScoreEssayPredictions(OWWidget):
         true_scores_box = gui.widgetBox(self.controlArea, "Select true scores")
         self.cb_true_scores = gui.comboBox(widget=true_scores_box, master=self,
                                            items=self.true_scores_list,
-                                           value="true_scores_selection", sendSelectedValue=True)
+                                           value="true_scores_selection", sendSelectedValue=True,
+                                           callback=self.checkCommit)
 
         predicted_scores_box = gui.widgetBox(self.controlArea, "Select predicted scores")
         self.cb_predicted_scores = gui.comboBox(widget=predicted_scores_box, master=self,
                                                 items=self.predicted_scores_list,
-                                                value="predicted_scores_selection", sendSelectedValue=True)
+                                                value="predicted_scores_selection", sendSelectedValue=True,
+                                                callback=self.checkCommit)
 
         # Results
         results_box = gui.widgetBox(self.controlArea, "Results")
@@ -64,10 +66,7 @@ class OWScoreEssayPredictions(OWWidget):
         gui.widgetLabel(results_box, "Quadratic weighted kappa: ")
         self.info_qwk = gui.widgetLabel(results_box, "")
 
-        self.optionsBox = gui.widgetBox(self.controlArea, "Controls")
-        gui.checkBox(self.optionsBox, self, "commitOnChange", "Commit data on selection change")
-        gui.button(self.optionsBox, self, "Apply", callback=self._update)
-        self.optionsBox.setDisabled(False)
+        gui.auto_apply(self.controlArea, self, "auto_commit", commit=self.commit)
 
     @Inputs.data
     def set_data(self, data):
@@ -117,13 +116,16 @@ class OWScoreEssayPredictions(OWWidget):
             return
 
     def checkCommit(self):
-        if self.commitOnChange:
+        if self.auto_commit:
             self.commit()
+
+    def commit(self):
+        self._update()
 
     def handleNewSignals(self):
         self.info_ea.clear()
         self.info_qwk.clear()
-        if self.commitOnChange:
+        if self.auto_commit:
             self._update()
 
     def update_feature_selection(self):
