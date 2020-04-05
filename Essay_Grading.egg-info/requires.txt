@@ -1,9 +1,7 @@
 Orange3>=3.4.3
 language-check
-neuralcoref
 nltk>=3.0.5
-numpy
-pyclausie
+numpy>=1.17.2
 pyspellchecker
 rdflib
 scikit-learn
