@@ -89,8 +89,12 @@ class OWScoreEssayPredictions(OWWidget):
             # Nastavi default vrednosti
             if len(self.true_scores_list) > 0:
                 self.true_scores_selection = self.true_scores_list[0]
-            if len(self.predicted_scores_list) > 1:
-                self.predicted_scores_selection = self.predicted_scores_list[1]
+            if "Random forest" in self.predicted_scores_list:
+                self.predicted_scores_selection = \
+                    self.predicted_scores_list[self.predicted_scores_list.index("Random forest")]
+            elif "Linear regression" in self.predicted_scores_list:
+                self.predicted_scores_selection = \
+                    self.predicted_scores_list[self.predicted_scores_list.index("Linear regression")]
 
             self.data = data
 
@@ -117,6 +121,8 @@ class OWScoreEssayPredictions(OWWidget):
             self.commit()
 
     def handleNewSignals(self):
+        self.info_ea.clear()
+        self.info_qwk.clear()
         if self.commitOnChange:
             self._update()
 
@@ -155,7 +161,7 @@ class OWScoreEssayPredictions(OWWidget):
         if self.predictions is not None and self.true_scores is not None:
             print("FINISHED")
 
-            self.outDictionary = {}
+            self.outDictionary = dict()
             self.outDictionary["exactAgreement"] = 0
             self.outDictionary["weightedKappa"] = 0
 

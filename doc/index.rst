@@ -9,7 +9,7 @@ Widgets
 
    widgets/attributeselection
    widgets/semanticconsistency
-   widgets/score
+   widgets/scoreessaypredictions
 
 
 Indices and tables

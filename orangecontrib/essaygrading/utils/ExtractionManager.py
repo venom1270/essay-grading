@@ -47,6 +47,12 @@ class ExtractionManager:
         self.depth_warning = False
 
     def getChunks(self, essay_sentences):
+        '''
+        This function tries to extract NP (noun prhases) and VP (verb phrases) from essay sentences.
+        Those phrases are then added to self.allEntities
+        :param essay_sentences:
+        :return:
+        '''
         noun_chunks = []
         verb_chunks = []
         for sentence in essay_sentences:
@@ -60,6 +66,14 @@ class ExtractionManager:
         return {"np": noun_chunks, "vp": verb_chunks}
 
     def mergeEssayAndChunks(self, essay_sentences, chunks, type):
+        '''
+        Add NP and VP phrases to self.allEntites// self.allEntites["SubObj"/"Pred"].
+        The intention is to save the original sentence/phrase, when returning feedback.
+        :param essay_sentences:
+        :param chunks:
+        :param type:
+        :return:
+        '''
         tokens = [word_tokenize(sentence) for sentence in essay_sentences]
 
         for sentence_chunk in chunks: # Over sentences
@@ -78,6 +92,15 @@ class ExtractionManager:
 
     # URIRefs = array[0] = tokeni, [1] = URIREF, [2] = None (???ocitno ID), [3] = Stemmed
     def matchEntitesWithURIRefs(self, URIRefs, type):
+        '''
+        Match gathered phrases in self.allEntities with URIRefs: we check by using similarNode function:
+        it checks URIdict (dicitionary for fast lookup), else checks string character matching (>70%).
+        self.allEntities is used for the last time here: expanded info is stored in self.entities, which is used
+        if URIdict matching fails, before checking string character matching.
+        :param URIRefs:
+        :param type:
+        :return:
+        '''
 
         URIs = {}
 
@@ -91,8 +114,8 @@ class ExtractionManager:
                 print("SIMILAR")
                 print(URIRefs[0][similarNode], URIRefs[1][similarNode], URIRefs[2][similarNode])
                 print(entity["text"])
-                self.URIdict[URIRefs[0][similarNode]] = URIRefs[1][similarNode]
-                self.URIdict[URIRefs[2][similarNode]] = URIRefs[1][similarNode]
+                self.URIdict[URIRefs[0][similarNode]] = URIRefs[1][similarNode]  # Add "text" (original) to URIdict
+                self.URIdict[URIRefs[2][similarNode]] = URIRefs[1][similarNode]  # Add stemmed version to URIdict
                 self.entities[type].append({"id": similarNode, "text": URIRefs[0][similarNode], "URI": URIRefs[1][similarNode], "stemmed": URIRefs[2][similarNode], "original": entity["text"]})
                 URIs[URIRefs[0][similarNode]] = (URIRefs[1][similarNode], URIRefs[2][similarNode])
 

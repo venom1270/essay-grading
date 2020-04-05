@@ -44,12 +44,9 @@ class OWSemanticConsistency(OWWidget):
 
     class Error(OWWidget.Error):
         read_file = Msg("Can't read file {} ({})")
-        # need_discrete_data = Msg("Need some discrete data to work with.")
-        # no_disc_features = Msg("Discrete features required but data has none.")
 
     class Warning(OWWidget.Warning):
         invalid_source_file = Msg("Invalid source file. Only files with one line are valid.")
-        # no_test_data = Msg("No test data (ungraded essays) present.")
 
     openie_system = "ClausIE"
     explain = False

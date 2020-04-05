@@ -22,7 +22,8 @@ TODO slika <!-- ![](images/GeoMap-stamped.png) -->
    - Select desired attributes using the available checkboxes
    - There are 6 categories of attributes which include over 70 attributes in total
         - Basic measures:
-            - Number of characters
+            - Number of characters (with spaces)
+            - Number of characters (without spaces)
             - Number of words
             - Number of short words
             - Number of long words
@@ -55,7 +56,7 @@ TODO slika <!-- ![](images/GeoMap-stamped.png) -->
         - Grammar:
             - Number of each different POS tag (~30 attributes)
             - Average sentence structure tree height
-            - Verb form TODO?
+            - Number of verbs <!--Verb form TODO?-->
         - Content:
             - Number of spellchecking errors
             - Number of capitalization errors
@@ -70,7 +71,7 @@ TODO slika <!-- ![](images/GeoMap-stamped.png) -->
             - Avg/min/max distance to any point (2x, euc. and cos. distance)
             - Clark Evans nearest neighbour
             - Average distance of nearest neighbour
-            - Frequency TODO
+            - Cumulative frequency <!--Frequency TODO-->
             - Avg/min/max distance to centroid (2x, euc. and cos. distance)
             - Standard distance
             - Relative distance
@@ -81,8 +82,8 @@ TODO slika <!-- ![](images/GeoMap-stamped.png) -->
 
 2. Select word embeddings:
 
-   - Word embeddings are used during calculations of 'Coherence' attributes
-   - Choose 'TF-IDF' or SpaCy's 'GloVe' word embeddings
+   - Word embeddings are used during calculations of 'Content' and 'Coherence' attributes
+   - Choose 'TF-IDF' or 'GloVe' word embeddings
 
 3. The calculation may take a few minutes, depending on attribute categories selected. 'Grammar', 'Content' and 'Coherence' are most demanding.
 

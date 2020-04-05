@@ -256,7 +256,7 @@ def thread_func(tpl):
     openie = tpl[5]
     explain = tpl[6]
 
-    print(" ----- Processing essay " + str(i + 1) + " / " + str(len(prepared_essays)) + " --------")
+    print(" ----- Processing essay " + str(i) + " / " + str(len(prepared_essays)) + " --------")
 
     g = copy.deepcopy(original_g)
 

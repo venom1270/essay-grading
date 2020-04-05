@@ -4,11 +4,11 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="cp1252" />
-    <title>Score TODO</title>
+    <title>Score</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="prev" title="Semantic consistency TODO" href="semanticconsistency.html" />
+    <link rel="prev" title="Semantic consistency" href="semanticconsistency.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -24,115 +24,23 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="score-todo">
-<h1>Score TODO</h1>
-<p>Show data points on a world map.</p>
+  <div class="section" id="score">
+<h1>Score</h1>
+<p>Calculate exact agreement and quadratic weighted kappa.</p>
 <p><strong>Inputs</strong></p>
 <ul class="simple">
-<li><p>Graded essays: Corpus of graded essays (“train set”).</p></li>
-<li><p>Ungraded essays: Corpus of ungraded essays (“test set”).</p></li>
-<li><p>Source texts: Optional corpus of source texts (text essays are based on, i.e. a story or instructions).</p></li>
+<li><p>True scores and predictions: Datatable containing true and predicted scores. Most commonly output from ‘Test’ widger.</p></li>
 </ul>
 <p><strong>Outputs</strong></p>
 <ul class="simple">
-<li><p>Graded attributes: Attributes for graded essay corpus.</p></li>
-<li><p>Ungraded attributes: Attributes for ungraded essay corpus.</p></li>
+<li><p>Score: Calculated scores in datatable format.</p></li>
 </ul>
-<p><strong>Attribute selection</strong> widget gives us the option to select and calculate desired attributes from input essays. All inputs are of type ‘Corpus’ (from Orange-text), while outputs are of type ‘DataTable’. We can then use these outputs in a standard Orange fashion (models, predictions …).</p>
+<p><strong>Score essays</strong> widget enables us to calculate domain specific scores for our models - exact agreement (percentage of predicted scores that match true scores exactly) and quadratic weighted kappa.</p>
 <p>TODO slika <!-- ![](images/GeoMap-stamped.png) --></p>
 <ol class="simple">
-<li><p>Select desired attributes</p>
-<ul class="simple">
-<li><p>Select desired attributes using the available checkboxes</p></li>
-<li><p>There are 6 categories of attributes which include over 70 attributes in total</p>
-<ul>
-<li><p>Basic measures:</p>
-<ul>
-<li><p>Number of characters</p></li>
-<li><p>Number of words</p></li>
-<li><p>Number of short words</p></li>
-<li><p>Number of long words</p></li>
-<li><p>Most frequent word length</p></li>
-<li><p>Average word length</p></li>
-<li><p>Number of sentences</p></li>
-<li><p>Number of short sentences</p></li>
-<li><p>Number of long sentences</p></li>
-<li><p>Most frequent sentence length</p></li>
-<li><p>Average sentence length</p></li>
-<li><p>Number of different words</p></li>
-<li><p>Number of stopwords</p></li>
-</ul>
-</li>
-<li><p>Readability measures:</p>
-<ul>
-<li><p>Gunning Fog index</p></li>
-<li><p>Flesch reading ease index</p></li>
-<li><p>Flesch Kincaid grade</p></li>
-<li><p>Dale Chall readability formula</p></li>
-<li><p>Automated readability index</p></li>
-<li><p>Simple measure of Gobbledygook</p></li>
-<li><p>LIX</p></li>
-<li><p>Word variation index</p></li>
-<li><p>Nominal ratio</p></li>
-</ul>
-</li>
-<li><p>Lexical diversity:</p>
-<ul>
-<li><p>Type-token ration</p></li>
-<li><p>Guiraud’s index</p></li>
-<li><p>Yule’s K</p></li>
-<li><p>The D estimate</p></li>
-<li><p>Hapax legomena</p></li>
-<li><p>Advanced Guiraud’s index</p></li>
-</ul>
-</li>
-<li><p>Grammar:</p>
-<ul>
-<li><p>Number of each different POS tag (~30 attributes)</p></li>
-<li><p>Average sentence structure tree height</p></li>
-<li><p>Verb form TODO?</p></li>
-</ul>
-</li>
-<li><p>Content:</p>
-<ul>
-<li><p>Number of spellchecking errors</p></li>
-<li><p>Number of capitalization errors</p></li>
-<li><p>Number of punctuation errors</p></li>
-<li><p>Cosine similarity with source text (if source text present)</p></li>
-<li><p>Grade that the current essay’s cosine similarity is most similar to</p></li>
-<li><p>Cosine similarity with best essays</p></li>
-<li><p>Cosine pattern</p></li>
-<li><p>Cosine correlation values</p></li>
-</ul>
-</li>
-<li><p>Coherence:</p>
-<ul>
-<li><p>Avg/min/max distance to neighbouring points (2x, euc. and cos. distance)</p></li>
-<li><p>Avg/min/max distance to any point (2x, euc. and cos. distance)</p></li>
-<li><p>Clark Evans nearest neighbour</p></li>
-<li><p>Average distance of nearest neighbour</p></li>
-<li><p>Frequency TODO</p></li>
-<li><p>Avg/min/max distance to centroid (2x, euc. and cos. distance)</p></li>
-<li><p>Standard distance</p></li>
-<li><p>Relative distance</p></li>
-<li><p>Determinant of distance matrix</p></li>
-<li><p>Moran’s I</p></li>
-<li><p>Geary’s C</p></li>
-<li><p>Gettis’ G</p></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>Select word embeddings:</p>
-<ul class="simple">
-<li><p>Word embeddings are used during calculations of ‘Coherence’ attributes</p></li>
-<li><p>Choose ‘TF-IDF’ or SpaCy’s ‘GloVe’ word embeddings</p></li>
-</ul>
-</li>
-<li><p>The calculation may take a few minutes, depending on attribute categories selected. ‘Grammar’, ‘Content’ and ‘Coherence’ are most demanding.</p></li>
-<li><p>Due to speed, selection changes are NOT communicated automatically. You can change this by ticking the checkbox next to ‘Apply’ button.</p></li>
+<li><p>Bring output data from ‘Test’ widget to input of Score essays.</p></li>
+<li><p>The widget will try to detect true and predicted score attributes from input. Verify and change them using the dropdowns as necessary.</p></li>
+<li><p>Calculated exact agreement and predicted scores will appear in the ‘Results’ section of the widget. They also get sent to output as a single datatable.</p></li>
 </ol>
 <div class="section" id="examples">
 <h2>Examples</h2>

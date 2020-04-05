@@ -1,29 +1,24 @@
-Semantic consistency
+Score essay predictions
 =======
 
-Show data points on a world map.
+Calculate exact agreement and quadratic weighted kappa.
 
 **Inputs**
--  Essays: Essay corpus.
+-  True scores and predictions: Datatable containing true and predicted scores. Most commonly output from 'Test and score' widget.
 
 **Outputs**
--  Feedback: Feedback on essays and error/inconsistency explanations.
+-  Score: Calculated scores in datatable format.
 
 
-**Semantic consistency** widget checks for semantic conssitency of the essays. It achieves that by converting sentences into triples (via OpenIE) and inserts the into an ontology. Logic reasoner is then used to determine potential incosnsitencies in said ontology. Widget logs number of different errors. For improved accuracy, coreference resolution may be used. Additionaly, a 'source text' file can be selected, which contains information essays are based on. *PROCESSING OF THIS WIDGET IS VERY SLOW*
+**Score essay predictions** widget enables us to calculate domain specific scores for our models - exact agreement (percentage of predicted scores that match true scores exactly) and quadratic weighted kappa.
 
 TODO slika <!-- ![](images/GeoMap-stamped.png) -->
 
-1. Input essay corpus.
+1. Bring output data from 'Test and score' widget to input of Score essays.
 
-2. Select desired OpenIE system:
+2. The widget will try to detect true and predicted score attributes from input. Verify and change them using the dropdowns as necessary.
 
-    - OpenIE5.0 is more accurate, but slower
-    - ClausIE is a lot faster, but somewhat less accurate
-    
-3. Check 'Coreference resolution' if needed.
-
-3. Apply. Note that processing of this widget may take a long time.
+3. Calculated exact agreement and predicted scores will appear in the 'Results' section of the widget. They also get sent to output as a single datatable.
 
 Examples
 --------

@@ -1,6 +1,5 @@
 import math
 import copy
-import string
 import numpy as np
 import concurrent.futures
 from functools import partial
@@ -59,9 +58,9 @@ class OWAttributeSelection(OWWidget):
                Grammar.Grammar, Content.Content, Coherence.Coherence)
 
     want_main_area = False
-    resizing_enabled = True
+    resizing_enabled = False
 
-    auto_commit = True
+    auto_commit = settings.Setting(True)
 
     def __init__(self):
         super().__init__()
@@ -87,7 +86,8 @@ class OWAttributeSelection(OWWidget):
         self.infob = gui.widgetLabel(box, 'No ungraded data on input yet, waiting to get something.')
 
         self.controlArea.layout().addWidget(
-            CheckListLayout("Attribute selection", self, "selected_attributes", self.selected_attributes_names, cols=2)
+            CheckListLayout("Attribute selection", self, "selected_attributes", self.selected_attributes_names, cols=2,
+                            callback=self.checkCommit)
         )
 
         parametersBox = gui.widgetBox(self.controlArea, "Options")
@@ -101,7 +101,7 @@ class OWAttributeSelection(OWWidget):
         # self.optionsBox = gui.widgetBox(self.controlArea, "Controls")
         # gui.checkBox(self.optionsBox, self, "commitOnChange", "Commit data on selection change")
         # gui.button(self.optionsBox, self, "Apply", callback=self._invalidate_results)
-        gui.auto_apply(self.controlArea, self, "auto_commit")
+        gui.auto_apply(self.controlArea, self, "auto_commit", commit=self.commit)
         # self.optionsBox.setDisabled(True)
 
 
@@ -167,44 +167,16 @@ class OWAttributeSelection(OWWidget):
             self.infob.setText('No ungraded data on input yet, waiting to get something.')
             self.Outputs.attributes_ungraded.send(None)
 
-    def prepare_data(self, data):
-        self.dataset = data.copy()
-        p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
-                                    transformers=[preprocess.LowercaseTransformer()],
-                                    pos_tagger=pos.AveragedPerceptronTagger(),
-                                    normalizer=preprocess.WordNetLemmatizer(),
-                                    filters=preprocess.StopwordsFilter())
-        p_sentences = preprocess.Preprocessor(tokenizer=preprocess.PunktSentenceTokenizer())
-
-        corpus = p(data)
-        corpus = copy.deepcopy(corpus)
-        corpus_sentences = p_sentences(data)
-
-        return corpus, corpus_sentences
-
-    def prepare_source_texts(self, source_texts):
-        if source_texts is not None:
-            p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
-                                        transformers=[preprocess.LowercaseTransformer()],
-                                        pos_tagger=pos.AveragedPerceptronTagger())
-            self.source_texts = p(source_texts)
-        else:
-            self.source_texts = None
-
-        return self.source_texts
-
     def selection(self):
         if self.dataset is None:
             return
 
     def checkCommit(self):
-        # if self.commitOnChange:
         if self.auto_commit:
             self.commit()
 
     def handleNewSignals(self):
-        if self.auto_commit:
-            self._update()
+        self.checkCommit()
 
     def commit(self):
         self._update()
@@ -221,9 +193,7 @@ class OWAttributeSelection(OWWidget):
         calculate_attributes_func = partial(
             calculateAttributes,
             graded_corpus=self.corpus,
-            graded_corpus_sentences=None,  # self.corpus_sentences,
             ungraded_corpus=self.ungraded_corpus,
-            ungraded_corpus_sentences=self.ungraded_corpus_sentences,
             grades=self.corpus_grades,
             source_texts=self.source_texts,
             attr=self.selected_attributes,
@@ -327,8 +297,11 @@ class OWAttributeSelection(OWWidget):
         self._update()
 
 
-def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, ungraded_corpus, grades,
-                        ungraded_corpus_sentences, attr, callback, word_embeddings, METHODS):
+def calculateAttributes(graded_corpus, source_texts, ungraded_corpus, grades, attr, callback, word_embeddings, METHODS):
+
+    if METHODS is None:
+        METHODS = [BasicMeasures.BasicMeasures, ReadabilityMeasures.ReadabilityMeasures,
+                   LexicalDiversity.LexicalDiversity, Grammar.Grammar, Content.Content, Coherence.Coherence]
 
     callback(0.01)
 
@@ -345,16 +318,6 @@ def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, un
     else:
         proportions = np.linspace(0.0, 1.0, len(attr)*2 + 1, endpoint=True)[1:]
 
-
-    #for i in range(len(new_corpus)):
-    #    for j in range(len(new_corpus.tokens[i])):
-    #        new_corpus.tokens[i][j] = lemmatizer.lemmatize(new_corpus.tokens[i][j],
-    #                                                       pos=get_wordnet_pos(new_corpus.pos_tags[i][j]))
-
-    # TODO: ne odstrani vseh utf-8 punctuationov
-    #new_corpus_sentences = self.new_corpus_sentences
-    filtered_tokens = [[token.lower() for token in doc if token not in string.punctuation]
-                       for doc in graded_corpus.tokens]
     print(graded_corpus)
 
     attributeDictionaryGraded = {}
@@ -372,7 +335,6 @@ def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, un
         else:
             module = module(graded_corpus, graded_corpus_sentences)
         modules[m] = module
-
 
     i = 0
     for m in attr:
@@ -398,11 +360,6 @@ def calculateAttributes(graded_corpus, graded_corpus_sentences, source_texts, un
             i = modules[m].calculate_all(None, attributeDictionaryUngraded, callback, proportions, i)
             callback(proportions[i])
             i += 1
-
-    '''print(flesch_reading_ease)
-    for d in new_corpus.documents:
-        print(textstat.flesch_reading_ease(d))
-    '''
 
     print(attributeDictionaryGraded)
     return attributeDictionaryGraded, attributeDictionaryUngraded

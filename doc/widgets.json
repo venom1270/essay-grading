@@ -17,8 +17,8 @@
     "keywords": []
    },
    {
-    "text": "Essay score",
-    "doc": "widgets/score.md",
+    "text": "Score essay predictions",
+    "doc": "widgets/scoreessaypredictions.md",
     "icon": "../orangecontrib/essaygrading/icons/DataSamplerA.svg",
     "background": "light-blue",
     "keywords": []
