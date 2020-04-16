@@ -61,7 +61,6 @@ class BaseModule:
         self.short_sentence_threshold = 5
         self.long_sentence_threshold = 30
 
-
         self.corpus = corpus
         self.corpus_sentences = corpus_sentences
 

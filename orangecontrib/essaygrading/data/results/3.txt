@@ -1,0 +1,11 @@
+3
+Consistency errors: 2
+Semantic errors: 1
+Sum: 3
+** EXPLANATION 0**
+Relations doNotLike and likes are opposite/disjoint.
+Relation not consistent: me likes Basketball.
+Relation not consistent: me doNotLike Basketball.
+
+
+****

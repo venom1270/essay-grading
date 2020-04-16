@@ -33,6 +33,7 @@ orangecontrib/essaygrading/modules/Grammar.py
 orangecontrib/essaygrading/modules/LexicalDiversity.py
 orangecontrib/essaygrading/modules/ReadabilityMeasures.py
 orangecontrib/essaygrading/modules/__init__.py
+orangecontrib/essaygrading/tutorials/__init__.py
 orangecontrib/essaygrading/utils/ExtractionManager.py
 orangecontrib/essaygrading/utils/HermiT.py
 orangecontrib/essaygrading/utils/OntologyUtils.py
@@ -46,6 +47,8 @@ orangecontrib/essaygrading/utils/syllables_util.py
 orangecontrib/essaygrading/utils/task.py
 orangecontrib/essaygrading/utils/widgets.py
 orangecontrib/essaygrading/widgets/OWAttributeSelection.py
-orangecontrib/essaygrading/widgets/OWScore.py
+orangecontrib/essaygrading/widgets/OWScoreEssayPredictions.py
 orangecontrib/essaygrading/widgets/OWSemanticConsistency.py
 orangecontrib/essaygrading/widgets/__init__.py
+orangecontrib/essaygrading/widgets/tests/__init__.py
+orangecontrib/essaygrading/widgets/tests/test_owattributeselection.py

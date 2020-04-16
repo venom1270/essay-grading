@@ -1,0 +1,4 @@
+#1
+ObjectPropertyAssertion(<http://micra.com/COSMO/COSMO.owl#likes> <http://micra.com/COSMO/COSMO.owl#Lisa> <http://micra.com/COSMO/COSMO.owl#Tennis>)
+ObjectPropertyAssertion(<http://micra.com/COSMO/COSMO.owl#doesNotLike> <http://micra.com/COSMO/COSMO.owl#Lisa> <http://micra.com/COSMO/COSMO.owl#Tennis>)
+DisjointObjectProperties(<http://micra.com/COSMO/COSMO.owl#doesNotLike> <http://micra.com/COSMO/COSMO.owl#likes> )

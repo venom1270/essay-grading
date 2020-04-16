@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='utf-8'?>
+<scheme description="Semantic consistency check determines the number fo cosnsitency and semantic erros in essay/text. Explanations for semantic errors can be returned (at the cost of longer processing). We can also use coreference resolution and import a &quot;source text&quot;, which will take into consideration all facts written there when checking input essays." title="Semantic consistency check (simple)" version="2.0">
+	<nodes>
+		<node id="0" name="Semantic Consistency" position="(388.0, 231.0)" project_name="Essay-Grading" qualified_name="orangecontrib.essaygrading.widgets.OWSemanticConsistency.OWSemanticConsistency" title="Semantic Consistency" version="" />
+		<node id="1" name="Corpus" position="(179.0, 232.0)" project_name="Orange3-Text" qualified_name="orangecontrib.text.widgets.owcorpus.OWCorpus" title="Corpus" version="" />
+		<node id="2" name="Data Table" position="(607.0, 232.0)" project_name="Orange3" qualified_name="Orange.widgets.data.owtable.OWDataTable" title="Data Table" version="" />
+		<node id="3" name="Data Table" position="(322.0, 124.0)" project_name="Orange3" qualified_name="Orange.widgets.data.owtable.OWDataTable" title="View" version="" />
+	</nodes>
+	<links>
+		<link enabled="true" id="0" sink_channel="Essays" sink_node_id="0" source_channel="Corpus" source_node_id="1" />
+		<link enabled="true" id="1" sink_channel="Data" sink_node_id="2" source_channel="Feedback" source_node_id="0" />
+		<link enabled="true" id="2" sink_channel="Data" sink_node_id="3" source_channel="Corpus" source_node_id="1" />
+	</links>
+	<annotations>
+		<text font-family="MS Shell Dlg 2" font-size="16" id="0" rect="(162.0, 390.0, 174.0, 94.0)" type="text/plain">Load test corpus. 
+Our case: Lisa.tab</text>
+		<arrow end="(185.0, 299.0)" fill="#C1272D" id="1" start="(221.0, 384.0)" />
+		<arrow end="(387.0, 294.0)" fill="#C1272D" id="2" start="(388.0, 383.0)" />
+		<text font-family="MS Shell Dlg 2" font-size="16" id="3" rect="(321.0, 395.0, 223.0, 50.0)" type="text/plain">Check "Use coreference" and "Return explanations".
+</text>
+		<arrow end="(608.0, 301.0)" fill="#C1272D" id="4" start="(604.0, 382.0)" />
+		<text font-family="MS Shell Dlg 2" font-size="16" id="5" rect="(574.0, 390.0, 211.0, 107.0)" type="text/plain">Datatable contains number fo consistency and semantic errors, their sum, and explanations for semantic errors.</text>
+	</annotations>
+	<thumbnail />
+	<node_properties>
+		<properties format="literal" node_id="0">{'controlAreaVisible': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x03\x1f\x00\x00\x01\xdb\x00\x00\x04.\x00\x00\x03\x8a\x00\x00\x03 \x00\x00\x02\x01\x00\x00\x04-\x00\x00\x03\x89\x00\x00\x00\x00\x00\x00\x00\x00\n\x00\x00\x00\x03 \x00\x00\x02\x01\x00\x00\x04-\x00\x00\x03\x89', '__version__': 1}</properties>
+		<properties format="pickle" node_id="1">gAN9cQAoWBIAAABjb250cm9sQXJlYVZpc2libGVxAYhYDAAAAHJlY2VudF9maWxlc3ECXXEDKFhf
+AAAAQzovVXNlcnMvemlnc2kvRGVza3RvcC9Fc3NheS1ncmFkaW5nL2Vzc2F5LWdyYWRpbmcvb3Jh
+bmdlY29udHJpYi9lc3NheWdyYWRpbmcvZGF0YXNldHMvTGlzYS50c3ZxBFhsAAAAQzovVXNlcnMv
+emlnc2kvRGVza3RvcC9Fc3NheS1ncmFkaW5nL2Vzc2F5LWdyYWRpbmcvb3JhbmdlY29udHJpYi9l
+c3NheWdyYWRpbmcvZGF0YXNldHMvQWxsIGRhdGFzZXRzL3NldDEudHN2cQVYQQAAAEM6L1VzZXJz
+L3ppZ3NpL0Rlc2t0b3AvRXNzYXktZ3JhZGluZy9lc3NheS1ncmFkaW5nLXV0aWwvc2V0MkEudHN2
+cQZYZgAAAEM6L1VzZXJzL3ppZ3NpL0dvb2dsZSBEcml2ZS9BU0FQIGNvcnB1cy93aWRnZXQtZGVt
+by9vcmFuZ2Vjb250cmliL2Vzc2F5Z3JhZGluZy9kYXRhc2V0cy9zZXQyX3RyYWluLnRzdnEHWGYA
+AABDOi9Vc2Vycy96aWdzaS9Hb29nbGUgRHJpdmUvQVNBUCBjb3JwdXMvd2lkZ2V0LWRlbW8vb3Jh
+bmdlY29udHJpYi9lc3NheWdyYWRpbmcvZGF0YXNldHMvc2V0MV90cmFpbi50c3ZxCFhlAAAAQzov
+VXNlcnMvemlnc2kvR29vZ2xlIERyaXZlL0FTQVAgY29ycHVzL3dpZGdldC1kZW1vL29yYW5nZWNv
+bnRyaWIvZXNzYXlncmFkaW5nL2RhdGFzZXRzL3NtYWxsX3NldC50c3ZxCVgMAAAAYW5kZXJzZW4u
+dGFicQpYEQAAAGJvb2stZXhjZXJwdHMudGFicQtYGAAAAGdyaW1tLXRhbGVzLXNlbGVjdGVkLnRh
+YnEMWBgAAABlbGVjdGlvbi10d2VldHMtMjAxNi50YWJxDVgXAAAAZnJpZW5kcy10cmFuc2NyaXB0
+cy50YWJxDmVYEwAAAHNhdmVkV2lkZ2V0R2VvbWV0cnlxD0NCAdnQywADAAAAAAJ9AAAB/gAABFwA
+AAN4AAACfgAAAiQAAARbAAADdwAAAAAAAAAACgAAAAJ+AAACJAAABFsAAAN3cRBYCwAAAF9fdmVy
+c2lvbl9fcRFLAVgQAAAAY29udGV4dF9zZXR0aW5nc3ESXXETY29yYW5nZXdpZGdldC5zZXR0aW5n
+cwpDb250ZXh0CnEUKYFxFX1xFihYBAAAAHRpbWVxF0dB16XFVR1LcFgGAAAAdmFsdWVzcRh9cRko
+WAoAAAB1c2VkX2F0dHJzcRpdcRtYBQAAAGVzc2F5cRxLZ4ZxHWFK/f///4ZxHmgRSwF1WAoAAABh
+dHRyaWJ1dGVzcR8pWAUAAABtZXRhc3EgaBxLA4ZxIYVxIlgKAAAAY2xhc3NfdmFyc3EjKXViYXUu
+</properties>
+		<properties format="pickle" node_id="2">gAN9cQAoWAsAAABhdXRvX2NvbW1pdHEBiFgOAAAAY29sb3JfYnlfY2xhc3NxAohYEgAAAGNvbnRy
+b2xBcmVhVmlzaWJsZXEDiFgOAAAAZGlzdF9jb2xvcl9SR0JxBChL3EvcS9xL/3RxBVgTAAAAc2F2
+ZWRXaWRnZXRHZW9tZXRyeXEGQ0IB2dDLAAMAAAAAAOEAAAHUAAAG9wAAA5cAAADiAAAB+gAABvYA
+AAOWAAAAAAAAAAAKAAAAAOIAAAH6AAAG9gAAA5ZxB1gLAAAAc2VsZWN0X3Jvd3NxCIhYDQAAAHNl
+bGVjdGVkX2NvbHNxCV1xClgNAAAAc2VsZWN0ZWRfcm93c3ELXXEMWBUAAABzaG93X2F0dHJpYnV0
+ZV9sYWJlbHNxDYhYEgAAAHNob3dfZGlzdHJpYnV0aW9uc3EOiVgLAAAAX192ZXJzaW9uX19xD0sB
+WBAAAABjb250ZXh0X3NldHRpbmdzcRBdcRFjb3Jhbmdld2lkZ2V0LnNldHRpbmdzCkNvbnRleHQK
+cRIpgXETfXEUKFgEAAAAdGltZXEVR0HXpcXp+WBwWAYAAAB2YWx1ZXNxFn1xF2gPSwFzWAoAAABh
+dHRyaWJ1dGVzcRh9cRkoWAcAAABlc3NheUlkcRpLAlgRAAAAY29uc2lzdGVuY3lFcnJvcnNxG0sC
+WA4AAABzZW1hbnRpY0Vycm9yc3EcSwJYAwAAAHN1bXEdSwJ1WAUAAABtZXRhc3EefXEfWAgAAABm
+ZWVkYmFja3EgSwNzdWJhdS4=
+</properties>
+		<properties format="pickle" node_id="3">gAN9cQAoWAsAAABhdXRvX2NvbW1pdHEBiFgOAAAAY29sb3JfYnlfY2xhc3NxAohYEgAAAGNvbnRy
+b2xBcmVhVmlzaWJsZXEDiFgOAAAAZGlzdF9jb2xvcl9SR0JxBChL3EvcS9xL/3RxBVgTAAAAc2F2
+ZWRXaWRnZXRHZW9tZXRyeXEGQ0IB2dDLAAMAAAAAAkoAAABfAAAFawAAAnkAAAJLAAAAhQAABWoA
+AAJ4AAAAAAAAAAAKAAAAAksAAACFAAAFagAAAnhxB1gLAAAAc2VsZWN0X3Jvd3NxCIhYDQAAAHNl
+bGVjdGVkX2NvbHNxCV1xClgNAAAAc2VsZWN0ZWRfcm93c3ELXXEMWBUAAABzaG93X2F0dHJpYnV0
+ZV9sYWJlbHNxDYhYEgAAAHNob3dfZGlzdHJpYnV0aW9uc3EOiVgLAAAAX192ZXJzaW9uX19xD0sB
+WBAAAABjb250ZXh0X3NldHRpbmdzcRBdcRFjb3Jhbmdld2lkZ2V0LnNldHRpbmdzCkNvbnRleHQK
+cRIpgXETfXEUKFgEAAAAdGltZXEVR0HXpcZNINhBWAYAAAB2YWx1ZXNxFn1xF2gPSwFzWAoAAABh
+dHRyaWJ1dGVzcRh9cRlYBQAAAG1ldGFzcRp9cRtYBQAAAGVzc2F5cRxLA3N1YmF1Lg==
+</properties>
+	</node_properties>
+	<session_state>
+		<window_groups />
+	</session_state>
+</scheme>

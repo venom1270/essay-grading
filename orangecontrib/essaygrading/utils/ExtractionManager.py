@@ -44,7 +44,14 @@ class ExtractionManager:
         self.semanticErrors = 0
         self.i = i
 
+        self.debug_print = True
+
         self.depth_warning = False
+
+    def debugPrint(self, *args, **kwargs):
+        if self.debug_print:
+            print("[" + str(self.i) + "] ", end="")
+            print(*args, **kwargs)
 
     def getChunks(self, essay_sentences):
         '''
@@ -61,8 +68,9 @@ class ExtractionManager:
 
             lists = textacy.extract.pos_regex_matches(doc, r'<VERB>?<ADV>*<VERB>+') #pos_regex_matches(doc, r'<VERB>?<ADV>*<VERB>+')
             verb_chunks.append([vp.text for vp in lists])
-        print(noun_chunks)
-        print(verb_chunks)
+
+        self.debugPrint(noun_chunks)
+        self.debugPrint(verb_chunks)
         return {"np": noun_chunks, "vp": verb_chunks}
 
     def mergeEssayAndChunks(self, essay_sentences, chunks, type):
@@ -111,9 +119,9 @@ class ExtractionManager:
             #print(URIRefs[2])
             similarNode, _ = self.similarNode(URIRefs[2], entity["text"], indepth=True)
             if similarNode is not None:
-                print("SIMILAR")
-                print(URIRefs[0][similarNode], URIRefs[1][similarNode], URIRefs[2][similarNode])
-                print(entity["text"])
+                self.debugPrint("SIMILAR")
+                self.debugPrint(URIRefs[0][similarNode], URIRefs[1][similarNode], URIRefs[2][similarNode])
+                self.debugPrint(entity["text"])
                 self.URIdict[URIRefs[0][similarNode]] = URIRefs[1][similarNode]  # Add "text" (original) to URIdict
                 self.URIdict[URIRefs[2][similarNode]] = URIRefs[1][similarNode]  # Add stemmed version to URIdict
                 self.entities[type].append({"id": similarNode, "text": URIRefs[0][similarNode], "URI": URIRefs[1][similarNode], "stemmed": URIRefs[2][similarNode], "original": entity["text"]})
@@ -150,7 +158,7 @@ class ExtractionManager:
         for ex in extraction:
             #over extractions in sentence
             for t in ex:
-                print(t)
+                self.debugPrint(t)
 
                 old_ONTO = copy.deepcopy(ONTO)
                 old_turbo = self.turbo
@@ -186,18 +194,18 @@ class ExtractionManager:
                     # TODO: refactor: Če zgornje drži, pridevnike dodaj kot BURI relacijo na subjekt.. malo je ze narjeno sam je treba dodelat
                     pos_tags = get_pos_tags(t.object, simplify=True)
                     # t.object je prav - ce dam preprocesirano notr, zgubim informacije o pridevnikih
-                    print("OBJECT POS TAGS:")
-                    print(pos_tags)
+                    self.debugPrint("OBJECT POS TAGS:")
+                    self.debugPrint(pos_tags)
                     subclass_noun_found = False
                     if len(pos_tags) > 1: # if more than one word:
                         # Find noun and adjectives
-                        print("Finding nouns...")
+                        self.debugPrint("Finding nouns...")
                         noun = [p[0] for p in pos_tags if p[1] == "n"]
                         adjectives = [p[0] for p in pos_tags if p[1] == "a"]
-                        print(pos_tags)
+                        self.debugPrint(pos_tags)
                         if len(noun) >= 1 and len(adjectives) >= 1:
-                            print("NOUNS:  (take last one)")
-                            print(noun)
+                            self.debugPrint("NOUNS:  (take last one)")
+                            self.debugPrint(noun)
                             noun = noun[-1]
 
                             # "problem", ce je (narobe) najden samo noun "a" ali "an"
@@ -210,31 +218,31 @@ class ExtractionManager:
                                 if AURI in subclasses:
                                     subclass_noun_found = True
                                     BURI = self.addElementToOntology(ONTO, PRED, URIRefsPredicates, "Predicate")
-                                    print("*** PRIDEVNIKI ***")
+                                    self.debugPrint("*** PRIDEVNIKI ***")
                                     for adj in adjectives:
-                                        print("DODAJAM PRIDEVNIK: " + adj)
+                                        self.debugPrint("DODAJAM PRIDEVNIK: " + adj)
                                         ADJURI = self.addElementToOntology(ONTO, adj, URIRefsObjects, "SubjectObject") # TODO: morda tag za pridevnik???
                                         if ADJURI is not None and ADJURI != "":
-                                            print("VEZEM PRIDEVNIK NA SAMSOTALNIK!!!")
+                                            self.debugPrint("VEZEM PRIDEVNIK NA SAMSOTALNIK!!!")
                                             # Najprej dodamo legit kot je v predikatu npr. Tennis is(Type) Fast
                                             ok1 = self.tryAddToOntology(ONTO, AURI, BURI, ADJURI, remove=False, explain=self.EXPLAIN, force=True, is_triple=True)
                                             if ok1 is not True:
-                                                print("Relation " + str(t) + " is inconsistent with base ontology.")
+                                                self.debugPrint("Relation " + str(t) + " is inconsistent with base ontology.")
                                                 if self.EXPLAIN:
-                                                    print("***** Explanation begin ******")
-                                                    print(ok1)
+                                                    self.debugPrint("***** Explanation begin ******")
+                                                    self.debugPrint(ok1)
                                                     feedback_array.append(ok1)
-                                                    print("***** Explanation end ******")
+                                                    self.debugPrint("***** Explanation end ******")
                                             # Tukaj dodamo kot Subclass... Tennis subClassOf FastSport, QuickSport, HardSport...
                                             AJDNOUNURI = self.addElementToOntology(ONTO, adj + ' ' + noun, URIRefsObjects, "SubjectObject")
                                             ok2 = self.tryAddToOntology(ONTO, AURI, rdflib.namespace.RDFS.subClassOf, AJDNOUNURI, remove=False, explain=self.EXPLAIN, force=True)
                                             if ok2 is not True:
-                                                print("Relation " + str(t) + " is inconsistent with base ontology.")
+                                                self.debugPrint("Relation " + str(t) + " is inconsistent with base ontology.")
                                                 if self.EXPLAIN:
-                                                    print("***** Explanation begin ******")
-                                                    print(ok2)
+                                                    self.debugPrint("***** Explanation begin ******")
+                                                    self.debugPrint(ok2)
                                                     feedback_array.append(ok2)
-                                                    print("***** Explanation end ******")
+                                                    self.debugPrint("***** Explanation end ******")
                                             # TODO: to je ena ideja sam pomoje ni dobra: Dodamo se equivalent class ... Sport type Fast je ekvivalent FastSport
 
                                             # Za na koncu - če je ontologija borked, pol moramo vzeti staro
@@ -245,7 +253,7 @@ class ExtractionManager:
 
                                             # To je za ponovitev iterationa s Turbo=False
                                             if (not ok1 or not ok2) and self.turbo and self.REITERATION:
-                                                print("SWITCHING OFF TURBO FOR ONE ITERATION")
+                                                self.debugPrint("SWITCHING OFF TURBO FOR ONE ITERATION")
                                                 self.turbo = False
                                                 self.EXPLAIN = self.EXPLAIN_ON_REITERATION
                                                 repeatIteration = True
@@ -256,27 +264,27 @@ class ExtractionManager:
                                                 self.entities = copy.deepcopy(old_entites)
                                                 self.URIdict = copy.deepcopy(old_URIdict)
 
-                                    print("*** KONEC PRIDEVNIKOV ***")
+                                                self.debugPrint("*** KONEC PRIDEVNIKOV ***")
                                 else:
-                                    print("Ni v SUBCLASSESOF: " + str(CURI) + " | " + str(AURI))
+                                    self.debugPrint("Ni v SUBCLASSESOF: " + str(CURI) + " | " + str(AURI))
 
                     if subclass_noun_found is False:
                         AURI = self.addElementToOntology(ONTO, SUBJ, URIRefsObjects, "SubjectObject")
                         CURI = self.addElementToOntology(ONTO, OBJ, URIRefsObjects, "SubjectObject")
                         BURI = self.addElementToOntology(ONTO, PRED, URIRefsPredicates, "Predicate")
 
-                        print("***** Extracted entities: " + str(AURI) + " " + str(BURI) + " " + str(CURI) + " ***********")
+                        self.debugPrint("***** Extracted entities: " + str(AURI) + " " + str(BURI) + " " + str(CURI) + " ***********")
                         if AURI is None or BURI is None or CURI is None:
-                            print("Skipping extraction... missing element.")
+                            self.debugPrint("Skipping extraction... missing element.")
                             continue
-                        print("Adding extracted triple relation...")
+                            self.debugPrint("Adding extracted triple relation...")
                         # def recurse_add_remove(self, ONTO, root, rdfType, operation, subj, pred):
                         self.depth_warning = False
                         self.recurse_add_remove(ONTO, CURI, rdflib.namespace.RDFS.subClassOf, "add", AURI, BURI)
                         # If add/remove is stuck in infinite cycle, remove added things and skip this triple
                         if self.depth_warning:
                             self.recurse_add_remove(ONTO, CURI, rdflib.namespace.RDFS.subClassOf, "remove", AURI, BURI)
-                            print("CONTINUING...")
+                            self.debugPrint("CONTINUING...")
                             ONTO = copy.deepcopy(old_ONTO)
                             self.allAddedTriples = copy.deepcopy(old_added_triples)
                             URIRefsObjects = copy.deepcopy(old_URIRefsObjects)
@@ -286,25 +294,25 @@ class ExtractionManager:
                             self.depth_warning = False
                             continue
                         ok = self.tryAddToOntology(ONTO, AURI, BURI, CURI, remove=False, explain=self.EXPLAIN, force=True, is_triple=True)
-                        print(t)
-                        print(SUBJ + PRED + OBJ)
-                        print(sent)
-                        print(entityTypes)
+                        self.debugPrint(t)
+                        self.debugPrint(SUBJ + PRED + OBJ)
+                        self.debugPrint(sent)
+                        self.debugPrint(entityTypes)
                         # TO je zato, da
                         if len(entityTypes) > 0 and entityTypes[0]["type"] != "PERSON" and BURI == rdflib.namespace.RDF.type:
-                            print("SPECIAL ADD")
+                            self.debugPrint("SPECIAL ADD")
                             ok = self.tryAddToOntology(ONTO, AURI, rdflib.namespace.RDFS.subClassOf, CURI, remove=False, explain=self.EXPLAIN, force=True, is_triple=True)
 
                         if ok is not True:
-                            print("Relation " + str(t) + " is inconsistent with base ontology.")
+                            self.debugPrint("Relation " + str(t) + " is inconsistent with base ontology.")
                             self.recurse_add_remove(ONTO, CURI, rdflib.namespace.RDFS.subClassOf, "remove", AURI, BURI)
                             if self.EXPLAIN:
-                                print("***** Explanation begin ******")
-                                print(ok)
+                                self.debugPrint("***** Explanation begin ******")
+                                self.debugPrint(ok)
                                 feedback_array.append(ok)
-                                print("***** Explanation end ******")
+                                self.debugPrint("***** Explanation end ******")
                             if self.turbo is True and self.REITERATION:
-                                print("SWITCHING OFF TURBO FOR ONE ITERATION")
+                                self.debugPrint("SWITCHING OFF TURBO FOR ONE ITERATION")
                                 self.turbo = False
                                 self.EXPLAIN = self.EXPLAIN_ON_REITERATION
                                 repeatIteration = True
@@ -317,7 +325,7 @@ class ExtractionManager:
 
 
                 if not self.turbo and old_turbo is True and self.REITERATION:
-                    print("SWTCHING ON TURBO... RESUMING NORMAL OPERATIONS")
+                    self.debugPrint("SWTCHING ON TURBO... RESUMING NORMAL OPERATIONS")
                     self.turbo = True
                     self.EXPLAIN = old_explanations
 
@@ -355,20 +363,20 @@ class ExtractionManager:
                 #input()  # PER TRIPLE
 
         # TODO: return errors (1, 2, 1+2)
-        print("------------------------------- ERROR COUNT -------------------------")
-        print("----- CONSISTENCY ERRORS: " + str(self.consistencyErrors))
-        print("----- SEMANTIC ERRORS: " + str(self.semanticErrors))
-        print("---------------------------------------------------------------------")
+                self.debugPrint("------------------------------- ERROR COUNT -------------------------")
+                self.debugPrint("----- CONSISTENCY ERRORS: " + str(self.consistencyErrors))
+                self.debugPrint("----- SEMANTIC ERRORS: " + str(self.semanticErrors))
+                self.debugPrint("---------------------------------------------------------------------")
 
         if ok is not True:
-            print("### FINISHED BUT OLD ONTOLOGY IS INCONSISTENT... WRITING OLD ONTOLOGY ###")
+            self.debugPrint("### FINISHED BUT OLD ONTOLOGY IS INCONSISTENT... WRITING OLD ONTOLOGY ###")
             self.hermit.check_unsatisfiable_cases(old_ONTO, remove=False, explain=explain, i=self.i)
         else:
-            print("### FINISHED, ONTOLOGY CONSISTENT ###")
+            self.debugPrint("### FINISHED, ONTOLOGY CONSISTENT ###")
 
         errors = [self.consistencyErrors, self.semanticErrors, self.consistencyErrors+self.semanticErrors]
 
-        print("Elapsed time:" + str(time.time() - tajm))
+        self.debugPrint("Elapsed time:" + str(time.time() - tajm))
         #input()  # PER ESSAY
 
         return feedback_array, errors
@@ -381,7 +389,7 @@ class ExtractionManager:
         # ki se prej pomatachajo glede na NP in VP v eseju s 70%(?) ujemanjem
 
         if element in self.URIdict:
-            print("URIDICT WORKS!!!")
+            self.debugPrint("URIDICT WORKS!!!")
             return self.URIdict[element], self.URIdict[element]
 
         index, similarNode = self.similarNode(URIRefs[0], element, indepth=False, stem=False)
@@ -425,13 +433,13 @@ class ExtractionManager:
             # node = [e["URI"] for e in self.entities if e["id"] == similarNode]
 
             # If we found a similar node, we use it and skip other steps
-            print("Found: ", self.entities[elementType][index])
+            self.debugPrint("Found: ", self.entities[elementType][index])
             URI = self.entities[elementType][index]["URI"]
             elementURI = URI
         else:
             # If similar node not found, we continue checking synonyms and hypernyms
             URI = ""
-            print("None ", element)
+            self.debugPrint("None ", element)
 
         return elementURI, URI
 
@@ -439,7 +447,7 @@ class ExtractionManager:
     def checkNodeSynonymsHypernyms(self, ONTO, element, URIRefs, elementType, URI):
         elementURI = ""
 
-        print("PRVI IF - " + element)
+        self.debugPrint("PRVI IF - " + element)
 
         # If 'be' predicate, we already have a type for it
         if elementType == "Predicate" and element in ["be", "is", "are"]:
@@ -459,7 +467,7 @@ class ExtractionManager:
                     continue
                 name = s.lemma_names()[0]
                 name = name.replace("_", " ")
-                print(name)
+                self.debugPrint(name)
                 synsetArr.append(name)
                 # if name in [e["text"] for e in self.entities]:
                 if name in URIRefs[0]:
@@ -467,7 +475,7 @@ class ExtractionManager:
                     elementURI = URIRefs[1][URIRefs[0].index(name)]
                     URI = URIRefs[1][URIRefs[0].index(name)]
                     addToOntology = False
-                    print("Found " + name + " in entities. Not adding to ontology.")
+                    self.debugPrint("Found " + name + " in entities. Not adding to ontology.")
                     break
 
             # Če ni nobene so/nadpomenke v entitijih, potem dodamo v ontologijo
@@ -490,7 +498,7 @@ class ExtractionManager:
                     if index > -1:
                         # If it does, we add the element and the connection to the hypernym (subclassOf)
                         HURI = URIRefs[1][index]
-                        print("Found element '" + str(URIRefs[0][index]) + "' for hypernym '" + hypernim + "'.")
+                        self.debugPrint("Found element '" + str(URIRefs[0][index]) + "' for hypernym '" + hypernim + "'.")
 
                         if elementType == "SubjectObject":
                             ontologyElement = "".join([word.capitalize() for word in element.split()])
@@ -504,11 +512,11 @@ class ExtractionManager:
                         self.URIdict[element] = elementURI
                         self.URIdict[ontologyElement] = elementURI
                         self.entities[elementType].append({"id": elementURI, "text": element, "URI": elementURI, "stemmed": element}) # TODO?: "stemmed" is not really stemmed here
-                        print("Adding element (in hypernim if) '" + element + "' to ontology as '" + str(
+                        self.debugPrint("Adding element (in hypernim if) '" + element + "' to ontology as '" + str(
                             owlType) + "' '" + str(elementURI) + "'")
                         self.tryAddToOntology(ONTO, elementURI, rdflib.namespace.RDF.type, owlType)
                         if HURI != "" and elementType == "SubjectObject":
-                            print("Adding HURI '" + str(HURI) + "' as suoperclass of URI: '" + str(elementURI) + "'")
+                            self.debugPrint("Adding HURI '" + str(HURI) + "' as suoperclass of URI: '" + str(elementURI) + "'")
                             self.tryAddToOntology(ONTO, elementURI, rdflib.namespace.RDFS.subClassOf, HURI)
         return elementURI, URI
 
@@ -520,7 +528,7 @@ class ExtractionManager:
             try:
                 match = re.findall(r'(\w+?)(\d+)([a-z]+)', meaning)[0]
             except:
-                print("No match for meaning: " + str(meaning))
+                self.debugPrint("No match for meaning: " + str(meaning))
                 continue
             if match[2] == 'adj':
                 match = match[0] + '.' + match[2][0] + '.0' + match[1]
@@ -530,18 +538,18 @@ class ExtractionManager:
             try:
                 s = wordnet.synset(match)
             except:
-                print("No matching synsets for " + str(match))
+                self.debugPrint("No matching synsets for " + str(match))
                 continue
 
             # 1. Add relations to hypernyms
             hypernyms = s.hypernyms()
             for h in hypernyms:
-                print("Nadpomenke " + str(URI))
+                self.debugPrint("Nadpomenke " + str(URI))
                 # print(h)
                 # print(h.lemma_names)
                 # print(h.lemmas)
                 for lemma_name in h.lemma_names():
-                    print("LN: " + lemma_name)
+                    self.debugPrint("LN: " + lemma_name)
                     lemma_name = lemma_name.replace("_", " ")
                     lemma_name_stemmed = self.stemSentence(lemma_name)
                     HURI = ""
@@ -551,15 +559,15 @@ class ExtractionManager:
                         else:
                             index = URIRefs[2].index(lemma_name_stemmed)
                     except:
-                        print("'" + lemma_name + "' / '" + lemma_name_stemmed + "' not in list?????")
+                        self.debugPrint("'" + lemma_name + "' / '" + lemma_name_stemmed + "' not in list?????")
                         index = -1
                     if index > -1:
                         HURI = URIRefs[1][index]
                     elif lemma_name in [e["text"] for e in self.entities[elementType]]:
                         HURI = [e["URI"] for e in self.entities[elementType] if e["text"] == lemma_name][0]
                     else:
-                        print("NOT FOUND!!!! LEMMA: " + lemma_name)
-                    print("HURI = '" + str(HURI) + "'")
+                        self.debugPrint("NOT FOUND!!!! LEMMA: " + lemma_name)
+                        self.debugPrint("HURI = '" + str(HURI) + "'")
                     # If hypernym was found in ontology, we add subClassOf or subPropertyOf relation
                     if HURI != "":
                         if elementType == "SubjectObject":
@@ -571,7 +579,7 @@ class ExtractionManager:
             # 2. Add relations to antonyms
             for lemma in s.lemmas():
                 for antonym in lemma.antonyms():
-                    print("ANTONYM: " + antonym.name())
+                    self.debugPrint("ANTONYM: " + antonym.name())
                     lemma_name = antonym.name().replace("_", " ")
                     lemma_name_stemmed = self.stemSentence(lemma_name)
                     ANTO_URI = ""
@@ -581,21 +589,21 @@ class ExtractionManager:
                         else:
                             index = URIRefs[2].index(lemma_name_stemmed)
                     except:
-                        print("'" + lemma_name + "' / '" + lemma_name_stemmed + "' not in list?????")
+                        self.debugPrint("'" + lemma_name + "' / '" + lemma_name_stemmed + "' not in list?????")
                         index = -1
                     if index > -1:
                         ANTO_URI = URIRefs[1][index]
                     elif lemma_name in [e["text"] for e in self.entities[elementType]]:
                         ANTO_URI = [e["URI"] for e in self.entities[elementType] if e["text"] == lemma_name][0]
                     else:
-                        print("NOT FOUND!!!! LEMMA: " + lemma_name)
-                    print("ANTO_URI = '" + str(ANTO_URI) + "'")
+                        self.debugPrint("NOT FOUND!!!! LEMMA: " + lemma_name)
+                    self.debugPrint("ANTO_URI = '" + str(ANTO_URI) + "'")
                     if ANTO_URI != "":
                         rdfType = rdflib.namespace.OWL.disjointWith
                         self.tryAddToOntology(ONTO, URI, rdfType, ANTO_URI, symetric=True)
 
     def addElementToOntology(self, ONTO, element, URIRefs, elementType):
-        print("Check similar node: ", element)
+        self.debugPrint("Check similar node: ", element)
         if element.split()[0] in ["a", "an"]:
             element = " ".join(element.split()[1:])
         #if elementType == "Predicate": ZAKVA JE TO SPLOH???
@@ -617,7 +625,7 @@ class ExtractionManager:
 
 
         # START TUKAJ SE SAMO DODAJA NODE
-        print("*********************DODAJANJE ENTITIJEV*****************")
+        self.debugPrint("*********************DODAJANJE ENTITIJEV*****************")
 
         # TODO: if to sem skipal - - is there already a node with this id and URI under the ID - - check if coref and add???
         # TODO: elif # - - is there a node with same name - -
@@ -642,7 +650,7 @@ class ExtractionManager:
             if element in URIRefs[0]:
                 elementURI = URIRefs[1][URIRefs[0].index(element)]
                 URI = elementURI
-                print("Found element in URIREFS!! " + str(elementURI))
+                self.debugPrint("Found element in URIREFS!! " + str(elementURI))
             # Else check if element has any synonyms/hypernyms
             elif (elementType == "SubjectObject" and len(wordnet.synsets(element, pos=wordnet.NOUN))) or (
                     elementType == "Predicate" and len(wordnet.synsets(element, pos=wordnet.VERB))):
@@ -656,9 +664,7 @@ class ExtractionManager:
         if elementURI is None or elementURI == '':
             elementURI = self.addNewNodeToOntology(ONTO, element, elementType)
 
-
-
-        print("*********************DODAJANJE RELATIONOV*****************")
+        self.debugPrint("*********************DODAJANJE RELATIONOV*****************")
 
         # 1338+
         '''
@@ -675,16 +681,16 @@ class ExtractionManager:
         # 3. Check if it's a 'not' predicate and add appropriate disjointWith relations
         # If 'not', we find the closest positive predicate and add disjointWith
         if elementType == "Predicate" and "not " in element:
-            print("**** ISCEM NEGACIJO Z NOT..... ****")
+            self.debugPrint("**** ISCEM NEGACIJO Z NOT..... ****")
             i, similarNode = self.similarNode(URIRefs[2], element[element.index("not ")+4:], indepth=False)
-            print(element[element.index("not ")+4:])
+            self.debugPrint(element[element.index("not ")+4:])
             if similarNode is not None:
-                print("Without not+: " + similarNode)
+                self.debugPrint("Without not+: " + similarNode)
                 elementAntonymURI = URIRefs[1][i]
-                print("Adding _not_ predicate antonym to ontology: " + str(elementURI) + " OWL.propertyDisjointWith " + str(elementAntonymURI))
+                self.debugPrint("Adding _not_ predicate antonym to ontology: " + str(elementURI) + " OWL.propertyDisjointWith " + str(elementAntonymURI))
                 self.tryAddToOntology(ONTO, elementURI, rdflib.namespace.OWL.propertyDisjointWith, elementAntonymURI, symetric=True)
             else:
-                print("None")
+                self.debugPrint("None")
             # TODO?: iz wordneta, ampak to mislim da ima ponesreci podvojeno..
 
 
@@ -700,7 +706,7 @@ class ExtractionManager:
     def tryAddToOntology(self, ONTO, subj_URI, type, obj_URI, symetric=False, remove=True, explain=False, force=False, is_triple=False):
 
         if (subj_URI, type, obj_URI) in self.allAddedTriples:
-            print("Already tried adding triple! " + str(subj_URI) + " " + str(type) + " " + str(obj_URI))
+            self.debugPrint("Already tried adding triple! " + str(subj_URI) + " " + str(type) + " " + str(obj_URI))
             # return True # TODO zdej je pocasnejs ampak bolj ziher: problem ce dvakrat dodajamo skor isto in se ujame
             #                       tukaj, vbistvu so se pa zaradi turbota vmes dodajali razlicni classi
             if is_triple and self.turbo:
@@ -709,8 +715,8 @@ class ExtractionManager:
                 return True
 
         if (subj_URI, type, obj_URI) not in ONTO:
-            print("elementURI: " + str(subj_URI))
-            print("Adding URI '" + str(subj_URI) + "' to ontology as " + str(type) + " of '" + str(obj_URI) + "'")
+            self.debugPrint("elementURI: " + str(subj_URI))
+            self.debugPrint("Adding URI '" + str(subj_URI) + "' to ontology as " + str(type) + " of '" + str(obj_URI) + "'")
             self.allAddedTriples.append((subj_URI, type, obj_URI))
             ONTO.add((subj_URI, type, obj_URI))
             if symetric: # if we want a symetric relation (e.g. disjointWith)
@@ -749,10 +755,10 @@ class ExtractionManager:
                         else:
                             self.semanticErrors += 1
                     # TODO: improve this... because we have turbo mode now -EDIT- it's OK now i think?
-                    print("Removing...")
-                    print(str(subj_URI))
-                    print(str(type))
-                    print(str(obj_URI))
+                    self.debugPrint("Removing...")
+                    self.debugPrint(str(subj_URI))
+                    self.debugPrint(str(type))
+                    self.debugPrint(str(obj_URI))
                     #if not self.turbo:
                     ONTO.remove((subj_URI, type, obj_URI))
                     ONTO.remove((obj_URI, type, subj_URI))
@@ -760,7 +766,7 @@ class ExtractionManager:
             else:
                 True
         else:
-            print("Already in ONTO! " + str(subj_URI) + " " + str(type) + " " + str(obj_URI))
+            self.debugPrint("Already in ONTO! " + str(subj_URI) + " " + str(type) + " " + str(obj_URI))
         return True
 
     def addNewNodeToOntology(self, ONTO, element, elementType):
@@ -777,7 +783,7 @@ class ExtractionManager:
             owlType = rdflib.namespace.OWL.Class
         else:
             owlType = rdflib.namespace.OWL.ObjectProperty
-        print("Adding element '" + element + "' to ontology as '" + str(owlType) + "', '" + str(elementURI) + "'")
+        self.debugPrint("Adding element '" + element + "' to ontology as '" + str(owlType) + "', '" + str(elementURI) + "'")
         self.tryAddToOntology(ONTO, elementURI, rdflib.namespace.RDF.type, owlType)
         return elementURI
 
@@ -805,12 +811,12 @@ class ExtractionManager:
     # Depth = depth limit ce gre kaj narobe
     def recurse_add_remove(self, ONTO, root, rdfType, operation, subj, pred, depth=200):
         if depth <= 0:
-            print("DEPTH WARNING: root: " + str(root) + ", rdfType: " + str(rdfType) + ", subj: " + str(subj) +
+            self.debugPrint("DEPTH WARNING: root: " + str(root) + ", rdfType: " + str(rdfType) + ", subj: " + str(subj) +
                   ", pred: " + str(pred))
             self.depth_warning = True
             return
         for el in ONTO.subjects(rdfType, root):
-            #print(str(el))
+            #self.debugPrint(str(el))
             if operation == "add":
                 if (subj, pred, el) not in ONTO:
                     ONTO.add((subj, pred, el))
@@ -824,22 +830,22 @@ class ExtractionManager:
     def get_disjoint_relation(self, ONTO, relation, pred):
         drg = ONTO.subjects(relation, pred)
         disjointRelation = None
-        print("Looking for disjoint relation")
+        self.debugPrint("Looking for disjoint relation")
         for dr in drg:
-            print("Found " + str(dr))
+            self.debugPrint("Found " + str(dr))
             disjointRelation = dr
             break
         return disjointRelation
 
     def get_feedback(self, ONTO, subj, pred, obj):
-        print("FEEDBACK")
+        self.debugPrint("FEEDBACK")
         disjointRelation = self.get_disjoint_relation(ONTO, rdflib.namespace.OWL.propertyDisjointWith, pred)
         if disjointRelation is None:
-            print("Couldn't find disjoint relation")
+            self.debugPrint("Couldn't find disjoint relation")
             # Check if obj disjointWith something: example: "Lisa is a boy. Lisa is a girl."
-            print("Checking " + str(obj) + " disjointWith something...")
+            self.debugPrint("Checking " + str(obj) + " disjointWith something...")
             for o in ONTO.objects(obj, rdflib.namespace.OWL.disjointWith):
-                print("Found " + str(o) + " as disjointWith " + str(obj) + ". Returning...")
+                self.debugPrint("Found " + str(o) + " as disjointWith " + str(obj) + ". Returning...")
                 #return (subj, pred, o)
                 return (subj, "#is", o)
             return None
@@ -854,11 +860,11 @@ class ExtractionManager:
                 #return (subj, disjointRelation, obj)
 
     def get_feedback_r(self, ONTO, subj, pred, obj, direction):
-        print("Checking " + str(obj) + " --- " + direction)
+        self.debugPrint("Checking " + str(obj) + " --- " + direction)
         # Find first match, and then keep checking parent until no matches...
         r = None
         if (subj, pred, obj) in ONTO:
-            print("FOUND!!!!")
+            self.debugPrint("FOUND!!!!")
             #return (subj, pred, obj)
             r = (subj, pred, obj)
         if direction == "parent":
@@ -877,15 +883,15 @@ class ExtractionManager:
         #return None
 
     def get_feedback_property(self, ONTO, subj, pred, obj, direction="parent"):
-        print("Checking " + str(obj) + " --- " + direction + " " + str(pred) + " " + str(subj))
+        self.debugPrint("Checking " + str(obj) + " --- " + direction + " " + str(pred) + " " + str(subj))
         # Find first match, and then keep checking parent until no matches...
         r = None
         if (subj, pred, obj) in ONTO:
-            print("FOUND!!!!")
+            self.debugPrint("FOUND!!!!")
             r = (subj, pred, obj)
         if direction == "parent":
             for el in ONTO.objects(obj, rdflib.namespace.RDFS.subClassOf):
-                print("FOR: " + str(el))
+                self.debugPrint("FOR: " + str(el))
                 ret = self.get_feedback_r(ONTO, subj, pred, el, direction="parent")
                 if ret is not None:
                     return ret
@@ -904,7 +910,7 @@ class ExtractionManager:
 
     def sentenceSimilarity(self, s1, s2):
         count = 0
-        #print("S1: ", s1, "  ---- S2: ", s2)
+        #self.debugPrint("S1: ", s1, "  ---- S2: ", s2)
         s1 = word_tokenize(s1)
         s2 = word_tokenize(s2)
         for word in s1:
@@ -926,8 +932,8 @@ class ExtractionManager:
         extraction = ' '.join(words) # to je blo zakomentirano
         # Odstrani /, ker drugace pride do napake...
         if "/" in extraction:
-            print("PREPROCESS COLLAGE")
-            print(extraction)
+            self.debugPrint("PREPROCESS COLLAGE")
+            self.debugPrint(extraction)
         extraction = extraction.replace("/", " ")
         # Remove prepositions
         tmp = word_tokenize(extraction)

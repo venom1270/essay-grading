@@ -22,7 +22,7 @@ class OWScoreEssayPredictions(OWWidget):
     class Warning(OWWidget.Warning):
         pass
 
-    auto_commit = settings.Setting(False)
+    auto_commit = settings.Setting(True)
 
     outDictionary = {}
 
@@ -88,12 +88,12 @@ class OWScoreEssayPredictions(OWWidget):
             # Nastavi default vrednosti
             if len(self.true_scores_list) > 0:
                 self.true_scores_selection = self.true_scores_list[0]
-            if "Random forest" in self.predicted_scores_list:
+            if "Random Forest" in self.predicted_scores_list:
                 self.predicted_scores_selection = \
-                    self.predicted_scores_list[self.predicted_scores_list.index("Random forest")]
-            elif "Linear regression" in self.predicted_scores_list:
+                    self.predicted_scores_list[self.predicted_scores_list.index("Random Forest")]
+            elif "Linear Regression" in self.predicted_scores_list:
                 self.predicted_scores_selection = \
-                    self.predicted_scores_list[self.predicted_scores_list.index("Linear regression")]
+                    self.predicted_scores_list[self.predicted_scores_list.index("Linear Regression")]
 
             self.data = data
 

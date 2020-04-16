@@ -1,0 +1,11 @@
+4
+Consistency errors: 2
+Semantic errors: 1
+Sum: 3
+** EXPLANATION 0**
+Relation not consistent: Georg likes Basketball.
+Relations doesNotLike and likes are opposite/disjoint.
+Relation not consistent: Georg doesNotLike Basketball.
+
+
+****

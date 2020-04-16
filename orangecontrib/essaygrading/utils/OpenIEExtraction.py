@@ -89,7 +89,7 @@ class OpenIEExtraction:
 class ClausIE(OpenIEExtraction):
 
     def __init__(self):
-        from pyclausie import ClausIE
+        from orangecontrib.essaygrading.external.pyclausie.pyclausie import ClausIE
         self.openie = ClausIE.get_instance()
 
     def extract_triples(self, sentences):

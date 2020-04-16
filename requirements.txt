@@ -14,6 +14,14 @@ textacy
 #flair
 
 
+# NEURALCOREF GUIDE
+# download source from https://github.com/huggingface/neuralcoref
+# THEN:
+# cd [path_to_neuralcoref]
+# pip install -r requirements.txt
+# pip install -e .
+# pip install spacy # this may or may not be needed; make sure to redownload all spacy vector files in case of reinstalling different version
+
 
 # conda install pytorch torchvision cpuonly -c pytorch   ## TO JE DELALO!!!
 # pip install flair

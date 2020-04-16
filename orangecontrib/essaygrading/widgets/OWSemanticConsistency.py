@@ -65,10 +65,7 @@ class OWSemanticConsistency(OWWidget):
         super().__init__()
 
         self.corpus = None
-        self.corpus_sentences = None
         self.source_texts = None
-        self.ungraded_corpus = None
-        self.ungraded_corpus_sentences = None
         self.dataset = None # I don't really need this
         self.source_text_file = None
 
@@ -113,40 +110,16 @@ class OWSemanticConsistency(OWWidget):
     def set_essays(self, dataset):
         if dataset is not None:
 
-            corpus, corpus_sentences = self.prepare_data(dataset)
-
             self.optionsBox.setDisabled(False)
 
-            self.corpus = corpus
-            self.corpus_sentences = corpus_sentences
+            self.corpus = dataset
 
             self.infoa.setText('%d essays in input dataset' % len(dataset))
 
         else:
             self.corpus = None
-            self.corpus_sentences = None
-            self.infoa.setText('No graded data on input yet, waiting to get something.')
-            self.Outputs.errors.send(None)
+            self.infoa.setText('No data on input yet, waiting to get something.')
             self.optionsBox.setDisabled(True)
-
-    def prepare_data(self, data):
-        self.dataset = data.copy()
-        p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
-                                    transformers=[preprocess.LowercaseTransformer()],
-                                    pos_tagger=pos.AveragedPerceptronTagger(),
-                                    normalizer=preprocess.WordNetLemmatizer())
-        p_sentences = preprocess.Preprocessor(tokenizer=preprocess.PunktSentenceTokenizer(),
-                                              # transformers=[preprocess.LowercaseTransformer()],
-                                              # ce je to vklopljeno, pol neki nedela cist prov.
-                                              pos_tagger=pos.AveragedPerceptronTagger())
-
-        corpus = p(data)
-        corpus = copy.deepcopy(corpus)
-        corpus_sentences = p_sentences(data)
-
-        print(corpus_sentences.tokens)
-
-        return corpus, corpus_sentences
 
     def open_file(self, path=None, data=None):
         self.Error.clear()
@@ -197,14 +170,14 @@ class OWSemanticConsistency(OWWidget):
             self.cancel()
         assert self._task is None
 
-        if self.corpus is None or self.corpus_sentences is None:
+        if self.corpus is None:
             return
 
-        print(self.corpus_sentences.tokens)
+        print(self.corpus.tokens)
 
         check_semantic_errors_func = partial(
             checkSemanticErrors,
-            sentences=self.corpus_sentences.tokens,
+            corpus=self.corpus,
             openie_system=self.openie_system,
             use_coreference=self.use_coreference,
             source_text=self.source_texts,
@@ -344,26 +317,54 @@ class OWSemanticConsistency(OWWidget):
         self._update()
 
 
-def checkSemanticErrors(sentences, openie_system="ClausIE", use_coreference=False, callback=None, source_text=None,
+def prepare_data(data):
+    p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
+                                transformers=[preprocess.LowercaseTransformer()],
+                                pos_tagger=pos.AveragedPerceptronTagger(),
+                                normalizer=preprocess.WordNetLemmatizer())
+    p_sentences = preprocess.Preprocessor(tokenizer=preprocess.PunktSentenceTokenizer(),
+                                          # transformers=[preprocess.LowercaseTransformer()],
+                                          # ce je to vklopljeno, pol neki nedela cist prov.
+                                          pos_tagger=pos.AveragedPerceptronTagger())
+
+    corpus = p(data)
+    corpus = copy.deepcopy(corpus)
+    corpus_sentences = p_sentences(data)
+
+    print(corpus_sentences.tokens)
+
+    return corpus, corpus_sentences
+
+def checkSemanticErrors(corpus, openie_system="ClausIE", use_coreference=False, callback=None, source_text=None,
                         explain=False):
 
-    print(sentences)
+    callback(0.01)
 
-    # TODO izboljšaj if... preveri če je že ontolgija itd.
+    _, sentences = prepare_data(corpus)
+
+    sentences = sentences.tokens
+    print(sentences)
 
     if source_text is not None:
         print("************ SOURCE TEXT ONTOLOGY PRERPARATION *************")
 
         f = OntologyUtils.run_semantic_consistency_check(None, use_coref=use_coreference, openie_system=openie_system,
                                                          source_text=source_text,
-                                                         explain=explain, callback=callback)
+                                                         explain=explain, callback=callback,
+                                                         ontology_name="SourceTextOntology.owl")
         print(f)
 
-    print("****************** ESSAY PROCESSING *******************")
-
-    f = OntologyUtils.run_semantic_consistency_check(sentences, use_coref=use_coreference, openie_system=openie_system,
-                                                     source_text=source_text, num_threads=4,
-                                                     explain=explain, callback=callback)
+        print("****************** ESSAY PROCESSING (with source text) *******************")
+        f = OntologyUtils.run_semantic_consistency_check(sentences, use_coref=use_coreference,
+                                                         openie_system=openie_system, source_text=source_text,
+                                                         num_threads=4, explain=explain, callback=callback,
+                                                         orig_ontology_name="SourceTextOntology.owl")
+    else:
+        print("****************** ESSAY PROCESSING *******************")
+        f = OntologyUtils.run_semantic_consistency_check(sentences, use_coref=use_coreference,
+                                                         openie_system=openie_system,
+                                                         source_text=source_text, num_threads=4,
+                                                         explain=explain, callback=callback)
 
     print(f)
 
@@ -372,8 +373,8 @@ def checkSemanticErrors(sentences, openie_system="ClausIE", use_coreference=Fals
 
 if __name__ == "__main__":
 
-    #WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/set1_train.tsv"),
+    # WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/set1_train.tsv"),
     #                                  set_source_texts=Corpus.from_file("../datasets/source_texts.tsv"))
 
-    #WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/All datasets/set6.tsv"))  # set5_utf8.tsv"))  # set3_small_2.tsv
+    # WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/All datasets/set6.tsv"))  # set5_utf8.tsv"))  # set3_small_2.tsv
     WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/Lisa.tsv"))

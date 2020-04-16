@@ -1,14 +1,15 @@
 from rdflib.graph import Graph
-from rdflib.namespace import RDF, OWL, RDFS
+from rdflib.namespace import RDF, OWL
+import os
 import nltk
-import neuralcoref
 import time
 import copy
 import spacy
+import neuralcoref
 import multiprocessing
 
-from orangecontrib.essaygrading.utils import ExtractionManager
-from orangecontrib.essaygrading.utils import OpenIEExtraction
+
+from orangecontrib.essaygrading.utils import ExtractionManager, OpenIEExtraction
 from orangecontrib.essaygrading.utils.lemmatizer import breakToWords
 
 
@@ -105,13 +106,15 @@ def prepare_ontology(path):
             subObjSet.extend([subj, obj])
             predSet.append(pred)
 
-    uniqueSubObj = set(subObjSet)
+    # We sort this set, so output is deterministic, otherwise numbers can differ between runs
+    uniqueSubObj = sorted(set(subObjSet), reverse=True)
     uniqueURIRefSubObj = []
     for node in uniqueSubObj:
         if str(type(node)) == "<class 'rdflib.term.URIRef'>":
             uniqueURIRefSubObj.append(node)
 
-    uniquePred = set(predSet)
+    # We sort this set, so output is deterministic, otherwise numbers can differ between runs
+    uniquePred = sorted(set(predSet), reverse=True)
     uniqueURIRefPred = []
     for node in uniquePred:
         if str(type(node)) == "<class 'rdflib.term.URIRef'>":
@@ -149,17 +152,19 @@ def prepare_ontology(path):
 
     return g, uniqueURIRef
 
-def run_semantic_consistency_check(essays, use_coref=False, openie_system="ClausIE", source_text=None, num_threads=4, explain=False, orig_ontology_name="COSMO-Serialized.owl", ontology_name="QWE.owl", callback=None):
+def run_semantic_consistency_check(essays, use_coref=False, openie_system="ClausIE", source_text=None, num_threads=4, explain=False, orig_ontology_name="COSMO-Serialized.owl", ontology_name="SourceTextOntology.owl", callback=None):
     '''
         TODO OPTIONAL: shranjuj vmesne korake, če kaj crasha da lahko resumaš????
     '''
 
+    PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
     if callback is not None:
-        callback(0)
+        callback(0.02)
 
     print("Running semantic consistency check...")
 
-    # essays = [essays[1]]
+    # essays = [essays[0]]
 
     if use_coref:
         original_source_text = copy.deepcopy(source_text)
@@ -192,7 +197,7 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
 
     print("Preparing ontology... " + orig_ontology_name)
 
-    ONTO, uniqueURIRefs = prepare_ontology("C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangecontrib/essaygrading/data/" + orig_ontology_name)
+    ONTO, uniqueURIRefs = prepare_ontology(PATH + '/data/' + orig_ontology_name)
 
     print("Starting OpenIE extraction...")
 
@@ -213,15 +218,21 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
             index = i + 1
         else:
             index = 0
-        task_list.append((index, essays, original_ONTO, essay, uniqueURIRefs, openie, explain))
+        task_list.append((index, essays, original_ONTO, essay, uniqueURIRefs, openie, explain, PATH))
 
     print("Pooling...")
 
     p = multiprocessing.Pool(processes=num_threads)
     # task_list = task_list[:4]
 
+    if callback is not None:
+        callback(0.03)
+
     print("Run thread map...")
     results = p.map(thread_func, task_list, chunksize=1)
+
+    if callback is not None:
+        callback(0.99)
 
     print("**** RESULTS *****")
     for r in results:
@@ -233,13 +244,16 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
 
     print("TIME: " + str(end_time - start_time))
 
-    with open('C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangecontrib/essaygrading/DS6Explanations/ALL.txt',
-              'w') as file:
+    with open(PATH + '/data/results/ALL.txt', 'w') as file:
         for i in results:
             file.write(str(i[0]) + "\t" + str(i[2][0]) + "\t" + str(i[2][1]) + "\t" + str(i[2][2]) + "\n")
 
-    from shutil import copyfile
-    copyfile("C:/Users/zigsi/Desktop/OIE/HermiT/ontologies/ontology_tmp_test_0.owl", "C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangecontrib/essaygrading/data/" + ontology_name)
+    if source_text is not None:
+        from shutil import copyfile
+        copyfile(PATH + '/external/hermit/ontologies/ontology_tmp_test_0.owl', PATH + '/data/' + ontology_name)
+
+    if callback is not None:
+        callback(1)
 
     return results
 
@@ -255,6 +269,7 @@ def thread_func(tpl):
     uniqueURIRef = tpl[4]
     openie = tpl[5]
     explain = tpl[6]
+    PATH = tpl[7]
 
     print(" ----- Processing essay " + str(i) + " / " + str(len(prepared_essays)) + " --------")
 
@@ -308,7 +323,7 @@ def thread_func(tpl):
         exc = str(e)
 
     # Temporary? result saving
-    with open('C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangecontrib/essaygrading/DS6Explanations/' + str(i) + '.txt', 'w') as file:
+    with open(PATH + '/data/results/' + str(i) + '.txt', 'w') as file:
         file.write(str(i))
         file.write("\n")
         file.write("Consistency errors: " + str(errors[0]))

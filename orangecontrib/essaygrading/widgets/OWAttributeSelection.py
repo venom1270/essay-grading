@@ -356,7 +356,8 @@ def prepare_data(data):
                                 transformers=[preprocess.LowercaseTransformer()],
                                 pos_tagger=pos.AveragedPerceptronTagger(),
                                 normalizer=preprocess.WordNetLemmatizer(),
-                                filters=preprocess.StopwordsFilter())
+                                # filters=preprocess.StopwordsFilter())
+                                )
     p_sentences = preprocess.Preprocessor(tokenizer=preprocess.PunktSentenceTokenizer())
 
     corpus = p(data)

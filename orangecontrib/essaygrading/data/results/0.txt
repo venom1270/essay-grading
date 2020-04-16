@@ -1,0 +1,4 @@
+0
+Consistency errors: 2
+Semantic errors: 1
+Sum: 3

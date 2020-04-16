@@ -4,6 +4,9 @@ html-index = orangecontrib.essaygrading.widgets:WIDGET_HELP_PATH
 [orange.widgets]
 Essay Grading = orangecontrib.essaygrading.widgets
 
+[orange.widgets.tutorials]
+exampletutorials = orangecontrib.essaygrading.tutorials
+
 [orange3.addon]
 essaygrading = orangecontrib.essaygrading
 
