@@ -10,7 +10,7 @@ import multiprocessing
 
 
 from orangecontrib.essaygrading.utils import OpenIEExtraction
-from orangecontrib.essaygrading.utils.OntologyUtilsProcess import thread_func, writeURIRefs
+from orangecontrib.essaygrading.utils.OntologyUtilsProcess import thread_func
 from orangecontrib.essaygrading.utils.lemmatizer import breakToWords
 
 
