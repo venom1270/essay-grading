@@ -5,7 +5,6 @@
 # python -m spacy download en_core_web_sm
 # python -m spacy download en_vectors_web_lg
 
-
 import copy
 import numpy as np
 import concurrent.futures
@@ -199,11 +198,17 @@ class OWSemanticConsistency(OWWidget):
         task.watcher = FutureWatcher(task.future)
         task.watcher.done.connect(self._task_finished)
 
+    def onDeleteWidget(self):
+        self.cancel()
+        super().onDeleteWidget()
+
+
     def cancel(self):
         """
         Cancel the current task (if any).
         """
         if self._task is not None:
+            OntologyUtils.terminatePool()
             self._task.cancel()
             assert self._task.future.done()
             self._task.watcher.done.disconnect(self._task_finished)

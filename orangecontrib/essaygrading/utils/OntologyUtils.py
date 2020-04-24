@@ -9,7 +9,8 @@ import neuralcoref
 import multiprocessing
 
 
-from orangecontrib.essaygrading.utils import ExtractionManager, OpenIEExtraction
+from orangecontrib.essaygrading.utils import OpenIEExtraction
+from orangecontrib.essaygrading.utils.OntologyUtilsProcess import thread_func, writeURIRefs
 from orangecontrib.essaygrading.utils.lemmatizer import breakToWords
 
 
@@ -152,6 +153,10 @@ def prepare_ontology(path):
 
     return g, uniqueURIRef
 
+
+p = None
+
+
 def run_semantic_consistency_check(essays, use_coref=False, openie_system="ClausIE", source_text=None, num_threads=4, explain=False, orig_ontology_name="COSMO-Serialized.owl", ontology_name="SourceTextOntology.owl", callback=None):
     '''
         TODO OPTIONAL: shranjuj vmesne korake, če kaj crasha da lahko resumaš????
@@ -199,6 +204,8 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
 
     ONTO, uniqueURIRefs = prepare_ontology(PATH + '/data/' + orig_ontology_name)
 
+    # writeURIRefs(uniqueURIRefs, PATH)  # Workaround for pythonw.exe not running prcesses properly...
+
     print("Starting OpenIE extraction...")
 
     if openie_system == "ClausIE":
@@ -218,10 +225,11 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
             index = i + 1
         else:
             index = 0
-        task_list.append((index, essays, original_ONTO, essay, uniqueURIRefs, openie, explain, PATH))
+        task_list.append((index, essays, ONTO, essay, uniqueURIRefs, openie, explain, PATH))
 
     print("Pooling...")
 
+    global p
     p = multiprocessing.Pool(processes=num_threads)
     # task_list = task_list[:4]
 
@@ -258,94 +266,10 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
     return results
 
 
-def thread_func(tpl):
-
-    print("THREAD FUNC!!!")
-
-    i = tpl[0]
-    prepared_essays = tpl[1]
-    original_g = tpl[2]
-    essay = tpl[3]
-    uniqueURIRef = tpl[4]
-    openie = tpl[5]
-    explain = tpl[6]
-    PATH = tpl[7]
-
-    print(" ----- Processing essay " + str(i) + " / " + str(len(prepared_essays)) + " --------")
-
-    g = copy.deepcopy(original_g)
-
-    # i += 11827
-
-    extractionManager = ExtractionManager.ExtractionManager(turbo=True, i=i)
-    chunks = extractionManager.getChunks(essay)
-    print(extractionManager.mergeEssayAndChunks(essay, chunks["np"], "SubjectObject"))
-    print(extractionManager.mergeEssayAndChunks(essay, chunks["vp"], "Predicate"))
-
-    URIs = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['SubObj'], "SubjectObject")
-    # print(URIs)
-    URIs = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['Pred'], "Predicate")
-    # print(URIs)
-
-    # ALA: URIs_predicates = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['Pred'])
-    # print("UNIQUE URI REF: " + str(uniqueURIRef["SubObj"]))
-    # TUKAJ imamo zdej isto razclenjenoe predikate in objekte, ampak so zraven še "Ref" vozlisca
-
-    # ADD OPENIE EXTRACTIONS TO ONTOLOGY
-    print("OpenIE extraction...")
-    print(essay)
-    triples = []
-    try:
-        triples = openie.extract_triples([essay])
-    except:
-        import sys
-        print("Unexpected error: ", sys.exc_info()[0])
-        feedback = []
-        errors = [-1, -1, -1]
-        exc = sys.exc_info()[0]
-
-    print(triples)
-
-    # 'be' je v URIREF['SubObj']
-
-    print("Adding extractions to ontology...")
-
-    exc = ""
-
-    try:
-        feedback, errors = extractionManager.addExtractionToOntology(g, triples[0], uniqueURIRef['SubObj'],
-                                                                     uniqueURIRef['Pred'], explain=explain)
-    except Exception as e:
-        import sys
-        print("Unexpected error: ", str(e))
-        feedback = []
-        errors = [-1, -1, -1]
-        exc = str(e)
-
-    # Temporary? result saving
-    with open(PATH + '/data/results/' + str(i) + '.txt', 'w') as file:
-        file.write(str(i))
-        file.write("\n")
-        file.write("Consistency errors: " + str(errors[0]))
-        file.write("\n")
-        file.write("Semantic errors: " + str(errors[1]))
-        file.write("\n")
-        file.write("Sum: " + str(errors[2]))
-        file.write("\n")
-        # 3je arrayi?
-        for ei in range(len(feedback)):
-            file.write("** EXPLANATION " + str(ei) + "**\n")
-            for e in feedback[ei]:
-                if len(e) > 0:
-                    for f in e:
-                        file.write(f)
-                        file.write("\n")
-                    file.write("\n\n")
-            file.write("****\n")
-        if exc != "":
-            file.write("EXCEPTION: " + str(exc))
-
-    return [i, feedback, errors]
+def terminatePool():
+    global p
+    if p is not None:
+        p.terminate()
 
 
 if __name__ == "__main__":

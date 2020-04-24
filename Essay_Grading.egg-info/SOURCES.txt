@@ -37,6 +37,7 @@ orangecontrib/essaygrading/tutorials/__init__.py
 orangecontrib/essaygrading/utils/ExtractionManager.py
 orangecontrib/essaygrading/utils/HermiT.py
 orangecontrib/essaygrading/utils/OntologyUtils.py
+orangecontrib/essaygrading/utils/OntologyUtilsProcess.py
 orangecontrib/essaygrading/utils/OntologyUtils_backup.py
 orangecontrib/essaygrading/utils/OpenIEExtraction.py
 orangecontrib/essaygrading/utils/__init__.py
@@ -46,6 +47,7 @@ orangecontrib/essaygrading/utils/parse_tree_util.py
 orangecontrib/essaygrading/utils/syllables_util.py
 orangecontrib/essaygrading/utils/task.py
 orangecontrib/essaygrading/utils/widgets.py
+orangecontrib/essaygrading/widgets/MultiprocessTest.py
 orangecontrib/essaygrading/widgets/OWAttributeSelection.py
 orangecontrib/essaygrading/widgets/OWScoreEssayPredictions.py
 orangecontrib/essaygrading/widgets/OWSemanticConsistency.py

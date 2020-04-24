@@ -2,6 +2,7 @@ import os
 import subprocess
 import re
 
+
 class HermiT:
 
     def __init__(self):
@@ -32,14 +33,19 @@ class HermiT:
         ontology.serialize(onto_path, format='pretty-xml')
         IRI = "file:///" + self.path.replace("\\", "/") + onto_path
         self.debugPrint(i, "Hermit call")
+
+        # startupinfo = subprocess.STARTUPINFO()
+        # if os.name == 'nt':
+        #     startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
         if explain:
-            output = subprocess.call(['java', '-jar', self.path + "HermiT.jar", '-U', IRI, '-X'],
+            output = subprocess.call(['javaw', '-jar', self.path + "HermiT.jar", '-U', IRI, '-X'],
                                      stdout=open('ontologies/logs/logfile_' + str(i) + '.log', 'w'),
-                                     stderr=open('ontologies/logs/logfile_' + str(i) + '.err', 'w'))
+                                     stderr=open('ontologies/logs/logfile_' + str(i) + '.err', 'w'),)
         else:
-            output = subprocess.call(['java', '-jar', self.path + "HermiT.jar", '-U', IRI],
+            output = subprocess.call(['javaw', '-jar', self.path + "HermiT.jar", '-U', IRI],
                                      stdout=open('ontologies/logs/logfile_' + str(i) + '.log', 'w'),
-                                     stderr=open('ontologies/logs/logfile_' + str(i) + '.err', 'w'))
+                                     stderr=open('ontologies/logs/logfile_' + str(i) + '.err', 'w'),)
 
         self.debugPrint(i, "Finished")
         if remove:
