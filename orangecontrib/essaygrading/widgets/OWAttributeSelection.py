@@ -248,18 +248,24 @@ class OWAttributeSelection(OWWidget):
             if self.attributeDictionaryGraded:
                 print("FINISHED")
                 print(self.attributeDictionaryGraded)
-                domain = Orange.data.Domain([Orange.data.ContinuousVariable.make(key)
-                                             for key in self.attributeDictionaryGraded],
-                                            Orange.data.ContinuousVariable.make("score"))
+
 
                 arr = np.array([value for _, value in self.attributeDictionaryGraded.items()])
 
                 print("INF CHECK GRADED")
-                for k,i in self.attributeDictionaryGraded.items():
+                for k, i in self.attributeDictionaryGraded.items():
                     if np.isinf(i).any():
                       print(k)
                 print(arr)
-                outGraded = Orange.data.Table.from_numpy(domain, np.array(arr).transpose(), self.corpus_grades)
+                if self.corpus_grades is None or len(self.corpus_grades) == 0:
+                    domain = Orange.data.Domain([Orange.data.ContinuousVariable.make(key)
+                                                 for key in self.attributeDictionaryGraded])
+                    outGraded = Orange.data.Table.from_numpy(domain, np.array(arr).transpose())
+                else:
+                    domain = Orange.data.Domain([Orange.data.ContinuousVariable.make(key)
+                                                 for key in self.attributeDictionaryGraded],
+                                                Orange.data.ContinuousVariable.make("score"))
+                    outGraded = Orange.data.Table.from_numpy(domain, np.array(arr).transpose(), self.corpus_grades)
 
             outUngraded = None
             if self.attributeDictionaryUngraded:
@@ -293,6 +299,7 @@ def calculateAttributes(graded_corpus, source_texts, ungraded_corpus, grades, at
     # Prepare data
     graded_corpus, graded_corpus_sentences = prepare_data(graded_corpus)
     source_texts = prepare_source_texts(source_texts)
+
     if ungraded_corpus is not None:
         ungraded_corpus, ungraded_corpus_sentences = prepare_data(ungraded_corpus)
 
