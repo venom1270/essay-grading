@@ -14,33 +14,11 @@ def thread_func(tpl):
 
     debugPrint(i, " ----- Processing essay " + str(i) + " / " + str(len(prepared_essays)) + " --------")
 
-    # WORKAROUND
-    # debugPrint(i, "Reading URIRefs...")
-    # uniqueURIRef = readURIRefs(PATH)
-
-    # debugPrint(i, "Parsing ontology...")
-    # pathToOntology = PATH + "/data/" + original_g
-    # original_g = Graph()
-    # original_g.parse(pathToOntology, encoding="xml")
-
-    # END WORKAROUND
-
-
     g = copy.deepcopy(original_g)
 
     extractionManager = ExtractionManager(turbo=True, i=i)
-    chunks = extractionManager.getChunks(essay)
-    debugPrint(i, extractionManager.mergeEssayAndChunks(essay, chunks["np"], "SubjectObject"))
-    debugPrint(i, extractionManager.mergeEssayAndChunks(essay, chunks["vp"], "Predicate"))
+    chunks = extractionManager.getChunks(essay, URIRefs=uniqueURIRef)
 
-    URIs = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['SubObj'], "SubjectObject")
-    # print(URIs)
-    URIs = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['Pred'], "Predicate")
-    # print(URIs)
-
-    # ALA: URIs_predicates = extractionManager.matchEntitesWithURIRefs(uniqueURIRef['Pred'])
-    # print("UNIQUE URI REF: " + str(uniqueURIRef["SubObj"]))
-    # TUKAJ imamo zdej isto razclenjenoe predikate in objekte, ampak so zraven še "Ref" vozlisca
 
     # ADD OPENIE EXTRACTIONS TO ONTOLOGY
     debugPrint(i, "OpenIE extraction...")
@@ -64,7 +42,7 @@ def thread_func(tpl):
     exc = ""
 
     try:
-        feedback, errors = extractionManager.addExtractionToOntology(g, triples[0], uniqueURIRef['SubObj'],
+        feedback, errors, feedback2 = extractionManager.addExtractionToOntology(g, triples[0], essay, uniqueURIRef['SubObj'],
                                                                      uniqueURIRef['Pred'], explain=explain)
     except Exception as e:
         import sys
@@ -96,7 +74,7 @@ def thread_func(tpl):
         if exc != "":
             file.write("EXCEPTION: " + str(exc))
 
-    return [i, feedback, errors]
+    return [i, feedback, errors, feedback2]
 
 
 def debugPrint(i='[X]', *args, **kwargs, ):

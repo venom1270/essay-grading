@@ -2,7 +2,7 @@
 
 #from owlready2 import *
 from rdflib.graph import Graph
-from rdflib.term import URIRef
+from rdflib.term import URIRef, Literal
 from rdflib.graph import Namespace
 from rdflib.namespace import OWL, RDF, RDFS
 import nltk
@@ -30,15 +30,16 @@ def recurse_add_remove(ONTO, root, rdfType, operation, subj, pred):
 
 
 
-
+'''
 qwe = wn.synsets("slow_sport", pos=wn.NOUN)
 for s in qwe:
     print(s)
     for lemma in s.lemmas():
         print(lemma.name())
-
+'''
 g = Graph()
-g.parse("data/COSMO-Serialized.owl", format="xml")
+#g.parse("data/COSMO-Serialized.owl", format="xml")
+g.parse("external/hermit/ontologies/ontology_tmp_test_4.owl", format="xml")
 
 subObjSet = []
 predSet = []
@@ -77,6 +78,18 @@ URI_slow = COSMO["Slow"]
 
 print("Adding 'fast'...")
 g.add((URI_fast, RDF.type, OWL.Class))
+
+# g.remove((None, RDFS.comment, None))
+# g.add((URI_lisa, RDFS.comment, Literal("qwecomment")))
+
+
+print(g.value(COSMO["Georg"], RDFS.comment))
+
+for x in g.triples((COSMO["Georg"], RDFS.comment, None)):
+    print(x)
+
+exit()
+
 
 print("Addding 'slow'...")
 g.add((URI_slow, OWL.type, OWL.Class))

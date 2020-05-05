@@ -225,6 +225,7 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
             index = i + 1
         else:
             index = 0
+        # if index == 1:
         task_list.append((index, essays, ONTO, essay, uniqueURIRefs, openie, explain, PATH))
 
     print("Pooling...")
@@ -237,7 +238,24 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
         callback(0.03)
 
     print("Run thread map...")
-    results = p.map(thread_func, task_list, chunksize=1)
+
+    progress_range = 0.99 - 0.03
+    current_progress = 0.03
+    progress_increment = progress_range / len(task_list)
+
+    results = []
+    for i, val in enumerate(p.imap_unordered(thread_func, task_list, chunksize=1), 1):
+        results.append(val)
+        current_progress += progress_increment
+        if callback is not None:
+            callback(current_progress)
+        print("################ FINISHED " + str(i) + "/" + str(len(task_list)) + "#########################")
+
+    p.terminate()
+
+    results = sorted(results)
+
+    # results = p.map(thread_func, task_list, chunksize=1)
 
     if callback is not None:
         callback(0.99)

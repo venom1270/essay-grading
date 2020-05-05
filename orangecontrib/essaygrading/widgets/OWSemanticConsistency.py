@@ -79,7 +79,7 @@ class OWSemanticConsistency(OWWidget):
 
         parametersBox = gui.widgetBox(self.controlArea, "Options")
 
-        self.cb_explain = gui.checkBox(parametersBox, self, "explain", "Return explanations")
+        self.cb_explain = gui.checkBox(parametersBox, self, "explain", "Detailed explanations")
 
         self.cb_use_coreference = gui.checkBox(parametersBox, self, "use_coreference", "Use coreference")
 
@@ -249,54 +249,39 @@ class OWSemanticConsistency(OWWidget):
             output_list = []
             for result in results:
                 essay_id = result[0]
-                essay_feedback = result[1]
+                essay_feedback_detail = result[1]
                 essay_errors = result[2]
+                essay_feedback = result[3]
+
+                essay_feedback_detail_string = ""
+                if len(essay_feedback_detail) > 0:
+                    essay_feedback_detail = essay_feedback_detail[0] # TODO: nared, da nebo odvecnih arrayov...
+                    for ef in essay_feedback_detail:
+                        essay_feedback_detail_string += " ".join(ef) + "; "
 
                 essay_feedback_string = ""
-
                 if len(essay_feedback) > 0:
-                    essay_feedback = essay_feedback[0] # TODO: nared, da nebo odvecnih arrayov...
                     for ef in essay_feedback:
-                        essay_feedback_string += " ".join(ef) + "; "
-                        # output["feedback"].append(" ".join(ef))
+                        essay_feedback_string += " ".join(ef)
+                    essay_feedback_string += " "
 
-                output_list.append([essay_id, essay_errors[0], essay_errors[1], essay_errors[2], essay_feedback_string])
+                output_list.append([essay_id, essay_errors[0], essay_errors[1], essay_errors[2], essay_feedback_string, essay_feedback_detail_string])
 
 
 
             print(output["feedback"])
 
-            # domain = Orange.data.Domain([Orange.data.ContinuousVariable.make("feedback")])
             domain = Orange.data.Domain([Orange.data.ContinuousVariable.make("essayId"),
                                          Orange.data.ContinuousVariable.make("consistencyErrors"),
                                          Orange.data.ContinuousVariable.make("semanticErrors"),
                                          Orange.data.ContinuousVariable.make("sum")],
-                                        metas=[Orange.data.StringVariable("feedback")])
+                                        metas=[Orange.data.StringVariable("feedback"),
+                                               Orange.data.StringVariable("feedback_detail")])
 
             print(np.array(output_list)[:, -1].transpose())
-            #out = Orange.data.Table.from_numpy(domain, np.array([np.array(output_list)[:, :-1]]).transpose(),
-                                               #metas=np.array([np.array(output_list)[:, -1]]).transpose())
             out = Orange.data.Table.from_list(domain, output_list)
-            # arr = np.array([[value] for _, value in output.items()])
-
-            # print(arr)
-
-            # print(Orange.data.Domain.from_numpy(np.array(output_list)))
-            # out = Orange.data.Table.from_numpy(domain, np.array(arr).transpose())
-            # out = Orange.data.Table.from_numpy(domain, np.array(output_list).transpose())
-            # print(np.array([np.array(output_list)[:,0]]).transpose())
-            # print(np.array([np.array(output_list)[:, 0]]))
-            # print(output_list)
-            # print(np.array(output_list)[:,0])
-            # print(np.array([np.array(output_list)[:,0]]))
-            # print(np.array([np.array(output_list)[:,0]]).transpose())
-            # Y = np.array([np.array(output_list)[:,0]]).transpose()[:, len(domain.attributes):]
-            # X = np.array([np.array(output_list)[:,0]]).transpose()[:, :len(domain.attributes)]
-            # print(X)
-            # print(Y)
-
-            # out = Orange.data.Table.from_list(Orange.data.Domain.from_numpy(np.array(output_list)), output_list)
             print(out)
+
             self.Outputs.feedback.send(out)
 
         except Exception as ex:
@@ -307,15 +292,7 @@ class OWSemanticConsistency(OWWidget):
             self.error("Exception occurred during evaluation: {!r}"
                        .format(ex))
         else:
-            '''domain = Orange.data.Domain([Orange.data.StringVariable.make("feedback")])
-
-            arr = []
-            for essay_feedback in results:
-                for f in essay_feedback:
-                    arr.append(f)
-
-            out = Orange.data.Table.from_numpy(domain, np.array(arr).transpose())
-            self.Outputs.feedback.send(out)'''
+            pass
 
 
     def _invalidate_results(self):
@@ -339,6 +316,7 @@ def prepare_data(data):
     print(corpus_sentences.tokens)
 
     return corpus, corpus_sentences
+
 
 def checkSemanticErrors(corpus, openie_system="ClausIE", use_coreference=False, callback=None, source_text=None,
                         explain=False):
