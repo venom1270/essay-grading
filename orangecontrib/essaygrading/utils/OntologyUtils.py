@@ -1,5 +1,5 @@
 from rdflib.graph import Graph
-from rdflib.namespace import RDF, OWL
+from rdflib.namespace import RDF, OWL, RDFS
 import os
 import nltk
 import time
@@ -15,6 +15,17 @@ from orangecontrib.essaygrading.utils.lemmatizer import breakToWords
 
 
 def coreference_resolution(essays, source_text=None):
+    '''
+    Performs coreference resolution on provided essays. If source text present, it:
+    - prepends source text to every essay
+    - performs coreference resolution on prepended essays
+    - removes prepended source text from essays
+    That way, source text coreferences are taken into accoutn when doing corefernce resolution on essays based on
+     source text.
+    :param essays: list of essays.
+    :param source_text: source text string.
+    :return: coreference resolved essays.
+    '''
     prepared_essays = []
     print("Loading coref...")
 
@@ -56,7 +67,14 @@ def coreference_resolution(essays, source_text=None):
             #print(len(source_text))
             # Ce imamo source text, ga appendamo na zacetek, da bo coref delal cez source in esej
             if source_text is not None:
-                essay = ". ".join(source_text) + ". " + essay
+                tmp = ". ".join(source_text)
+                if tmp.endswith("."):
+                    tmp += " " + essay
+                elif tmp.endswith(". "):
+                    tmp += essay
+                else:
+                    tmp += ". " + essay
+                essay = tmp
                 print(essay)
             doc = nlp(essay)
             # print("NLTK TOKENIZE LEN:")
@@ -84,6 +102,11 @@ def coreference_resolution(essays, source_text=None):
     return prepared_essays
 
 def prepare_ontology(path):
+    '''
+    Prepares ontology and extracts included URIRefs.
+    :param path: path to ontology.
+    :return: rdflib Graph() object, URIRef list ([0] = Subject/objects, [1] = Predicates)
+    '''
     g = Graph()
     # g.parse("../data/COSMO-Serialized.owl", format="xml")
     # g.parse("C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangecontrib/essaygrading/data/COSMO-Serialized.owl",
@@ -92,7 +115,11 @@ def prepare_ontology(path):
     #g.parse("C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangecontrib/essaygrading/data/DS4_ontology.owl",
     #        format="xml")
 
+
     g.parse(path, format="xml")
+
+    if path.endswith("COSMO-Serialized.owl"):
+        g.remove((None, RDFS.comment, None))
 
     subObjSet = []
     predSet = []
@@ -160,6 +187,16 @@ p = None
 def run_semantic_consistency_check(essays, use_coref=False, openie_system="ClausIE", source_text=None, num_threads=4, explain=False, orig_ontology_name="COSMO-Serialized.owl", ontology_name="SourceTextOntology.owl", callback=None):
     '''
         TODO OPTIONAL: shranjuj vmesne korake, če kaj crasha da lahko resumaš????
+    :param essays: list of essays.
+    :param use_coref: flag to use coreference resolution.
+    :param openie_system: which OpenIE system to use. ("ClausIE" or "OpenIE-5.0").
+    :param source_text: optional source text.
+    :param num_threads: number of threads to use for multiprocessing (default 4).
+    :param explain: flag to return detailed explanations.
+    :param orig_ontology_name: ontology filename to use as base ontology.
+    :param ontology_name: ontology filename to use fo saving temporary ontology enriched with source text extractions.
+    :param callback: Orange progessbar callback method.
+    :return: [basic feedback, [consistency error count, semantic error count, sum], detailed feedback]
     '''
 
     PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -170,9 +207,8 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
     print("Running semantic consistency check...")
 
     # essays = [essays[0]]
-
+    original_source_text = copy.deepcopy(source_text)
     if use_coref:
-        original_source_text = copy.deepcopy(source_text)
         # original_essays = copy.deepcopy(essays)
         if source_text is not None:
             source_text = coreference_resolution(None, source_text)
@@ -182,6 +218,10 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
                 essays = coreference_resolution(essays, original_source_text)
         else:
             essays = coreference_resolution(essays)
+    else:
+        if essays is None:
+            essays = [source_text]
+
 
     # LEMMATIZATION
     '''nlp = spacy.load("en_core_web_lg")
@@ -219,14 +259,15 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
 
     task_list = []
     start_time = time.time()
+
     for i, essay in enumerate(essays):
         print(essay)
         if len(essays) > 1:  # ce je len == 1, to pomeni da je samo source text -> gradnja ontologije
             index = i + 1
         else:
             index = 0
-        # if index == 1:
-        task_list.append((index, essays, ONTO, essay, uniqueURIRefs, openie, explain, PATH))
+        #if index == 1:
+        task_list.append((index, essays, ONTO, essay, uniqueURIRefs, openie, explain, PATH, original_source_text))
 
     print("Pooling...")
 
@@ -285,6 +326,10 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
 
 
 def terminatePool():
+    '''
+    Terminates multiprocess pool in case of Widget deletion or changes. Also called when multiprocessing complete to
+    make sure all processes are killed.
+    '''
     global p
     if p is not None:
         p.terminate()

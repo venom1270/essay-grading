@@ -6,6 +6,11 @@ import re
 # na tej strani pomoje skor 100% prov dela in cep rimerjam mam js malenkost bolj random rezultate
 
 def get_syllable_count(documents):
+    '''
+    Get number of syllables for each document(essay).
+    :param documents: list of documents/essays.
+    :return: list of number of syllables.
+    '''
     syllables = []
     for doc in documents:
         count = 0
@@ -23,6 +28,11 @@ def get_syllable_count(documents):
 
 nltk_phonetic_dict = nltk.corpus.cmudict.dict()
 def get_syllable_count_word(word):
+    '''
+    Get number of syllables in a word.
+    :param word: word to cound syllables.
+    :return: number of syllables.
+    '''
     syllables = []
     if word in nltk_phonetic_dict:
         #print(token)
@@ -33,6 +43,12 @@ def get_syllable_count_word(word):
         return sylco(word)
 
 def sylco(word):
+    '''
+    Get number of syllables in a word. By Kaja Zupanc.
+    :param word: word to cound syllables.
+    :return: number of syllables.
+    '''
+
     word = word.lower()
 
     # exception_add are words that need extra syllables
@@ -160,4 +176,11 @@ def sylco(word):
 
 ######### OLD? ############
 def nsyl(word):
+    '''
+    Get number of syllables in a word. OLD METHOD???
+    :param word: word to cound syllables.
+    :return: number of syllables.
+    :param word: 
+    :return: 
+    '''
     return [len(list(y for y in x if y[-1].isdigit())) for x in nltk_phonetic_dict[word.lower()]]

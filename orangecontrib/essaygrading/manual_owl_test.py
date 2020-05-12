@@ -76,20 +76,36 @@ URI_slow = COSMO["Slow"]
 
 
 
-print("Adding 'fast'...")
-g.add((URI_fast, RDF.type, OWL.Class))
+#print("Adding 'fast'...")
+#g.add((URI_fast, RDF.type, OWL.Class))
 
 # g.remove((None, RDFS.comment, None))
 # g.add((URI_lisa, RDFS.comment, Literal("qwecomment")))
 
 
-print(g.value(COSMO["Georg"], RDFS.comment))
+#print(g.value(COSMO["Georg"], RDFS.comment))
 
-for x in g.triples((COSMO["Georg"], RDFS.comment, None)):
-    print(x)
+#for x in g.triples((COSMO["Georg"], RDFS.comment, None)):
+#    print(x)
+
+#exit()
+
+print("Addding TEST...")
+
+URI_qwe = COSMO["qwe"]
+
+g.add((URI_not_likes, RDF.type, OWL.ObjectProperty))
+g.add((URI_qwe, RDF.type, OWL.ObjectProperty))
+g.add((URI_not_likes, OWL.inverseOf, URI_qwe))
+g.add((URI_qwe, OWL.inverseOf, URI_not_likes))
+
+g.add((URI_lisa, URI_not_likes, URI_tennis))
+
+g.add((URI_lisa, URI_qwe, URI_tennis))
+
+hermit.check_unsatisfiable_cases(g)
 
 exit()
-
 
 print("Addding 'slow'...")
 g.add((URI_slow, OWL.type, OWL.Class))

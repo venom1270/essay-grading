@@ -255,7 +255,7 @@ class OWSemanticConsistency(OWWidget):
 
                 essay_feedback_detail_string = ""
                 if len(essay_feedback_detail) > 0:
-                    essay_feedback_detail = essay_feedback_detail[0] # TODO: nared, da nebo odvecnih arrayov...
+                    essay_feedback_detail = essay_feedback_detail
                     for ef in essay_feedback_detail:
                         essay_feedback_detail_string += " ".join(ef) + "; "
 

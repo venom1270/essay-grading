@@ -2,6 +2,12 @@ import nltk
 
 
 def lemmatizeTokens(corpus, join=False):
+    '''
+    Lemmatize all tokens in Corpus objects and optionally join them.
+    :param corpus: Corpus to lemmatize.
+    :param join: join split tokens to sentence.
+    :return: lemmatized tokens.
+    '''
     lemmatizer = nltk.stem.WordNetLemmatizer()
     tokens = [[lemmatizer.lemmatize(corpus.tokens[i][j], pos=get_wordnet_pos(corpus.pos_tags[i][j]))
                for j in range(len(corpus.tokens[i]))]
@@ -12,6 +18,12 @@ def lemmatizeTokens(corpus, join=False):
 
 
 def lemmatizeSentences(sentences, stem_ing=False):
+    '''
+    Lemmatize list of senetences.
+    :param sentences: list of sentence strings.
+    :param stem_ing: flag to lemmatize words ending with "ing".
+    :return: lemmatized sentences.
+    '''
     lemmatizer = nltk.stem.WordNetLemmatizer()
     lemmatized_sentences = []
     for s in sentences:
@@ -26,6 +38,11 @@ def lemmatizeSentences(sentences, stem_ing=False):
     return lemmatized_sentences
 
 def stemSentences(sentences):
+    '''
+    Stem list of sentences.
+    :param sentences: list of sentence strings.
+    :return: stemmed sentences.
+    '''
     stemmer = nltk.stem.PorterStemmer()
     stemmed_sentences = []
     for s in sentences:
@@ -38,6 +55,11 @@ def stemSentences(sentences):
 
 
 def breakToWords(s):
+    '''
+    Break string to words.
+    :param s: string.
+    :return: list of words
+    '''
     charIndex = 0
     sBroken = ''
     for c in s:
@@ -52,6 +74,12 @@ def breakToWords(s):
 
 
 def get_pos_tags(s, simplify=True):
+    '''
+    Get POS tags of sentence string.
+    :param s: sentence string.
+    :param simplify: flag to return similified wordnet POS tags.
+    :return: list of (string, POS_tag) elements.
+    '''
     tokens = nltk.word_tokenize(s)
     # Remove 1 letter words
     #tokens = [t for t in tokens if len(t) > 1]
@@ -62,6 +90,11 @@ def get_pos_tags(s, simplify=True):
 
 
 def get_wordnet_pos(treebank_tag):
+    '''
+    Convert form Treebank POS tag to Wordnet POS tag.
+    :param treebank_tag: Treebank POS tag string.
+    :return: Wordnet tag string, defaults to noun.
+    '''
     if treebank_tag.startswith('J'):
         return nltk.corpus.wordnet.ADJ
     elif treebank_tag.startswith('V'):

@@ -3,6 +3,10 @@ import copy
 
 class URIRefEntity:
 
+    '''
+    URIRef struct class to hold structured information about added entities into ontology.
+    '''
+
     URIRef = None  # URI
     text = None  # "original" text (may be preprocessed
     stemmed = None  # stemmed text
@@ -22,6 +26,11 @@ class URIRefEntity:
 
 class EntityStore:
 
+    '''
+    Class for holding all added URIRefEntities in ontology. Supports fast lookup, adding and removing in addition to
+    creating a snapshot for data restoration.
+    '''
+
     entities = []  # array of URIRefEntity
     entities_snapshot = []  # "old" entities
 
@@ -34,6 +43,10 @@ class EntityStore:
         pass
 
     def add_entity(self, entity: URIRefEntity):
+        '''
+        Add entity to store.
+        :param entity: URIRefEntity to add to store.
+        '''
         self.entities.append(entity)
         if entity.type == "Predicate":
             self.lookup_pred[entity.text] = entity
@@ -43,10 +56,22 @@ class EntityStore:
             self.lookup_subobj[entity.stemmed] = entity
 
     def add(self, URIRef, text, stemmed, type, original=None):
+        '''
+        Convert parameters to URIRefEntity and add to store.
+        :param URIRef: rdflig URIRef() of element.
+        :param text: element text.
+        :param stemmed: stemmed element text.
+        :param type: element type ("SubjectObject" or "Predicate").
+        :param original: original element text (optional).
+        '''
         self.add_entity(URIRefEntity(URIRef=URIRef, text=text, stemmed=stemmed, type=type, original=original))
 
     # Search by only one parameter + type!!!
     def find(self, URIRef=None, text=None, stemmed=None, type=None) -> URIRefEntity:
+        '''
+        Search store for URIRefEntity by one of parameters + type.
+        :return: URIRefEntity if found or None.
+        '''
         if type is None:
             return None
         if URIRef is None and text is None and stemmed is None:
@@ -79,6 +104,13 @@ class EntityStore:
             return None
 
     def get_list(self, parameter=None, type=None):
+        '''
+        Get list of all entites with specified parameter.
+        e.g. "text" to get a list of "text" of all URIRefEntites in store.
+        :param parameter: "text", "stemmed" or "URIRef"
+        :param type: "SubjectObject" or "Predicate".
+        :return: list matching parameters.
+        '''
         search_list = self.entities
         if type is not None:
             search_list = [e for e in search_list if e.type == type]
@@ -91,17 +123,29 @@ class EntityStore:
         return search_list
 
     def get_by_index(self, index, type=None) -> URIRefEntity:
+        '''
+        Get entity by index in store.
+        :param index: index of entity.
+        :param type: "SubjectObject" or "Predicate".
+        :return: URIRefEntity at index
+        '''
         entity_list = self.entities
         if type is not None:
             entity_list = [e for e in entity_list if e.type == type]
         return entity_list[index]
 
     def snapshot(self):
+        '''
+        Create a snapshot of all internal stores.
+        '''
         self.entities_snapshot = copy.deepcopy(self.entities)
         self.lookup_p_snapshot = copy.deepcopy(self.lookup_pred)
         self.lookup_so_snapshot = copy.deepcopy(self.lookup_subobj)
 
     def restore_snapshot(self):
+        '''
+        Sets current stores to snapshot state.
+        '''
         self.entities = copy.deepcopy(self.entities_snapshot)
         self.lookup_pred = copy.deepcopy(self.lookup_p_snapshot)
         self.lookup_subobj = copy.deepcopy(self.lookup_so_snapshot)

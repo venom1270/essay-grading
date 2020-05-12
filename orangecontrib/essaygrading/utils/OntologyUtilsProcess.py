@@ -1,4 +1,9 @@
 def thread_func(tpl):
+    '''
+    Multiprocessing function. Takes care of OpenIE extractions and semantic consistency analysis.
+    :param tpl: touple: (index, essay list, ontology, URIRefs in ontology, openie to use, explan flag, results path)
+    :return: [index, basic explantions, errors, detailed explanations]
+    '''
 
     import copy
     from orangecontrib.essaygrading.utils.ExtractionManager import ExtractionManager
@@ -11,6 +16,7 @@ def thread_func(tpl):
     openie = tpl[5]
     explain = tpl[6]
     PATH = str(tpl[7])
+    source_text = tpl[8]
 
     debugPrint(i, " ----- Processing essay " + str(i) + " / " + str(len(prepared_essays)) + " --------")
 
@@ -43,7 +49,7 @@ def thread_func(tpl):
 
     try:
         feedback, errors, feedback2 = extractionManager.addExtractionToOntology(g, triples[0], essay, uniqueURIRef['SubObj'],
-                                                                     uniqueURIRef['Pred'], explain=explain)
+                                                                     uniqueURIRef['Pred'], explain=explain, source_text=source_text)
     except Exception as e:
         import sys
         debugPrint(i, "Unexpected error: ", str(e))
@@ -78,6 +84,9 @@ def thread_func(tpl):
 
 
 def debugPrint(i='[X]', *args, **kwargs, ):
+    '''
+    Logging method. Same behavior as "print()", but prints id in format "[ID] " before content (*args).
+    '''
     print("[" + str(i) + "] ", end="")
     print(*args, **kwargs)
 
