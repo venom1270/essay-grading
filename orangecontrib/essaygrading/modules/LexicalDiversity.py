@@ -22,13 +22,6 @@ class LexicalDiversity(BaseModule):
         :return: i (index of progressbar value).
         """
 
-        if selected_attributes is None or selected_attributes.cbLexicalDiversity:
-            lexical_diversity = self.calculate_lexical_diversity()
-            print("Lexical diversity: ", lexical_diversity)
-            attribute_dictionary["lexicalDiversity"] = lexical_diversity
-
-        # i = self._update_progressbar(callback, proportions, i)
-
         if selected_attributes is None or selected_attributes.cbTypeTokenRatio:
             type_token_ratio = self.calculate_type_token_ratio()
             print("Type Token Ratio: ", type_token_ratio)
@@ -72,13 +65,6 @@ class LexicalDiversity(BaseModule):
         # i = self._update_progressbar(callback, proportions, i)
 
         return i
-
-    def calculate_lexical_diversity(self):
-        """
-        Calculates Lexical diversity ratio.
-        :return: Lexical diversity for each essay.
-        """
-        return self.num_of_words / self.num_of_different_words
 
     def calculate_type_token_ratio(self):
         """

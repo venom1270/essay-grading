@@ -181,9 +181,9 @@ class ExtractionManager:
 
                 OBJ = self.preprocessExtraction(t.object, stem=True)
                 SUBJ = self.preprocessExtraction(t.subject, stem=True)
-                PRED = t.predicate.replace("/", " ").replace("\\", "")
+                PRED = t.predicate.replace("/", " ").replace("\\", "").replace("-", " ")
 
-                if len(OBJ) == 0 or len(SUBJ) == 0 or len(PRED) == 0:
+                if len(OBJ) == 0 or len(SUBJ) == 0 or len(PRED) == 0 or OBJ == " " or PRED == " " or SUBJ == " ":
                     continue
 
                 while repeatIteration:
@@ -195,7 +195,7 @@ class ExtractionManager:
                     # Doloci POS tage objekta poglej ce je subjekt subClassOf samostalnika.
                     # Če je, dodaj vse pridevnike subjektu -> zaenkrat se da kot subClassOf.
                     # TODO: refactor: Če zgornje drži, pridevnike dodaj kot BURI relacijo na subjekt.. malo je ze narjeno sam je treba dodelat
-                    pos_tags = get_pos_tags(t.object, simplify=True)
+                    pos_tags = get_pos_tags(t.object.replace("\\", ""), simplify=True)
                     # t.object je prav - ce dam preprocesirano notr, zgubim informacije o pridevnikih
                     self.debugPrint("OBJECT POS TAGS:")
                     self.debugPrint(pos_tags)
@@ -870,12 +870,26 @@ class ExtractionManager:
                 node1 = self.stemSentence(node1)
                 node2 = self.stemSentence(node2)
             if self.sentenceSimilarity(node1, node2) >= 0.7:
+                # Add to dictionary lookup # TODO: to sem imel na laptopu za speedup, mogoce tud kle se splaca to met...
+                '''
+                if URIRefs is not None:
+                    self.URIdict[newNode] = URIRefs[n]
+                    if stem:
+                        self.URIdict[node2] = URIRefs[n]
+                '''
                 return n, nodes[n]
             if indepth:
                 splitEntity = node2
                 while splitEntity.find(" ") > 0:
                     splitEntity = " ".join(splitEntity.split(" ")[1:])
                     if self.sentenceSimilarity(node1, splitEntity) >= 0.7:
+                        # Add to dictionary lookup
+                        '''
+                        if URIRefs is not None:
+                            self.URIdict[newNode] = URIRefs[n]
+                            if stem:
+                                self.URIdict[node2] = URIRefs[n]
+                        '''
                         return n, nodes[n]
         return None, None
 
@@ -1097,6 +1111,8 @@ class ExtractionManager:
         '''
         if extraction.startswith("T:"):
             extraction = extraction[2:]
+        # Remove slashes
+        extraction = extraction.replace("/", " ").replace("\\", "")
         # Make sure to properly remove apostophe TODO: check if this is OK
         extraction = extraction.replace("n't", "not")
         extraction = extraction.replace("'ll", " will")
@@ -1106,11 +1122,11 @@ class ExtractionManager:
         # TODO: remove determiners
         words = [i for i in extraction.split() if i not in ["a", "an", "the"]]  # to je blo zakomentirano
         extraction = ' '.join(words) # to je blo zakomentirano
-        # Odstrani /, ker drugace pride do napake...
+        '''# Odstrani /, ker drugace pride do napake...
         if "/" in extraction:
             self.debugPrint("PREPROCESS COLLAGE")
             self.debugPrint(extraction)
-        extraction = extraction.replace("/", " ")
+        extraction = extraction.replace("/", " ")'''
         # Remove prepositions
         tmp = word_tokenize(extraction)
         pos = pos_tag(tmp)

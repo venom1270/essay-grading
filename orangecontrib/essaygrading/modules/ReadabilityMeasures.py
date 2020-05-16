@@ -139,7 +139,7 @@ class ReadabilityMeasures(BaseModule):
     def calculate_dale_chall_readability(self):
         """
         Calculates Dale-Chall readability formula. (https://en.wikipedia.org/wiki/Dale%E2%80%93Chall_readability_formula)
-        A set of about 3000 "hard" words is used.
+        A set of about 3000 common words is used.
         :return: Dale-Chall readability formula for each essay.
         """
         stemmer = nltk.stem.PorterStemmer()
@@ -188,9 +188,8 @@ class ReadabilityMeasures(BaseModule):
         Calculates LIX readability test. (https://en.wikipedia.org/wiki/Lix_(readability_test))
         :return: LIX for each essay.
         """
-        # TODO: zgleda okish ampak je tud ena simplificiran verzija; periods == sentences???
-        # Number of periods (defined by period, colon or capital first letter) -- TODO?: manjka capital first leter
-        num_of_periods = np.array([len([c for c in doc if c == '.' or c == ',']) for doc in self.corpus.documents])
+        # Number of periods (defined by period, colon or capital first letter)
+        num_of_periods = np.array([len([c for c in doc if c == '.' or c == ':']) for doc in self.corpus.documents])
         num_of_periods += np.array([len([token for token in doc if token[0].isupper()])
                                     for doc in self.corpus.tokens])
         lix = (self.num_of_words / self.num_of_sentences) + 100 * (self.num_of_long_words / self.num_of_words)
