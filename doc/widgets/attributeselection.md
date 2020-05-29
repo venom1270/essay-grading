@@ -6,7 +6,7 @@ Show data points on a world map.
 **Inputs**
 -  Graded essays: Corpus of graded essays ("train set").
 -  Ungraded essays: Corpus of ungraded essays ("test set").
--  Source texts: Optional corpus of source texts (text essays are based on, i.e. a story or instructions).
+-  Source texts: Optional corpus of source texts (text the essays are based on).
 
 **Outputs**
 -  Graded attributes: Attributes for graded essay corpus.
@@ -56,7 +56,7 @@ TODO slika <!-- ![](images/GeoMap-stamped.png) -->
         - Grammar:
             - Number of each different POS tag (~30 attributes)
             - Average sentence structure tree height
-            - Number of verbs <!--Verb form TODO?-->
+            - Number of verbs
         - Content:
             - Number of spellchecking errors
             - Number of capitalization errors
@@ -83,7 +83,7 @@ TODO slika <!-- ![](images/GeoMap-stamped.png) -->
 2. Select word embeddings:
 
    - Word embeddings are used during calculations of 'Content' and 'Coherence' attributes
-   - Choose 'TF-IDF' or 'GloVe' word embeddings
+   - Choose 'TF-IDF' or 'GloVe' (SpaCy and Flair implementations available) word embeddings
 
 3. The calculation may take a few minutes, depending on attribute categories selected. 'Grammar', 'Content' and 'Coherence' are most demanding.
 
@@ -91,9 +91,20 @@ TODO slika <!-- ![](images/GeoMap-stamped.png) -->
 
 Examples
 --------
-TODO
-<!--
 
+In the below example we put our training set corpus on the "graded essays" input. 
+We calculate all attributes (using TF-IDF) and do 10-fold cross-validation in "Test and Score" widget.
+Quadratic weighted kappa is calculated in "Score essay predictions" widget.
+
+![](images/attribute-selection-example-1.png)
+
+If we have a defined train and test set beforehand, we would put the training set on "graded essays" input and the test set on "ungraded essays" input.
+The difference is in calculations of some attributes, as some require knowledge of best graded essays ('training set') for comparison.
+
+
+
+<!--
+TODO
 In the first example we will model class predictions on a map. We will use *philadelphia-crime* data set, load it with **File** widget and connect it to **Map**. We can already observe the mapped points in Map. Now, we connect **Tree** to Map and set target variable to Type. This will display the predicted type of crime for a specific region of Philadelphia city (each region will be colored with a corresponding color code, explained in a legend on the right).
 
 ![](images/GeoMap-classification.png)

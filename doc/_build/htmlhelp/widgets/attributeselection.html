@@ -34,7 +34,7 @@
 <ul class="simple">
 <li>Graded essays: Corpus of graded essays (“train set”).</li>
 <li>Ungraded essays: Corpus of ungraded essays (“test set”).</li>
-<li>Source texts: Optional corpus of source texts (text essays are based on, i.e. a story or instructions).</li>
+<li>Source texts: Optional corpus of source texts (text the essays are based on).</li>
 </ul>
 <p><strong>Outputs</strong></p>
 <ul class="simple">
@@ -88,7 +88,7 @@
 <li>Grammar:<ul>
 <li>Number of each different POS tag (~30 attributes)</li>
 <li>Average sentence structure tree height</li>
-<li>Number of verbs <!--Verb form TODO?--></li>
+<li>Number of verbs</li>
 </ul>
 </li>
 <li>Content:<ul>
@@ -123,7 +123,7 @@
 </li>
 <li>Select word embeddings:<ul>
 <li>Word embeddings are used during calculations of ‘Content’ and ‘Coherence’ attributes</li>
-<li>Choose ‘TF-IDF’ or ‘GloVe’ word embeddings</li>
+<li>Choose ‘TF-IDF’ or ‘GloVe’ (SpaCy and Flair implementations available) word embeddings</li>
 </ul>
 </li>
 <li>The calculation may take a few minutes, depending on attribute categories selected. ‘Grammar’, ‘Content’ and ‘Coherence’ are most demanding.</li>
@@ -131,9 +131,14 @@
 </ol>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<p>TODO</p>
+<p>In the below example we put our training set corpus on the “graded essays” input.
+We calculate all attributes (using TF-IDF) and do 10-fold cross-validation in “Test and Score” widget.
+Quadratic weighted kappa is calculated in “Score essay predictions” widget.</p>
+<p><img alt="../_images/attribute-selection-example-1.png" src="../_images/attribute-selection-example-1.png" /></p>
+<p>If we have a defined train and test set beforehand, we would put the training set on “graded essays” input and the test set on “ungraded essays” input.
+The difference is in calculations of some attributes, as some require knowledge of best graded essays (‘training set’) for comparison.</p>
 <!--
-
+TODO
 In the first example we will model class predictions on a map. We will use *philadelphia-crime* data set, load it with **File** widget and connect it to **Map**. We can already observe the mapped points in Map. Now, we connect **Tree** to Map and set target variable to Type. This will display the predicted type of crime for a specific region of Philadelphia city (each region will be colored with a corresponding color code, explained in a legend on the right).
 
 ![](images/GeoMap-classification.png)

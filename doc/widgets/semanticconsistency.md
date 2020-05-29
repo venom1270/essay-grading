@@ -10,7 +10,7 @@ Show data points on a world map.
 -  Feedback: Feedback on essays and error/inconsistency explanations.
 
 
-**Semantic consistency** widget checks for semantic conssitency of the essays. It achieves that by converting sentences into triples (via OpenIE) and inserts the into an ontology. Logic reasoner is then used to determine potential incosnsitencies in said ontology. Widget logs number of different errors. For improved accuracy, coreference resolution may be used. Additionaly, a 'source text' file can be selected, which contains information essays are based on. *PROCESSING OF THIS WIDGET IS VERY SLOW*
+**Semantic consistency** widget checks for semantic consistency of the essays. It achieves that by converting sentences into triples (via OpenIE) and inserts them into an ontology. Logic reasoner is then used to determine potential inconsistencies in said ontology. Widget logs number of different errors. For improved accuracy, coreference resolution may be used. Additionaly, a 'source text' file can be selected, which contains information essays are based on. *PROCESSING OF THIS WIDGET IS VERY SLOW*
 
 TODO slika <!-- ![](images/GeoMap-stamped.png) -->
 
@@ -18,18 +18,32 @@ TODO slika <!-- ![](images/GeoMap-stamped.png) -->
 
 2. Select desired OpenIE system:
 
-    - OpenIE5.0 is more accurate, but slower
     - ClausIE is a lot faster, but somewhat less accurate
+    - OpenIE5.0 is more accurate, but slower; it also requires additional setup (downloading large model files)
     
-3. Check 'Coreference resolution' if needed.
+    
+3. Check 'Use coreferences' if coreference resolution is needed.
 
-3. Apply. Note that processing of this widget may take a long time.
+4. If the option is not selected, only the general inconsistent sentences will be returned.
+If the option is selected, more detailed will be returned by using the logic reasoner's explanation feature which tries to figure out the concepts that cause the inconsistency.
+
+5. Apply. Note that processing of this widget may take a long time.
 
 Examples
 --------
-TODO
-<!--
 
+In below example, we loaded the "Lisa.tsv" dataset and connected it to SemanticConsistency.
+We selected the "Use coreferences" option and "Detailed explanations" option.
+The first one will help us correctly resolve references like "he" and "she".
+Detailed explanations will return detailed description of inconsistencies.
+You can see the List.tsv input in the "View" windows and the reutrend explanations in the bottom "Log" window.
+
+![](images/semanticconsistency-example-1.PNG)
+
+
+
+<!--
+TODO
 In the first example we will model class predictions on a map. We will use *philadelphia-crime* data set, load it with **File** widget and connect it to **Map**. We can already observe the mapped points in Map. Now, we connect **Tree** to Map and set target variable to Type. This will display the predicted type of crime for a specific region of Philadelphia city (each region will be colored with a corresponding color code, explained in a legend on the right).
 
 ![](images/GeoMap-classification.png)
