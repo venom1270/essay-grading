@@ -38,6 +38,7 @@ class HermiT:
         onto_path = "ontologies/ontology_tmp_test_" + str(i) + ".owl"
         ontology.serialize(onto_path, format='pretty-xml')
         IRI = "file:///" + self.path.replace("\\", "/") + onto_path
+        IRI = IRI.replace(" ", "%20")  # Encode whitespaces
         self.debugPrint(i, "Hermit call")
 
         # startupinfo = subprocess.STARTUPINFO()

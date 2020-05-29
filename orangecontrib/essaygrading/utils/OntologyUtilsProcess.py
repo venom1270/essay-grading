@@ -48,12 +48,19 @@ def thread_func(tpl):
     exc = ""
 
     try:
-        feedback, errors, feedback2 = extractionManager.addExtractionToOntology(g, triples[0], essay, uniqueURIRef['SubObj'],
+        if len(triples) > 0:
+            feedback, errors, feedback2 = extractionManager.addExtractionToOntology(g, triples[0], essay, uniqueURIRef['SubObj'],
                                                                      uniqueURIRef['Pred'], explain=explain, source_text=source_text)
+        else:
+            debugPrint(i, "#### ERROR: OpenIE extraction failure")
+            feedback = [["ERROR: OpenIE extraction failure"]]
+            errors = [-1,-1,-1]
+            feedback2 = []
     except Exception as e:
         import sys
         debugPrint(i, "Unexpected error: ", str(e))
         feedback = []
+        feedback2 = []
         errors = [-1, -1, -1]
         exc = str(e)
 

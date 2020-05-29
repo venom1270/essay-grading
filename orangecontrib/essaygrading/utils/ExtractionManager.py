@@ -407,6 +407,11 @@ class ExtractionManager:
             self.debugPrint("Found: ", el.text, str(el.URIRef))
             return el.URIRef, el.URIRef
 
+        # Check in entitystore similarnode
+        lookup = self.entityStore.get_similar_node(element)
+        if lookup is not None:
+            return lookup, lookup
+
         # Check for similarMatch in URIRefs TODO: test this; uncomment if not working
         '''index, similarNode = self.similarNode(URIRefs[0], element, indepth=False, stem=False)
         if similarNode is None:
@@ -420,24 +425,31 @@ class ExtractionManager:
         entityList = self.entityStore.get_list("text", type=elementType)
         index, similarNode = self.similarNode(entityList, element, indepth=False, stem=False)
         if similarNode is not None:
-            el = entityList[index]
+            el = self.entityStore.get_by_index(index, type=elementType)
+            self.entityStore.add_similar_node(element, el.URIRef) # This is just for lookup so we don't have to run similarNode with same element again
             self.debugPrint("Found: ", el.text, str(el.URIRef))
             return el.URIRef, el.URIRef
 
         # Check for similarMatch stemmed
         entityList = self.entityStore.get_list("stemmed", type=elementType)
         index, similarNode = self.similarNode(entityList, element, indepth=False)
+        stm = False
         if similarNode is None:
             # to je za "fast sportS"
             # Check again, but this time WITH STEMMING --- STEM ALL
             #index, similarNode = self.similarNode([e["text"] for e in self.entities[elementType]], element,
                                                   #indepth=False, stem=True)
             index, similarNode = self.similarNode(entityList, element, indepth=False, stem=True)
+            s = True
 
         URI = None
         elementURI = ""
         if similarNode is not None:
             el = self.entityStore.get_by_index(index, type=elementType)
+            if stm:
+                self.entityStore.add_similar_node(self.stem(element), el.URIRef)  # This is just for lookup so we don't have to run similarNode with same element again
+            else:
+                self.entityStore.add_similar_node(element, el.URIRef)  # This is just for lookup so we don't have to run similarNode with same element again
             self.debugPrint("Found: ", el.text, str(el.URIRef))
             URI = el.URIRef
             elementURI = URI
@@ -862,6 +874,7 @@ class ExtractionManager:
         :param stem: flag to stem every element before comparison.
         :return: index, matching node string or None, None
         '''
+
         # indepth: to pomen da zacnes sekat besede iz newNode od zacetka do konca in upas da se kej ujame
         for n in range(len(nodes)):
             node1 = nodes[n]

@@ -39,6 +39,8 @@ class EntityStore:
     lookup_p_snapshot = dict()  # lookup snapshots
     lookup_so_snapshot = dict()
 
+    similarnode_lookup = dict()
+
     def __init__(self):
         pass
 
@@ -133,6 +135,12 @@ class EntityStore:
         if type is not None:
             entity_list = [e for e in entity_list if e.type == type]
         return entity_list[index]
+
+    def get_similar_node(self, node):
+        return self.similarnode_lookup.get(node)
+
+    def add_similar_node(self, node, value):
+        self.similarnode_lookup[node] = value
 
     def snapshot(self):
         '''
