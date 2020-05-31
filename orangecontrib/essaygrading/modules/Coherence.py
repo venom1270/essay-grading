@@ -6,6 +6,8 @@ from scipy.spatial import distance
 from scipy.sparse import issparse
 import numpy as np
 import spacy
+import string
+from nltk.corpus import stopwords
 import math
 from flair.embeddings import WordEmbeddings, FlairEmbeddings, DocumentPoolEmbeddings, Sentence
 
@@ -187,6 +189,10 @@ class Coherence(BaseModule):
         maximums = []
         for d in D:
             neighbour_distances = [d[i,i+1] for i in range(0, d.shape[0]-1)]
+            # if neighbour_distances[0] == 1:
+            #     print(self.tfidf_parts[-2])
+            #     print(neighbour_distances)
+            #     input()
             if len(neighbour_distances) == 0:
                 averages.append(0)
                 minimums.append(0)
@@ -523,13 +529,18 @@ class Coherence(BaseModule):
         # TOLE SEM PRESTAVIL GOR IN docs UPORABIL ZA
         # corpus_sentences = lemmatizeTokens(self.corpus, join=True)
         corpus_tokens = lemmatizeTokens(self.corpus, join=False)
+        print(corpus_tokens)
+        # Remove stopwords and string punctuations
+        sw = stopwords.words("english")
+        corpus_tokens = [[token for token in i if token not in string.punctuation and token not in sw] for i in corpus_tokens]
+        print(corpus_tokens)
         # corpus_tokens = self.corpus.tokens
         # append source/prompt text
         # TODO: source_text rabimo sploh?
         # docs.append((lemmatizeTokens(self.source_texts, join=True)[0]))
 
         # WINDOW PARAMETERS #
-        step = 10  # Steps of 10 words
+        window_step = 10  # Steps of 10 words
         window_size_factor = 0.25  # 25% of average words in all essays
         avg_essays_words = sum([len(tokens) for tokens in corpus_tokens]) / len(corpus_tokens)
         window_size = int(avg_essays_words * window_size_factor)
@@ -537,8 +548,10 @@ class Coherence(BaseModule):
         # Create corpus/essay parts
         for tokens in corpus_tokens:
             wsize = window_size
-            while len(tokens) <= wsize:  # ce je okno preveliko za nek zelo kratek esej, potem zmanjsaj okno
+            step = window_step
+            while len(tokens) <= wsize:  # If windows too big, reduce it by factor of 2; size and steps
                 wsize = int(wsize / 2)
+                step = int(max(1, step / 2))
             parts = []
             i = 0
             j = wsize
@@ -549,6 +562,10 @@ class Coherence(BaseModule):
                 parts.append(" ".join(tokens[i:j]))
 
             self.corpus_parts.append(parts)
+
+        # print("CP -2")
+        # print(self.corpus_parts[-2])
+        # print(corpus_tokens[-2])
 
         # TODO: preveri, ce je pravilno
 
