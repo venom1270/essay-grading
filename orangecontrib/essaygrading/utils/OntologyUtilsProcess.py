@@ -1,7 +1,7 @@
 def thread_func(tpl):
     '''
     Multiprocessing function. Takes care of OpenIE extractions and semantic consistency analysis.
-    :param tpl: touple: (index, essay list, ontology, URIRefs in ontology, openie to use, explan flag, results path)
+    :param tpl: tuple: (index, essay list, ontology, URIRefs in ontology, openie to use, explan flag, results path)
     :return: [index, basic explantions, errors, detailed explanations]
     '''
 

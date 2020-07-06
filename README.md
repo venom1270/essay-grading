@@ -18,7 +18,7 @@ This is an essay grading add-on for [Orange data mining](https://orange.biolab.s
         activate [path_to_Orange_environment] (e.g. "C:\Program Files\Orange")
         pip install -e .
 		conda install pytorch torchvision cpuonly -c pytorch
-		pip install flair
+		pip install flair==0.4.5
 
     - If any problems arise during Flair installation, try running the following command before installing Flair
 
@@ -56,4 +56,4 @@ This is an essay grading add-on for [Orange data mining](https://orange.biolab.s
 
 This is an implementation of an essay grading system described in [PhD thesis](http://eprints.fri.uni-lj.si/4133/1/63120364-KAJA_ZUPANC-Semanti%C4%8Dno_usmerjeno_avtomatsko_ocenjevanje_esejev.pdf) by Kaja Zupanc.
 
-AGE and AGE+ systems are fully functional. SAGE is functional on a conceptual level, but needs a few more tweaks and optimizations to be usable in real world examples.
+AGE and AGE+ systems are fully functional. SAGE is functional but requires a lot of time to complete.

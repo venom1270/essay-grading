@@ -1,6 +1,7 @@
 from orangecontrib.essaygrading.widgets.OWScoreEssayPredictions import quadratic_weighted_kappa
 from orangecontrib.essaygrading.widgets.OWAttributeSelection import calculateAttributes
 import numpy as np
+import copy
 
 from sklearn.feature_selection import RFE
 from sklearn.ensemble import RandomForestRegressor
@@ -19,8 +20,12 @@ def cross_validate(attrs, train, test, test_scores, k=10):
 
     for fold2 in range(k):
 
-        tra = np.take(train[fold2], attrs, axis=1)
-        tes = np.take(test[fold2], attrs, axis=1)
+        if attrs is None:
+            tra = train[fold2]
+            tes = test[fold2]
+        else:
+            tra = np.take(train[fold2], attrs, axis=1)
+            tes = np.take(test[fold2], attrs, axis=1)
 
         #rf2 = RidgeRegressionLearner(
         #    alpha=0.02)  # (n_estimators=100, )#, min_samples_split=max(int(len(attributes[0])/3), 2))
@@ -40,6 +45,50 @@ def cross_validate(attrs, train, test, test_scores, k=10):
 
     return sum(cross_kappas) / float(k)
 
+# https://machinelearningmastery.com/feature-selection-with-real-and-categorical-data/ ### 4.
+def feature_selection_pearson(X, y):
+    from sklearn.datasets import make_regression
+    from sklearn.feature_selection import SelectKBest
+    from sklearn.feature_selection import f_regression
+    # generate dataset
+    # define feature selection
+    fs = SelectKBest(score_func=f_regression, k=65)
+    # apply feature selection
+    X_selected = fs.fit_transform(X, y)
+    print(X_selected.shape)
+    print(X_selected)
+    return X_selected
+
+
+def feature_selection(X, y):
+    from sklearn.feature_selection import RFE
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.linear_model import Ridge
+    rfe_selector = RFE(estimator=Ridge(alpha=0.02), n_features_to_select=30, step=1, verbose=5)
+    rfe_selector.fit(X, y)
+    rfe_support = rfe_selector.get_support()
+    print(rfe_support)
+    attr_selected = []
+    for i in range(len(rfe_support)):
+        if rfe_support[i]:
+            attr_selected.append(i)
+    print(attr_selected)
+    return attr_selected
+    #rfe_feature = X[:, rfe_support]
+    #print(str(len(rfe_feature)), 'selected features')
+
+def rf_feature_selection(X, y):
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.feature_selection import SelectFromModel
+    rf = RandomForestRegressor(n_estimators=100, random_state=0)
+    sel = SelectFromModel(rf, threshold=-np.inf, max_features=90)
+    sel.fit(X, y)
+    sel.get_support()
+    selected_feat = X[:,sel.get_support()]
+    print(selected_feat)
+    rf.fit(X, y)
+    print(sorted([q for q in rf.feature_importances_]))
+    return selected_feat
 
 
 # table = Table.from_file("datasets/FAS/set1_train_2.tab")
@@ -53,14 +102,12 @@ TABLES = []
 
 #TABLES.append(Table.from_file("datasets/FAS/All/DS1_AGE_TFIDF.tab"))
 
-
-'''
 TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS1_AGE_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS2A_AGE_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS2B_AGE_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS3_AGE_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS4_AGE_TFIDF.tab"))
-TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS5_AGE_TFIDF.tab"))
+TABLES.append(Table .from_file("datasets/FAS/All/AGE/DS5_AGE_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS6_AGE_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS7_AGE_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS8_AGE_TFIDF.tab"))
@@ -74,9 +121,14 @@ TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS5_AGE+_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS6_AGE+_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS7_AGE+_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS8_AGE+_TFIDF.tab"))
-'''
+
+#TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS4_AGE_TFIDF.tab"))
+#TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS4_AGE+_TFIDF.tab"))
+#TABLES.append(Table.from_file("datasets/FAS/All/SAGE/DS4_SAGE_TFIDF.tab"))
 
 '''
+
+
 TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS1_AGE_GLOVE.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS2A_AGE_GLOVE.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS2B_AGE_GLOVE.tab"))
@@ -99,30 +151,69 @@ TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS8_AGE+_GLOVE.tab"))
 #TABLES.append(Table.from_file("datasets/FAS/All/DS1_AGE+_GLOVE.tab"))
 '''
 
-TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS4_AGE_TFIDF.tab"))
-TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS4_AGE+_TFIDF.tab"))
-TABLES.append(Table.from_file("datasets/FAS/All/SAGE/DS4_SAGE_TFIDF.tab"))
+#TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS1_AGE_TFIDF.tab"))
+#TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS1_AGE+_TFIDF.tab"))
+#TABLES.append(Table.from_file("datasets/FAS/All/SAGE/DS4_SAGE_TFIDF.tab"))
 #TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS4_AGE_GLOVE.tab"))
 #TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS4_AGE+_GLOVE.tab"))
 #TABLES.append(Table.from_file("datasets/FAS/All/SAGE/DS4_SAGE_GLOVE.tab"))
 
+
+'''
+RESULTS = [(0.8429591430963541, [0, 1, 10, 12, 13, 17, 22, 23, 28, 36, 41, 46, 47, 48, 51, 53, 55, 56, 57, 65]),
+           (0.7290925173194056, [4, 5, 8, 12, 14, 16, 17, 18, 20, 21, 26, 27, 29, 30, 33, 36, 41, 46, 47, 48, 53, 55, 57, 64, 68, 69, 73]),
+           (0.6776994573340228, [5, 7, 13, 14, 15, 16, 20, 24, 33, 35, 36, 37, 40, 41, 46, 48, 51, 52, 53, 55, 57, 62, 65, 66, 67, 68, 70, 72]),
+           (0.6897853918291862, [2, 3, 5, 6, 9, 13, 19, 32, 33, 35, 40, 41, 46, 47, 48, 52, 53, 54, 55, 57, 64, 65, 68, 69, 70, 72, 73]),
+           (0.7716187735939799, [0, 4, 5, 6, 8, 9, 12, 13, 27, 28, 31, 33, 35, 36, 37, 38, 40, 46, 48, 52, 54, 55, 56, 58, 60, 61, 62, 65, 66, 67, 68, 71, 72, 73]),
+           (0.8148241273246313, [0, 3, 5, 8, 13, 15, 16, 20, 24, 30, 32, 33, 34, 35, 36, 40, 43, 44, 46, 48, 51, 53, 54, 55, 57, 58, 59, 65, 70, 72, 73]),
+           (0.7790940082284359, [21, 24, 25, 28, 29, 31, 34, 35, 36, 37, 38, 40, 41, 44, 46, 50, 51, 52, 53, 54, 55, 59, 61, 62, 65, 69, 70, 72, 73]),
+           (0.8031326536191337, [1, 4, 10, 11, 12, 14, 16, 36, 37, 48, 54, 56, 57, 58, 59, 61, 62, 65, 66, 68, 72]),
+           (0.7286557112873895, [2, 4, 7, 8, 12, 15, 21, 23, 32, 36, 37, 45, 46, 47, 48, 52, 55, 57, 65, 67, 68]),
+
+           (0.8461547484330406, [0, 1, 5, 10, 12, 13, 22, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 36, 38, 40, 41, 46, 47, 48, 50, 51, 53, 55, 57, 58, 65, 69, 72, 74, 76, 80, 85, 96, 98, 99, 101]),
+           (0.7222120093342326, [6, 12, 16, 30, 42, 54, 73, 74]),
+           (0.6767042197642937, [7, 8, 10, 14, 15, 20, 24, 26, 28, 29, 33, 35, 36, 37, 40, 41, 46, 48, 49, 51, 53, 55, 57, 61, 62, 63, 65, 67, 68, 70, 71, 72, 77, 81, 84, 96, 102]),
+           (0.6873677129154847, [2, 4, 6, 13, 20, 33, 35, 40, 41, 42, 46, 47, 48, 49, 53, 57, 65, 66, 68, 72, 80, 84, 89, 99]),
+           (0.7745204616213335, [0, 12, 19, 27, 33, 37, 48, 52, 58, 62, 68, 70, 72, 73, 83, 84, 89, 90, 100]),
+           (0.8194154730382763, [0, 5, 8, 36, 39, 40, 41, 43, 44, 46, 47, 48, 50, 51, 52, 53, 54, 56, 57, 58, 65, 72, 73, 87, 102]),
+           (0.7859085507426393, [21, 24, 25, 34, 37, 38, 47, 50, 51, 65, 66, 70, 71, 73, 84]),]
+'''
 RESULTS = []
+# Base attributes we start with
+base_attributes = 0
+
+max_fail = 20
+
+# subtract reverses forward selection - start with all attributes and remove them until it stops increasing.
+subtract = True
 
 for i, table in enumerate(TABLES):
 
-    print("************************+ PROCESSING TABLE " + str(i+1) + " / 9")
+    print("************************+ PROCESSING TABLE " + str(i+1) + " / " + str(len(TABLES)))
 
     scores = np.array(table.Y)
     ALL_ATTRIBUTES = np.array([x for x in table.X])
-    ALL_ATTRIBUTES = np.nan_to_num(ALL_ATTRIBUTES)
+    #ALL_ATTRIBUTES = np.nan_to_num(ALL_ATTRIBUTES)
     # print(table)
+
+    #qwe = feature_selection(ALL_ATTRIBUTES, scores)
+    # input()
+
+    #ALL_ATTRIBUTES = rf_feature_selection(ALL_ATTRIBUTES, scores)
+
+    fails = 0
 
     # print(ALL_ATTRIBUTES.shape)
 
-    #scaler = preprocessing.MinMaxScaler()
+    scaler = preprocessing.MinMaxScaler()
     #ALL_ATTRIBUTES = scaler.fit_transform(ALL_ATTRIBUTES)
 
     # ALL_ATTRIBUTES = preprocessing.normalize(ALL_ATTRIBUTES.transpose()).transpose()
+
+    #rnd_state = np.random.get_state()
+    #np.random.shuffle(ALL_ATTRIBUTES)
+    #np.random.set_state(rnd_state)
+    #np.random.shuffle(scores)
 
     # print(ALL_ATTRIBUTES)
     # print(max(ALL_ATTRIBUTES[:, 5]))
@@ -131,17 +222,21 @@ for i, table in enumerate(TABLES):
     k = 10
     chunk = int(len(ALL_ATTRIBUTES) / k)
 
+    max_fail = len(ALL_ATTRIBUTES[0])
+
     attributes = np.array([ALL_ATTRIBUTES[:, 0]]).transpose()
-    kept_attributes = []
+    #kept_attributes = range(base_attributes)
     avg_kappa = 0
 
     train = []
     train_scores = []
     test = []
     test_scores = []
+    max_score = max(scores)
+    min_score = min(scores)
     attribute_scores = np.zeros(len(ALL_ATTRIBUTES[0]))
 
-    for j in range(10):
+    for j in range(k):
         start = j * chunk
         end = min((j + 1) * chunk, len(ALL_ATTRIBUTES))
         train.append(np.concatenate((ALL_ATTRIBUTES[:start], ALL_ATTRIBUTES[end:])))
@@ -149,48 +244,97 @@ for i, table in enumerate(TABLES):
         test.append(ALL_ATTRIBUTES[start:end])
         test_scores.append(scores[start:end])
 
+    #print(cross_validate(qwe, train, test, test_scores, k=k))
+    #input()
+
+
+    #print()
+    #print(cross_validate(None, train, test, test_scores, k=10))
+    #input()
+
     FOLDS_ATTRIBUTES = []
     ALL_KAPPAS = []
 
-    for fold in range(k):
+    #print(cross_validate(list(range(base_attributes)), train, test, test_scores))
+    #input()
 
-        print("STARTING NEW FOLD: " + str(fold) + "/" + str(k))
+    # FOR attributes
+    #  FOR attributes
+    #   FOR folds
 
-        added_attribute = None
-        best_score = -1
+    kept_attributes = [r for r in range(base_attributes)]
+    avg_kappa = 0
+
+    min_sample_split = len(ALL_ATTRIBUTES[0] / 3)
+
+    # DS1 TFIDF AGE attributes - this is for testing if staring AGE+ attr selection could improve upon AGe attr selection
+    # AGE QWK = 0.8411676445834223
+    # AGE with AGE+ attr. sel. QWK = 0.8422150768254083
+    # kept_attributes = [12, 13, 20, 21, 23, 24, 25, 26, 27, 28, 30, 35, 37, 38, 40, 41, 43, 46, 49, 54, 55, 57, 59, 60, 65, 66, 67, 68, 71]
+
+    if subtract:
+        kept_attributes = list(range(len(ALL_ATTRIBUTES[0])))
+
+
+    final_kept_attributes = []
+
+    #if i == 2:
+    #    kept_attributes = [103, 104, 105]
+    #else:
+    #    kept_attributes = []
+
+    # CEZ VSE ATRIBUTE
+    for iter in range(base_attributes, len(ALL_ATTRIBUTES[0])):
+
         best_i = -1
+        best_score = -1
         curr_kappa = 0
-        kept_attributes = []
-        avg_kappa = 0
 
-        for iter in range(len(ALL_ATTRIBUTES[0])):
+        print("STARTING NEW OUTER ITERATION: " + str(iter) + "/" + str(len(ALL_ATTRIBUTES[0])))
+        if iter+1 == len(ALL_ATTRIBUTES[0]) and subtract == True:
+            print("Skipping because of subtract - empty attribute set")
+            continue
 
-            print("ITERATION " + str(iter) + " / " + str(len(ALL_ATTRIBUTES[0])))
+
+
+        # GLEDAMO TRENUTNI (i) ATRIBUT
+        for i in range(base_attributes, len(ALL_ATTRIBUTES[0])):
+
+            # print("Iteration " + str(i) + " / " + str(len(ALL_ATTRIBUTES[0])))
             # print(ALL_ATTRIBUTES[:, i])
 
+            if not subtract:
+                if i in kept_attributes:
+                    # print(str(i) + " in kept attributest... continuing.")
+                    continue
+            else:
+                if i not in kept_attributes:
+                    continue
+
+            if subtract:
+                taken_attributes = [a for a in kept_attributes if a != i]
+            else:
+                taken_attributes = kept_attributes + [i]
+
             kappas = []
-            kappas_attr = []
             #attributes = np.concatenate((attributes, np.array([ALL_ATTRIBUTES[:, i]]).transpose()), axis=1)
 
 
             #attributes = np.concatenate((attributes, np.array([ALL_ATTRIBUTES[:, i]]).transpose()), axis=1)
             #attributes = np.take(ALL_ATTRIBUTES, taken_attributes, axis=1)
 
-            for i in range(len(ALL_ATTRIBUTES[0])):
-
-                if i in kept_attributes:
-                    # print(str(i) + " in kept attributest... continuing.")
-                    continue
-
-                taken_attributes = kept_attributes + [i]
+            # STESTIRAMO PRISPEVEK CEZ VSE FOLDE
+            for fold in range(k):
 
                 train_attributes = np.take(train[fold], taken_attributes, axis=1)
                 test_attributes = np.take(test[fold], taken_attributes, axis=1)
 
-                #rf = RidgeRegressionLearner(alpha=0.02)  # (n_estimators=100, )#, min_samples_split=max(int(len(attributes[0])/3), 2))
-                rf = RandomForestRegressionLearner(n_estimators=100, random_state=0)#, min_samples_split=max(int(len(taken_attributes)/3), 2)))
+                #rf = LinearRegressionLearner()
+                rf = RidgeRegressionLearner(alpha=0.02)  # (n_estimators=100, )#, min_samples_split=max(int(len(attributes[0])/3), 2))
+                #rf = RandomForestRegressionLearner(n_estimators=100, random_state=0)#, max_features=max(int(len(taken_attributes)/3),1))
 
                 # print("Training...")
+
                 rf = rf.fit(train_attributes, train_scores[fold])
 
                 # print("Predicting...")
@@ -199,35 +343,51 @@ for i, table in enumerate(TABLES):
                 # print("Results...")
                 #print(np.round(predictions))
                 #print(test_scores[fold])
+                # print(len([p for p in predictions if p > max_score or p < min_score]))
                 predictions = [p if p >= 0 and p <= 500 else 0 for p in predictions]
                 kappas.append(quadratic_weighted_kappa(np.round(predictions), test_scores[fold]))
-                kappas_attr.append(i)
 
-            # TODO? to bi lohka naredu sproti v loopu...
-            print(kappas)
-            curr_kappa = np.max(kappas)
-            curr_i = kappas_attr[np.argmax(kappas)]
-            print(str(curr_kappa) + " >= " + str(avg_kappa))
+            #print(kappas)
+            curr_kappa = sum(kappas) / float(k)
+            #print(str(curr_kappa) + " >= " + str(avg_kappa))
 
+            # CE JE ATRIBUT (i) IZBOLJSAL REZULTAT, GA SHRANIMO KOT KANDIDATA
             if curr_kappa >= best_score:
                 best_score = curr_kappa
-                best_i = curr_i
+                best_i = i
+
+
+        if best_score >= avg_kappa:
+            print("Attribute " + str(best_i) + " had highest score: " + str(best_score) + " | avg: " + str(avg_kappa))
+            avg_kappa = best_score
+            if subtract:
+                kept_attributes = [ka for ka in kept_attributes if best_i != ka]
             else:
-                best_score = 0
-                best_i = -1
-
-            attributes = attributes[:, :-1]
-
-            if best_score >= avg_kappa:
-                print("Attribute " + str(best_i) + " had highest score: " + str(best_score) + " | avg: " + str(avg_kappa))
-                avg_kappa = best_score
-                attributes = np.concatenate((attributes, np.array([ALL_ATTRIBUTES[:, best_i]]).transpose()), axis=1)
                 kept_attributes.append(best_i)
-                attribute_scores[best_i] += 1
+            attribute_scores[best_i] += 1
 
+            final_kept_attributes = copy.deepcopy(kept_attributes)
+            fails = 0
+
+            print(kappas)
+            print(kept_attributes)
+
+        else:
+            if fails < max_fail:
+                print("Fail, but adding attribute " + str(best_i) + " anyway. Kappa = " + str(best_score) + " | Fail count = " + str(fails))
+                fails += 1
+                if subtract:
+                    kept_attributes = [ka for ka in kept_attributes if best_i != ka]
+                else:
+                    kept_attributes.append(best_i)
+
+                attribute_scores[best_i] += 1 # TODO: ce je fail tega nerabim najbrz?
+
+                print(kappas)
                 print(kept_attributes)
-
             else:
+                print(best_score)
+                print(kappas)
                 print("No attribute increased score; BREAK;")
                 ALL_KAPPAS.append(avg_kappa)
                 break
@@ -240,23 +400,23 @@ for i, table in enumerate(TABLES):
 
     print(ALL_KAPPAS)
     print(np.average(ALL_KAPPAS))
+    print(avg_kappa)
 
-    FINAL = set()
-    for fa in FOLDS_ATTRIBUTES:
-        FINAL = FINAL.union(set(fa))
+    #FINAL = set()
+    #for fa in FOLDS_ATTRIBUTES:
+    #    FINAL = FINAL.union(set(fa))
     print("KEPT ATTRIBUTES: ")
+    FINAL = final_kept_attributes
     print(FINAL)
     print(sorted(FINAL))
     print(len(FINAL))
 
     print(list(attribute_scores))
-    print("CROSS KAPPA:")
-    print(cross_validate([key for key,val in enumerate(attribute_scores) if val > 3], train, test, test_scores))
+    #print("CROSS KAPPA:")
+    #print(cross_validate([key for key,val in enumerate(attribute_scores) if val > 3], train, test, test_scores))
     #print(cross_validate(list(FINAL), train, test, test_scores))
 
-    RESULTS.append((np.average(ALL_KAPPAS), FINAL))
-    RESULTS.append((cross_validate(list(FINAL), train, test, test_scores), FINAL))
-    RESULTS.append((cross_validate([key for key,val in enumerate(attribute_scores) if val > 1], train, test, test_scores), [key for key,val in enumerate(attribute_scores) if val > 1]))
+    RESULTS.append((avg_kappa, FINAL))
     for i in FINAL:
         print(table.domain.attributes[i])
 

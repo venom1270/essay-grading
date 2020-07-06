@@ -198,11 +198,13 @@ class Coherence(BaseModule):
                 minimums.append(0)
                 maximums.append(0)
             else:
-                averages.append(sum(neighbour_distances) / len(neighbour_distances)) #TODO: division by zero dodej max(i guess)
+                averages.append(sum(neighbour_distances) / len(neighbour_distances))
                 minimums.append(min(neighbour_distances))
                 maximums.append(max(neighbour_distances))
 
         indexes = np.divide(np.array(minimums), np.array(maximums))
+        nans = np.isnan(indexes)
+        indexes[nans] = 0
         return averages, minimums, maximums, indexes
 
     def calculate_any_point_distances(self, D):
@@ -218,6 +220,10 @@ class Coherence(BaseModule):
             distances = np.triu(d)
             averages.append(np.sum(distances) / max(1, (n*(n-1)/2)))
             maximums.append(np.amax(distances))
+            #nans = np.where(averages[-1] == np.nan)[0]
+            #averages[-1][nans] = 0
+            #nans = np.where(maximums[-1] == np.nan)[0]
+            #maximums[-1][nans] = 0
         return averages, maximums
 
     def calculate_nn_distances(self, D):
@@ -264,6 +270,8 @@ class Coherence(BaseModule):
             maximums.append(max(centroid_distance))
 
         indexes = np.divide(np.array(minimums), np.array(maximums))
+        nans = np.isnan(indexes)
+        indexes[nans] = 0
 
         return averages, minimums, maximums, indexes
 
@@ -350,6 +358,11 @@ class Coherence(BaseModule):
             Di = np.delete(D, 0, axis=0)
             D_numerator += np.sum(np.multiply(Di, Dj), axis=0)
             D_denominator = np.sum(np.power(D, 2), axis=0)
+            # Take care of zeros
+            zeros = np.where(D_denominator == 0)[0]
+            D_denominator[zeros] = 1
+            D_numerator[zeros] = 0
+            # Final steps
             m = np.sum(np.divide(D_numerator, D_denominator))
             if N < 2:
                 m = 0
@@ -405,6 +418,11 @@ class Coherence(BaseModule):
             D_numerator += np.sum(np.power(np.subtract(Di, Dj), 2), axis=0)
             # D_denominator += np.sum(np.power(Di - C[doc_i], 2), axis=0)
             D_denominator = np.sum(np.power(D_mean, 2), axis=0)
+            # Take care of zeros
+            zeros = np.where(D_denominator == 0)[0]
+            D_denominator[zeros] = 1
+            D_numerator[zeros] = 0
+            # Final steps
             c = np.sum(np.divide(D_numerator, D_denominator))
 
             S = (N - 1) * 2
@@ -443,10 +461,11 @@ class Coherence(BaseModule):
                 denominator = 0
                 for i in range(doc.shape[0]):
                     for j in range(doc.shape[0]):
+                        if j == i:
+                            continue
                         denominator += (D[i,k] * D[j,k])
-                        if D_mat[doc_i][i][j] <= d: # TODO: mybe i != j???
+                        if D_mat[doc_i][i][j] <= d:
                             numerator += (D[i,k] * D[j,k])
-
 
                 if denominator != 0:
                     g += numerator / denominator
@@ -455,12 +474,20 @@ class Coherence(BaseModule):
             D = doc
             # matrika utezi (1 ali 0) veliksoti NxN - katere vsote pridejo v postev
             W = np.where(D_mat[doc_i] <= distance_threshold[doc_i], 1, 0)
+            W_ij = np.ones((len(W), len(W)))  # Weight matrix that makes sure i =/= j
+            np.fill_diagonal(W_ij, 0)  # Fill diagonals with zeros
             D = np.array(D)
             # broadcastanje - iz tega rata pol 3D array, vsak element (vrstica) z vsakim - 3D zato, ker je vec komponent
-            multiplied = np.multiply(D[None,:,:], D[:,None,:])
-            weighted = multiplied * W[:,:,None] # braodcastamo in mnozimo se z utezmi
-            D_numerator = np.sum(weighted, axis=(1,0)) #
-            D_denominator = np.sum(multiplied, axis=(1,0))
+            multiplied = np.multiply(D[None, :, :], D[:, None, :])
+            weighted = multiplied * W[:, :, None]  # braodcastamo in mnozimo se z utezmi
+            weighted = weighted * W_ij[:, :, None]
+            D_numerator = np.sum(weighted, axis=(1, 0))
+            D_denominator = np.sum(multiplied * W_ij[:, :, None], axis=(1, 0))
+            # Now remove zeros from denominator and numerator
+            zeros_locations = np.where(D_denominator == 0)[0]
+            D_denominator[zeros_locations] = 1.0
+            D_numerator[zeros_locations] = 0.0
+            # Final steps
             g = np.sum(np.divide(D_numerator, D_denominator))
 
             if N < 2:
@@ -504,6 +531,11 @@ class Coherence(BaseModule):
 
             cd_euc = np.delete(cd_euc, -1)
             cd_cos = np.delete(cd_cos, -1)
+
+            nans = np.isnan(cd_euc)
+            cd_euc[nans] = 0
+            nans = np.isnan(cd_cos)
+            cd_cos[nans] = 0
 
             C.append(centroid)
             CD_euc.append(cd_euc)
@@ -555,11 +587,18 @@ class Coherence(BaseModule):
             parts = []
             i = 0
             j = wsize
-            parts.append(" ".join(tokens[i:min(j, len(tokens))]))
+            p = " ".join(tokens[i:min(j, len(tokens))])
+            if len(p.replace(" ", "")) > 1:  # Fix for sometimes appending empty string
+                parts.append(p)
             while j <= len(tokens):
                 i += step
                 j += step
-                parts.append(" ".join(tokens[i:j]))
+                p = " ".join(tokens[i:j])
+                if len(p.replace(" ", "")) > 1:  # Fix for sometimes appending empty string
+                    parts.append(p)
+
+            if len(parts) == 0: # If no valid parts were added, add a placeholder so it doesn't crash
+                parts.append("0")
 
             self.corpus_parts.append(parts)
 
@@ -579,6 +618,7 @@ class Coherence(BaseModule):
             print("GloVe (Flair) vectors loaded!")
 
         self.tfidf_parts = []
+        qwe = 1
         for parts in self.corpus_parts:
             if self.word_embeddings == globals.EMBEDDING_TFIDF:
                 # Try/catch if string empty or contains stopwords
@@ -597,7 +637,7 @@ class Coherence(BaseModule):
                         continue
                     flair_embeddings.embed(essay_part_sentences)
                     essay_word_embedding.append(np.array(essay_part_sentences.get_embedding().detach().numpy()))
-
+                qwe += 1
                 self.tfidf_parts.append(np.array(essay_word_embedding))
             else:
 
@@ -648,6 +688,8 @@ class Coherence(BaseModule):
             if issparse(doc):
                 doc = doc.todense()
             d = distance.cdist(doc, doc, metric=metric)
+            nans = np.isnan(d)
+            d[nans] = 0
             '''d = np.zeros((doc.shape[0], doc.shape[0]))
             if doc.shape[0] == 1:
                 d[0,0] = 1

@@ -666,7 +666,7 @@ class ExtractionManager:
 
     def addElementToOntology(self, ONTO, element, URIRefs, elementType):
         '''
-        Add element to ontology, callin other relevant methods for synonyms, hypernyms, relations... in the process.
+        Add element to ontology, calling other relevant methods for synonyms, hypernyms, relations... in the process.
         :param ONTO: rdflib Graph() object which represents our ontology.
         :param element: string element we are checking for.
         :param URIRefs: list of URIRefs in base ontology.
@@ -684,6 +684,7 @@ class ExtractionManager:
         # isn't => isnot    doesn't => doesnot  didn't => didnot
         element = element.replace("n't", "not")
         element = element.replace("'ll", " will")
+        element = element.replace("'re", " are")
         element = element.replace("'s", " is")  # za tole nism zihr
 
         elementURI, URI = self.checkSimilarNode(ONTO, element, URIRefs, elementType)

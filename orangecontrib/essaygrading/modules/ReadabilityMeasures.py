@@ -231,6 +231,9 @@ class ReadabilityMeasures(BaseModule):
                                    for tags in pos_tag_counter])
         num_of_verbs = np.array([tags.get("VB", 0) + tags.get("VBD", 0) + tags.get("VBG", 0) + tags.get("VBN", 0) +
                                  tags.get("VBP", 0) + tags.get("VBZ", 0) for tags in pos_tag_counter])
-        nominal_ratio = (num_of_nouns + num_of_prepositions + num_of_participles) / \
-                        (num_of_pronouns + num_of_adverbs + num_of_verbs)
-        return nominal_ratio
+        numerator = num_of_nouns + num_of_prepositions + num_of_participles
+        denominator = num_of_pronouns + num_of_adverbs + num_of_verbs
+        zeros = np.where(denominator == 0)[0]
+        denominator[zeros] = 1
+        numerator[zeros] = 0
+        return numerator / denominator
