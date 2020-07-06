@@ -300,14 +300,22 @@ class OWSemanticConsistency(OWWidget):
 
 
 def prepare_data(data):
-    p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
+    '''p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
                                 transformers=[preprocess.LowercaseTransformer()],
                                 pos_tagger=pos.AveragedPerceptronTagger(),
                                 normalizer=preprocess.WordNetLemmatizer())
     p_sentences = preprocess.Preprocessor(tokenizer=preprocess.PunktSentenceTokenizer(),
                                           # transformers=[preprocess.LowercaseTransformer()],
                                           # ce je to vklopljeno, pol neki nedela cist prov.
-                                          pos_tagger=pos.AveragedPerceptronTagger())
+                                          pos_tagger=pos.AveragedPerceptronTagger())'''
+
+    p = preprocess.PreprocessorList([preprocess.WordPunctTokenizer(),
+                                     preprocess.LowercaseTransformer(),
+                                     pos.AveragedPerceptronTagger(),
+                                     preprocess.WordNetLemmatizer()])
+
+    p_sentences = preprocess.PreprocessorList([preprocess.PunktSentenceTokenizer(),
+                                               pos.AveragedPerceptronTagger()])
 
     corpus = p(data)
     corpus = copy.deepcopy(corpus)

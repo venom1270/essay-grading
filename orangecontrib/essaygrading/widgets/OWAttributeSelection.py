@@ -136,9 +136,6 @@ class OWAttributeSelection(OWWidget):
     @Inputs.source_texts
     def set_source_texts(self, source_texts):
         if source_texts is not None:
-            p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
-                                        transformers=[preprocess.LowercaseTransformer()],
-                                        pos_tagger=pos.AveragedPerceptronTagger())
             self.source_texts = source_texts  # p(source_texts)
         else:
             self.source_texts = None
@@ -358,14 +355,20 @@ def calculateAttributes(graded_corpus, source_texts, ungraded_corpus, grades, at
 
 
 def prepare_data(data):
+    '''p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
+                                    transformers=[preprocess.LowercaseTransformer()],
+                                    pos_tagger=pos.AveragedPerceptronTagger(),
+                                    normalizer=preprocess.WordNetLemmatizer(),
+                                    # filters=preprocess.StopwordsFilter())
+                                    )
+    p_sentences = preprocess.Preprocessor(tokenizer=preprocess.PunktSentenceTokenizer())'''
 
-    p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
-                                transformers=[preprocess.LowercaseTransformer()],
-                                pos_tagger=pos.AveragedPerceptronTagger(),
-                                normalizer=preprocess.WordNetLemmatizer(),
-                                # filters=preprocess.StopwordsFilter())
-                                )
-    p_sentences = preprocess.Preprocessor(tokenizer=preprocess.PunktSentenceTokenizer())
+    p = preprocess.PreprocessorList([preprocess.WordPunctTokenizer(),
+                                     preprocess.LowercaseTransformer(),
+                                     pos.AveragedPerceptronTagger(),
+                                     preprocess.WordNetLemmatizer()])
+
+    p_sentences = preprocess.PreprocessorList([preprocess.PunktSentenceTokenizer()])
 
     corpus = p(data)
     corpus = copy.deepcopy(corpus)
@@ -376,9 +379,13 @@ def prepare_data(data):
 
 def prepare_source_texts(source_texts):
     if source_texts is not None:
-        p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
+        '''p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
                                     transformers=[preprocess.LowercaseTransformer()],
-                                    pos_tagger=pos.AveragedPerceptronTagger())
+                                    pos_tagger=pos.AveragedPerceptronTagger())'''
+
+        p = preprocess.PreprocessorList([preprocess.WordPunctTokenizer(),
+                                         preprocess.LowercaseTransformer(),
+                                         pos.AveragedPerceptronTagger()])
         st = p(source_texts)
     else:
         st = None
