@@ -4,6 +4,7 @@ from Orange.widgets.tests.base import WidgetTest
 
 from orangecontrib.essaygrading.widgets.OWAttributeSelection import OWAttributeSelection
 from orangecontrib.essaygrading.widgets.OWAttributeSelection import calculateAttributes
+from orangecontrib.essaygrading.utils import globals
 from orangecontrib.text import Corpus
 
 
@@ -29,7 +30,7 @@ class TestOWAttributeSelection(WidgetTest):
 
         attrbiuteDictionary, _ = calculateAttributes(corpus, None, self.widget.corpus_grades, None,
                                                      ["Basic measures"],
-                                                     callback, "TF-IDF", None)
+                                                     callback, globals.EMBEDDING_TFIDF, None)
 
         self.assertEqual(14, len(attrbiuteDictionary))
 
@@ -42,12 +43,12 @@ class TestOWAttributeSelection(WidgetTest):
         def callback(x):
             pass
 
-        attrbiuteDictionary, _ = calculateAttributes(corpus, None, self.widget.corpus_grades, None,
+        attributeDictionary, _ = calculateAttributes(corpus, None, self.widget.corpus_grades, None,
                                                      ["Basic measures", "Lexical diversity", "Readability measures",
                                                       "Grammar", "Content", "Coherence and semantics"],
-                                                     callback, "TF-IDF", None)
+                                                     callback, globals.EMBEDDING_TFIDF, None)
 
-        self.assertEqual(104, len(attrbiuteDictionary))
+        self.assertEqual(104, len(attributeDictionary))
 
 
 

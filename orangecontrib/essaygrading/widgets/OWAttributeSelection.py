@@ -246,13 +246,12 @@ class OWAttributeSelection(OWWidget):
                 print("FINISHED")
                 print(self.attributeDictionaryGraded)
 
-
                 arr = np.array([value for _, value in self.attributeDictionaryGraded.items()])
 
                 print("INF CHECK GRADED")
                 for k, i in self.attributeDictionaryGraded.items():
                     if np.isinf(i).any():
-                      print(k)
+                        print(k)
                 print(arr)
                 if self.corpus_grades is None or len(self.corpus_grades) == 0:
                     domain = Orange.data.Domain([Orange.data.ContinuousVariable.make(key)
@@ -270,9 +269,9 @@ class OWAttributeSelection(OWWidget):
                     [Orange.data.ContinuousVariable.make(key) for key in self.attributeDictionaryUngraded])
                 arr = np.array([value for _, value in self.attributeDictionaryUngraded.items()])
                 print("INF CHECK UNGRADED")
-                for k,i in self.attributeDictionaryGraded.items():
+                for k, i in self.attributeDictionaryGraded.items():
                     if np.isinf(i).any():
-                      print(k)
+                        print(k)
                 print(arr)
                 outUngraded = Orange.data.Table.from_numpy(domain, np.array(arr).transpose())
 
@@ -286,7 +285,6 @@ class OWAttributeSelection(OWWidget):
 
 
 def calculateAttributes(graded_corpus, source_texts, ungraded_corpus, grades, attr, callback, word_embeddings, METHODS):
-
     if METHODS is None:
         METHODS = [BasicMeasures.BasicMeasures, ReadabilityMeasures.ReadabilityMeasures,
                    LexicalDiversity.LexicalDiversity, Grammar.Grammar, Content.Content, Coherence.Coherence]
@@ -305,7 +303,7 @@ def calculateAttributes(graded_corpus, source_texts, ungraded_corpus, grades, at
     if ungraded_corpus is None:
         proportions = np.linspace(0.0, 1.0, len(attr) + 1, endpoint=True)[1:]
     else:
-        proportions = np.linspace(0.0, 1.0, len(attr)*2 + 1, endpoint=True)[1:]
+        proportions = np.linspace(0.0, 1.0, len(attr) * 2 + 1, endpoint=True)[1:]
 
     print(graded_corpus)
 
@@ -320,7 +318,8 @@ def calculateAttributes(graded_corpus, source_texts, ungraded_corpus, grades, at
         if m.startswith("Coherence"):
             module = module(graded_corpus, graded_corpus_sentences, grades, source_texts, word_embeddings)
         elif m.startswith("Content"):
-            module = module(graded_corpus, graded_corpus_sentences, grades, source_texts, word_embeddings=word_embeddings)
+            module = module(graded_corpus, graded_corpus_sentences, grades, source_texts,
+                            word_embeddings=word_embeddings)
         else:
             module = module(graded_corpus, graded_corpus_sentences)
         modules[m] = module
@@ -355,13 +354,13 @@ def calculateAttributes(graded_corpus, source_texts, ungraded_corpus, grades, at
 
 
 def prepare_data(data):
-    '''p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
+    """p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
                                     transformers=[preprocess.LowercaseTransformer()],
                                     pos_tagger=pos.AveragedPerceptronTagger(),
                                     normalizer=preprocess.WordNetLemmatizer(),
                                     # filters=preprocess.StopwordsFilter())
                                     )
-    p_sentences = preprocess.Preprocessor(tokenizer=preprocess.PunktSentenceTokenizer())'''
+    p_sentences = preprocess.Preprocessor(tokenizer=preprocess.PunktSentenceTokenizer())"""
 
     p = preprocess.PreprocessorList([preprocess.WordPunctTokenizer(),
                                      preprocess.LowercaseTransformer(),
@@ -379,9 +378,9 @@ def prepare_data(data):
 
 def prepare_source_texts(source_texts):
     if source_texts is not None:
-        '''p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
+        """p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
                                     transformers=[preprocess.LowercaseTransformer()],
-                                    pos_tagger=pos.AveragedPerceptronTagger())'''
+                                    pos_tagger=pos.AveragedPerceptronTagger())"""
 
         p = preprocess.PreprocessorList([preprocess.WordPunctTokenizer(),
                                          preprocess.LowercaseTransformer(),
@@ -404,6 +403,5 @@ def is_number(n):
 
 if __name__ == "__main__":
     WidgetPreview(OWAttributeSelection).run(set_graded_data=Corpus.from_file("../datasets/small_set.tsv"),
-                                      set_ungraded_data=Corpus.from_file("../datasets/small_set.tsv"),
-                                      set_source_texts=Corpus.from_file("../datasets/source_texts.tsv"))
-
+                                            set_ungraded_data=Corpus.from_file("../datasets/small_set.tsv"),
+                                            set_source_texts=Corpus.from_file("../datasets/source_texts.tsv"))

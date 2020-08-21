@@ -61,7 +61,7 @@ class SubprocessBackend(ClausIE):
                 command.append('-p')
             sd_process = subprocess.Popen(command, stdout=subprocess.PIPE,
                                           stderr=subprocess.PIPE)
-            return_code = sd_process.wait()
+            return_code = sd_process.wait(timeout=120)
             stderr = sd_process.stderr.read()
             stdout = sd_process.stdout.read()
             self._raise_on_bad_exitcode(return_code, stderr)

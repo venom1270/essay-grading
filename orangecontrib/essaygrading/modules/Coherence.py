@@ -17,8 +17,7 @@ name = "Coherence"
 # GLOVE Word Embeddings
 # python -m spacy download en_vectors_web_lg
 class Coherence(BaseModule):
-
-    name = "Coherence and semantics"
+    name = "Coherence"
 
     def __init__(self, corpus, corpus_sentences, grades, source_texts=None, word_embeddings=globals.EMBEDDING_TFIDF):
         # TODO: ZAKAJ IMAMO TUKAJ 'grades', saj jih nikjer ne uporabljamo??!!
@@ -188,7 +187,7 @@ class Coherence(BaseModule):
         minimums = []
         maximums = []
         for d in D:
-            neighbour_distances = [d[i,i+1] for i in range(0, d.shape[0]-1)]
+            neighbour_distances = [d[i, i + 1] for i in range(0, d.shape[0] - 1)]
             # if neighbour_distances[0] == 1:
             #     print(self.tfidf_parts[-2])
             #     print(neighbour_distances)
@@ -218,12 +217,12 @@ class Coherence(BaseModule):
         for d in D:
             n = d.shape[0]
             distances = np.triu(d)
-            averages.append(np.sum(distances) / max(1, (n*(n-1)/2)))
+            averages.append(np.sum(distances) / max(1, (n * (n - 1) / 2)))
             maximums.append(np.amax(distances))
-            #nans = np.where(averages[-1] == np.nan)[0]
-            #averages[-1][nans] = 0
-            #nans = np.where(maximums[-1] == np.nan)[0]
-            #maximums[-1][nans] = 0
+            # nans = np.where(averages[-1] == np.nan)[0]
+            # averages[-1][nans] = 0
+            # nans = np.where(maximums[-1] == np.nan)[0]
+            # maximums[-1][nans] = 0
         return averages, maximums
 
     def calculate_nn_distances(self, D):
@@ -242,17 +241,17 @@ class Coherence(BaseModule):
             s = 0
             for i in range(n):
                 if n > 1:
-                    s += np.amin(np.delete(d[i,:], i))
-            averages.append(s/n)
-            ce = 2*math.sqrt(n)*s / n
+                    s += np.amin(np.delete(d[i, :], i))
+            averages.append(s / n)
+            ce = 2 * math.sqrt(n) * s / n
             clark_evans.append(ce)
             count = 0
             for i in range(n):
                 if n > 1:
-                    if np.amin(np.delete(d[i,:], i)) <= averages[-1]: #TODO: maybe use matrix to store values
+                    if np.amin(np.delete(d[i, :], i)) <= averages[-1]:  # TODO: maybe use matrix to store values
                         count += 1
-            cumulative_freq.append(float(count)/n)
-        return clark_evans, averages, cumulative_freq # TODO: za cfreq nism zihr :/
+            cumulative_freq.append(float(count) / n)
+        return clark_evans, averages, cumulative_freq  # TODO: za cfreq nism zihr :/
 
     def calculate_centroid_distances(self, C):
         """
@@ -307,7 +306,7 @@ class Coherence(BaseModule):
                 d_max = max(d_max, abs(self.euclidean_distance(np.array([i]), np.array([C[doc_i]]))))
                 if d_max == 0:
                     d_max = 1
-            relative_distances.append(standard_distances[-1]/d_max)
+            relative_distances.append(standard_distances[-1] / d_max)
 
         return standard_distances, relative_distances
 
@@ -331,10 +330,10 @@ class Coherence(BaseModule):
         morans_i = []
         for doc_i in range(len(self.tfidf_parts)):
             doc = self.tfidf_parts[doc_i]
-            N = doc.shape[0] # st. tock
-            n = doc.shape[1] # st. komponent
-            S = (N - 1)*2 # vsota utezi TODO: je to res: sosedov je n-1 ?? update: JA?
-            m = 0 # sprotna vsota
+            N = doc.shape[0]  # st. tock
+            n = doc.shape[1]  # st. komponent
+            S = (N - 1) * 2  # vsota utezi TODO: je to res: sosedov je n-1 ?? update: JA?
+            m = 0  # sprotna vsota
             D = doc - C[doc_i]
             '''
             for k in range(doc.shape[1]):
@@ -367,7 +366,7 @@ class Coherence(BaseModule):
             if N < 2:
                 m = 0
             else:
-                m = (N/S) * (m/n)
+                m = (N / S) * (m / n)
             morans_i.append(m)
 
         return morans_i
@@ -385,7 +384,7 @@ class Coherence(BaseModule):
                 doc = doc.todense()
             N = doc.shape[0]  # st. tock
             n = doc.shape[1]  # st. komponent
-            S = (N - 1)*2  # vsota utezi
+            S = (N - 1) * 2  # vsota utezi
             c = 0  # sprotna vsota
             D = doc - C[doc_i]
             D_mean = doc - C[doc_i]
@@ -430,7 +429,7 @@ class Coherence(BaseModule):
             if N < 2:
                 c = 0
             else:
-                c = ((N-1)/(2*S)) * (c/n)
+                c = ((N - 1) / (2 * S)) * (c / n)
             gearys_c.append(c)
 
         return gearys_c
@@ -493,7 +492,7 @@ class Coherence(BaseModule):
             if N < 2:
                 g = 0
             else:
-                g = g/n
+                g = g / n
             getis_g.append(g)
 
         return getis_g
@@ -504,7 +503,7 @@ class Coherence(BaseModule):
         :return: Centroids, Centroid distance matrix (euclidean), Centroid distance matrix (cosine) (3 parameters)
         """
         C = []
-        CD_euc = [] # centroid distance matrix
+        CD_euc = []  # centroid distance matrix
         CD_cos = []
 
         for doc in self.tfidf_parts:
@@ -564,7 +563,8 @@ class Coherence(BaseModule):
         print(corpus_tokens)
         # Remove stopwords and string punctuations
         sw = stopwords.words("english")
-        corpus_tokens = [[token for token in i if token not in string.punctuation and token not in sw] for i in corpus_tokens]
+        corpus_tokens = [[token for token in i if token not in string.punctuation and token not in sw] for i in
+                         corpus_tokens]
         print(corpus_tokens)
         # corpus_tokens = self.corpus.tokens
         # append source/prompt text
@@ -597,7 +597,7 @@ class Coherence(BaseModule):
                 if len(p.replace(" ", "")) > 1:  # Fix for sometimes appending empty string
                     parts.append(p)
 
-            if len(parts) == 0: # If no valid parts were added, add a placeholder so it doesn't crash
+            if len(parts) == 0:  # If no valid parts were added, add a placeholder so it doesn't crash
                 parts.append("0")
 
             self.corpus_parts.append(parts)
@@ -626,7 +626,7 @@ class Coherence(BaseModule):
                     self.tfidf_parts.append(tfidf_vectorizer.fit_transform(parts))
                 except Exception:
                     print("Warning: empty string or stopwords only in tfidf essay part! Appending zeros!")
-                    self.tfidf_parts.append(np.zeros((len(parts),len(parts))))
+                    self.tfidf_parts.append(np.zeros((len(parts), len(parts))))
             elif self.word_embeddings == globals.EMBEDDING_GLOVE_FLAIR:
                 essay_word_embedding = []
                 # vocab = nlp.vocab

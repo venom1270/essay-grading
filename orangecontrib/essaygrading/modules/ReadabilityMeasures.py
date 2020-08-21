@@ -11,7 +11,6 @@ name = "Readability measures"
 
 
 class ReadabilityMeasures(BaseModule):
-
     name = "Readability measures"
 
     def __init__(self, corpus, corpus_sentences):

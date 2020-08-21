@@ -52,11 +52,11 @@ class OWSemanticConsistency(OWWidget):
     use_coreference = False
 
     dlgFormats = (
-        "All readable files ({});;".format(
-            '*' + ' *'.join(Orange.data.io.FileFormat.readers.keys())) +
-        ";;".join("{} (*{})".format(f.DESCRIPTION, ' *'.join(f.EXTENSIONS))
-                  for f in sorted(set(Orange.data.io.FileFormat.readers.values()),
-                                  key=list(Orange.data.io.FileFormat.readers.values()).index)))
+            "All readable files ({});;".format(
+                '*' + ' *'.join(Orange.data.io.FileFormat.readers.keys())) +
+            ";;".join("{} (*{})".format(f.DESCRIPTION, ' *'.join(f.EXTENSIONS))
+                      for f in sorted(set(Orange.data.io.FileFormat.readers.values()),
+                                      key=list(Orange.data.io.FileFormat.readers.values()).index)))
 
     want_main_area = False
 
@@ -65,7 +65,7 @@ class OWSemanticConsistency(OWWidget):
 
         self.corpus = None
         self.source_texts = None
-        self.dataset = None # I don't really need this
+        self.dataset = None  # I don't really need this
         self.source_text_file = None
 
         self._task = None  # type: Optional[Task]
@@ -85,7 +85,7 @@ class OWSemanticConsistency(OWWidget):
 
         self.label_openie_system = gui.widgetLabel(parametersBox, 'OpenIE system: ')
         self.cb_openie_system = gui.comboBox(widget=parametersBox, master=self, items=("ClausIE", "OpenIE-5.0"),
-                                                         value="openie_system", sendSelectedValue=True)
+                                             value="openie_system", sendSelectedValue=True)
 
         fbox = gui.widgetBox(self.controlArea, "Optional source text file", orientation=0)
         self.file_widget = FileWidget(
@@ -202,7 +202,6 @@ class OWSemanticConsistency(OWWidget):
         self.cancel()
         super().onDeleteWidget()
 
-
     def cancel(self):
         """
         Cancel the current task (if any).
@@ -265,9 +264,8 @@ class OWSemanticConsistency(OWWidget):
                         essay_feedback_string += " ".join(ef)
                     essay_feedback_string += " "
 
-                output_list.append([essay_id, essay_errors[0], essay_errors[1], essay_errors[2], essay_feedback_string, essay_feedback_detail_string])
-
-
+                output_list.append([essay_id, essay_errors[0], essay_errors[1], essay_errors[2], essay_feedback_string,
+                                    essay_feedback_detail_string])
 
             print(output["feedback"])
 
@@ -294,20 +292,19 @@ class OWSemanticConsistency(OWWidget):
         else:
             pass
 
-
     def _invalidate_results(self):
         self._update()
 
 
 def prepare_data(data):
-    '''p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
+    """p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
                                 transformers=[preprocess.LowercaseTransformer()],
                                 pos_tagger=pos.AveragedPerceptronTagger(),
                                 normalizer=preprocess.WordNetLemmatizer())
     p_sentences = preprocess.Preprocessor(tokenizer=preprocess.PunktSentenceTokenizer(),
                                           # transformers=[preprocess.LowercaseTransformer()],
                                           # ce je to vklopljeno, pol neki nedela cist prov.
-                                          pos_tagger=pos.AveragedPerceptronTagger())'''
+                                          pos_tagger=pos.AveragedPerceptronTagger())"""
 
     p = preprocess.PreprocessorList([preprocess.WordPunctTokenizer(),
                                      preprocess.LowercaseTransformer(),
@@ -328,7 +325,6 @@ def prepare_data(data):
 
 def checkSemanticErrors(corpus, openie_system="ClausIE", use_coreference=False, callback=None, source_text=None,
                         explain=False):
-
     callback(0.01)
 
     _, sentences = prepare_data(corpus)
@@ -363,9 +359,9 @@ def checkSemanticErrors(corpus, openie_system="ClausIE", use_coreference=False, 
 
 
 if __name__ == "__main__":
-
     # WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/set1_train.tsv"),
     #                                  set_source_texts=Corpus.from_file("../datasets/source_texts.tsv"))
 
-    # WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/All datasets/set6.tsv"))  # set5_utf8.tsv"))  # set3_small_2.tsv
-    WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/Lisa.tsv"))
+    WidgetPreview(OWSemanticConsistency).run(
+        set_essays=Corpus.from_file("../datasets/All datasets/set3_utf8.tsv"))  # set5_utf8.tsv"))  # set3_small_2.tsv
+    # WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/Lisa.tsv"))

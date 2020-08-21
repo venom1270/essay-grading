@@ -1,53 +1,47 @@
 import nltk
 import re
 
-# TODO: teli zlogi so krneki
-# https://www.howmanysyllables.com/syllable_counter/
-# na tej strani pomoje skor 100% prov dela in cep rimerjam mam js malenkost bolj random rezultate
 
 def get_syllable_count(documents):
-    '''
+    """
     Get number of syllables for each document(essay).
     :param documents: list of documents/essays.
     :return: list of number of syllables.
-    '''
+    """
     syllables = []
     for doc in documents:
         count = 0
         for token in doc:
-            '''if token in nltk_phonetic_dict:
-                #print(token)
-                #print([len([y for y in x if y[-1].isdigit()]) for x in nltk_phonetic_dict[token]])
-                # TODO: kaj ce na indeksu 0 ni nic? error checking... pa tud tole ni cist natancen
-                count += min([len([y for y in x if y[-1].isdigit()]) for x in nltk_phonetic_dict[token]])
-            else:
-                count += sylco(token)'''
             count += get_syllable_count_word(token)
         syllables.append(count)
     return syllables
 
+
 nltk_phonetic_dict = nltk.corpus.cmudict.dict()
+
+
 def get_syllable_count_word(word):
-    '''
+    """
     Get number of syllables in a word.
     :param word: word to cound syllables.
     :return: number of syllables.
-    '''
+    """
     syllables = []
     if word in nltk_phonetic_dict:
-        #print(token)
-        #print([len([y for y in x if y[-1].isdigit()]) for x in nltk_phonetic_dict[token]])
+        # print(token)
+        # print([len([y for y in x if y[-1].isdigit()]) for x in nltk_phonetic_dict[token]])
         # TODO: kaj ce na indeksu 0 ni nic? error checking... pa tud tole ni cist natancen
         return min([len([y for y in x if y[-1].isdigit()]) for x in nltk_phonetic_dict[word]])
     else:
         return sylco(word)
 
+
 def sylco(word):
-    '''
+    """
     Get number of syllables in a word. By Kaja Zupanc.
     :param word: word to cound syllables.
     :return: number of syllables.
-    '''
+    """
 
     word = word.lower()
 
@@ -77,7 +71,8 @@ def sylco(word):
     if word[-2:] == "es" or word[-2:] == "ed":
         doubleAndtripple_1 = len(re.findall(r'[eaoui][eaoui]', word))
         if doubleAndtripple_1 > 1 or len(re.findall(r'[eaoui][^eaoui]', word)) > 1:
-            if word[-3:] == "ted" or word[-3:] == "tes" or word[-3:] == "ses" or word[-3:] == "ied" or word[-3:] == "ies":
+            if word[-3:] == "ted" or word[-3:] == "tes" or word[-3:] == "ses" or word[-3:] == "ied" or word[
+                                                                                                       -3:] == "ies":
                 pass
             else:
                 disc += 1
@@ -134,7 +129,8 @@ def sylco(word):
         else:
             syls += 1
 
-    # 11) if starts with "co-" and is followed by a vowel, check if exists in the double syllable dictionary, if not, check if in single dictionary and act accordingly.
+    # 11) if starts with "co-" and is followed by a vowel, check if exists in the double syllable dictionary,
+    # if not, check if in single dictionary and act accordingly.
 
     if word[:2] == "co" and word[2] in 'eaoui':
 
@@ -145,7 +141,8 @@ def sylco(word):
         else:
             syls += 1
 
-    # 12) if starts with "pre-" and is followed by a vowel, check if exists in the double syllable dictionary, if not, check if in single dictionary and act accordingly.
+    # 12) if starts with "pre-" and is followed by a vowel, check if exists in the double syllable dictionary,
+    # if not, check if in single dictionary and act accordingly.
 
     if word[:3] == "pre" and word[3] in 'eaoui':
         if word[:6] in pre_one:
@@ -160,10 +157,8 @@ def sylco(word):
     if word[-3:] == "n't":
         if word in negative:
             syls += 1
-        else:
-            pass
 
-            # 14) Handling the exceptional words.
+    # 14) Handling the exceptional words.
 
     if word in exception_del:
         disc += 1
@@ -173,14 +168,3 @@ def sylco(word):
 
         # calculate the output
     return numVowels - disc + syls
-
-######### OLD? ############
-def nsyl(word):
-    '''
-    Get number of syllables in a word. OLD METHOD???
-    :param word: word to cound syllables.
-    :return: number of syllables.
-    :param word: 
-    :return: 
-    '''
-    return [len(list(y for y in x if y[-1].isdigit())) for x in nltk_phonetic_dict[word.lower()]]

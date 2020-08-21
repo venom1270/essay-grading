@@ -1,19 +1,18 @@
 import os
 import subprocess
-# https://github.com/AnthonyMRios/pyclausie
 from orangecontrib.essaygrading.utils.lemmatizer import lemmatizeSentences
 from orangecontrib.essaygrading.utils.lemmatizer import stemSentences
 
 
 class OpenIEExtraction:
-
     openie = None
 
     def __init__(self, openie_system="ClausIE"):
         pass
 
-    def extract_triples(self, sentences):
+    def extract_triples(self, sentences, id=1):
         pass
+
 
 # https://github.com/AnthonyMRios/pyclausie
 
@@ -25,7 +24,7 @@ class OpenIEExtraction:
 # FIX: v vrstici 68 dodaš: input_file.close()
 
 # VECJI KEKEC OD PRICAKOVANJ: v Triples.py je treba dvakrat dodati:
-#if len(line.split('\t')) < 4:
+# if len(line.split('\t')) < 4:
 #    continue
 # enkrat < 4, drugic < 5
 
@@ -92,12 +91,11 @@ class ClausIE(OpenIEExtraction):
         from orangecontrib.essaygrading.external.pyclausie.pyclausie import ClausIE
         self.openie = ClausIE.get_instance()
 
-    def extract_triples(self, sentences):
+    def extract_triples(self, sentences, id=1):
         triples = []
 
-
         # OPTIMIZATION: join all sentences in one array and then group them by essay
-        #sentences = sentences[0:15]
+        # sentences = sentences[0:15]
         sent_num = []
         all_sentences = []
         for essay_sentences in sentences:
@@ -105,10 +103,10 @@ class ClausIE(OpenIEExtraction):
             for sentence in essay_sentences:
                 all_sentences.append(sentence)
 
-        #all_sentences = lemmatizeSentences(all_sentences, stem_ing=True)
+        # all_sentences = lemmatizeSentences(all_sentences, stem_ing=True)
         # mogoce zanimivo: https://stackoverflow.com/questions/47856247/extract-verb-phrases-using-spacy
         # Try stemming, because ClausIE does not have robust error handling
-        #all_sentences = stemSentences(all_sentences)
+        # all_sentences = stemSentences(all_sentences)
         print(all_sentences)
         extracted_triples = self.openie.extract_triples(all_sentences)
 
@@ -128,56 +126,6 @@ class ClausIE(OpenIEExtraction):
                 sent_count += 1
             triples.append(essay_triples)
 
-
-        '''
-        # CHECK
-        l = 0
-        for t in triples:
-            for s in t:
-                l += len(s)
-        print(l)
-        '''
-
-
-
-        '''
-        # TEST HITROSTI... stavek po stavek je obupno počasi...
-        import time
-        sentences = sentences[0:8]
-        start = time.time()
-        for essay_sentences in sentences:
-            #print(essay_sentences)
-            print("EXTRACTING")
-            # for s in essay_sentences:
-            #    print(s)
-            triple = self.openie.extract_triples(essay_sentences)
-            triples.append(triple)
-        end = time.time()
-        print(end - start)
-        start = time.time()
-        for essay_sentences in sentences:
-            qwe = []
-            #print(essay_sentences)
-            print("EXTRACTING")
-            for s in essay_sentences:
-                triple = self.openie.extract_triples([s])
-                qwe.append(triple)
-            triples.append(qwe)
-        end = time.time()
-        print(end - start)
-        '''
-        '''
-        # OLD
-        for essay_sentences in sentences:
-            print(essay_sentences)
-            print("EXTRACTING")
-            #for s in essay_sentences:
-            #    print(s)
-            triple = self.openie.extract_triples(essay_sentences)
-            triples.append(triple)
-            
-        '''
-
         return triples
 
 
@@ -187,15 +135,18 @@ class OpenIE5(OpenIEExtraction):
         self.path = "C:\\Users\\zigsi\\Desktop\\OIE\\OpenIE-standalone-master"
         os.chdir(self.path)
 
-    def extract_triples(self, sentences):
+    def extract_triples(self, sentences, id=1):
 
         # write them to file and run openIE5; also remember which sentences match with which essay
         sent_num = []
 
-        with open("input.txt", "w", encoding="utf8") as input_file:
+        input_name = str(id) + ".txt"
+        output_name = str(id) + "_out.txt"
+
+        with open(input_name, "w", encoding="utf8") as input_file:
             for essay_sentences in sentences:
                 sent_num.append(len(essay_sentences))
-                #essay_sentences = lemmatizeSentences(essay_sentences)
+                # essay_sentences = lemmatizeSentences(essay_sentences)
                 for sentence in essay_sentences:
                     if len(sentence) < 5:
                         print(sentence)
@@ -203,25 +154,27 @@ class OpenIE5(OpenIEExtraction):
             input_file.close()
 
         # java -Xmx10g -XX:+UseConcMarkSweepGC -jar openie-assembly.jar
-        p = subprocess.Popen(['java', '-Xmx10g', '-XX:+UseConcMarkSweepGC', '-jar', 'openie-assembly-5.0-SNAPSHOT.jar', 'input.txt', 'output.txt', '--ignore-errors'])
+        p = subprocess.Popen(
+            ['java', '-Xmx10g', '-XX:+UseConcMarkSweepGC', '-jar', 'openie-assembly-5.0-SNAPSHOT.jar', input_name,
+             output_name, '--ignore-errors'])
         p.wait()
 
-        out_file = open("out.txt", "w", encoding="utf8")
+        out_file = open(str(id) + "out_parsed.txt", "w", encoding="utf8")
 
         triples = []
         essay_index = 1
-        with open("output.txt", "r", encoding="utf8") as output_file:
+        with open(output_name, "r", encoding="utf8") as output_file:
             lines = output_file.readlines()
             fi = 0
             for i in sent_num:
                 essay_triples = []
                 for j in range(i):
                     sentence_triples = []
-                    #fi+0 je stavek
-                    #fi+1 je ekstrakcija
-                    #fi+x je prazna vrstica, ki pomeni konec
-                    while len(lines) > fi+1 and len(lines[fi+1]) > 5:
-                        split = lines[fi+1].split(" ", 1)
+                    # fi+0 je stavek
+                    # fi+1 je ekstrakcija
+                    # fi+x je prazna vrstica, ki pomeni konec
+                    while len(lines) > fi + 1 and len(lines[fi + 1]) > 5:
+                        split = lines[fi + 1].split(" ", 1)
                         confidence = split[0]
                         t = split[1]
                         fi += 1
@@ -234,25 +187,25 @@ class OpenIE5(OpenIEExtraction):
                             # dodaj v triple objekt
                             triple = {}
                             if len(t_split) == 3:
-                                #triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[2]}
+                                # triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[2]}
                                 triple = Triple(t_split[0], t_split[1], t_split[2])
                             else:
                                 if t_split[2].startswith("T:") or t_split[2].startswith("L:"):
-                                    #triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[3], 'time': t_split[2]}
+                                    # triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[3], 'time': t_split[2]}
                                     triple = Triple(t_split[0], t_split[1], t_split[3], t_split[2])
                                 elif t_split[3].startswith("T:") or t_split[3].startswith("L:"):
-                                    #triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[2], 'time': t_split[3]}
+                                    # triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[2], 'time': t_split[3]}
                                     triple = Triple(t_split[0], t_split[1], t_split[2], t_split[3])
                                 else:
                                     print("ERROR")
                                     print(t_split)
-                                    #triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[2]}
+                                    # triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[2]}
                                     triple = Triple(t_split[0], t_split[1], t_split[2])
                                     sentence_triples.append(triple)
-                                    #triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[3]}
+                                    # triple = {'subject': t_split[0], 'predicate': t_split[1], 'object': t_split[3]}
                                     triple = Triple(t_split[0], t_split[1], t_split[3])
-                            #sentence_triples.append((confidence, t_split))
-                            #out_file.write(str(essay_index) + " " + str(j) + " (" + triple["subject"] + "; " + triple["predicate"] + "; " + triple["object"] + ")\n")
+                            # sentence_triples.append((confidence, t_split))
+                            # out_file.write(str(essay_index) + " " + str(j) + " (" + triple["subject"] + "; " + triple["predicate"] + "; " + triple["object"] + ")\n")
                             out_file.write(str(essay_index) + " " + str(j) + " (" + triple.subject + "; " +
                                            triple.predicate + "; " + triple.object + ")\n")
                             sentence_triples.append(triple)
@@ -261,17 +214,32 @@ class OpenIE5(OpenIEExtraction):
                 triples.append(essay_triples)
                 essay_index += 1
 
-        return triples
+                # We have a list: [Essay1:[Triples sentence 1: [...], Triples sentence 2:[...], Essay 2: [...]...]]
+                # Flatten the list
+                final_triples = []  # over sentences
+                final_all_triples = []  # over essays
+                index = 0
+                # print(triples)
+                for triples_essay in triples:
+                    for triples_sentence in triples_essay:
+                        for triple in triples_sentence:
+                            triple.index = index
+                            final_triples.append([triple])
+                        index += 1
+                    final_all_triples.append(final_triples)
+
+        return final_all_triples
 
 
 class Triple:
-
+    index = 0
     subject = ""
     predicate = ""
     object = ""
     time = ""
 
-    def __init__(self, sub, pred, obj, time=""):
+    def __init__(self, sub, pred, obj, time="", index=0):
+        self.index = index
         self.subject = sub
         self.predicate = pred
         self.object = obj
@@ -280,5 +248,15 @@ class Triple:
 
 if __name__ == "__main__":
     q = ClausIE()
-    q.extract_triples([['Just think now while your setting up meeting with your boss on the computer, your teenager is having fun on the phone not rushing to get off cause you want to use it.', 'How did you learn about other countrys/states outside of yours?', "Well I have by computer/internet, it's a new way to learn about what going on in our time!", "You might think your child spends a lot of time on the computer, but ask them so question about the economy, sea floor spreading or even about the @DATE1's you'll be surprise at how much he/she knows.", 'Believe it or not the computer is much interesting then in class all day reading out of books.', "If your child is home on your computer or at a local library, it's better than being out with friends being fresh, or being perpressured to doing something they know isnt right.", 'You might not know where your child is, @CAPS2 forbidde in a hospital bed because of a drive-by.', 'Rather than your child on the computer learning, chatting or just playing games, safe and sound in your home or community place.', 'Now I hope you have reached a point to understand and agree with me, because computers can have great effects on you or child because it gives us time to chat with friends/new people, helps us learn about the globe and believe or not keeps us out of troble.', 'Thank you for listening.']])
-    #q.extract_triples([["Rather than your child on the computer learning, chatting or just playing games, safe and sound in your home or community place."]])
+    q.extract_triples([[
+        'Just think now while your setting up meeting with your boss on the computer, your teenager is having fun on the phone not rushing to get off cause you want to use it.',
+        'How did you learn about other countrys/states outside of yours?',
+        "Well I have by computer/internet, it's a new way to learn about what going on in our time!",
+        "You might think your child spends a lot of time on the computer, but ask them so question about the economy, sea floor spreading or even about the @DATE1's you'll be surprise at how much he/she knows.",
+        'Believe it or not the computer is much interesting then in class all day reading out of books.',
+        "If your child is home on your computer or at a local library, it's better than being out with friends being fresh, or being perpressured to doing something they know isnt right.",
+        'You might not know where your child is, @CAPS2 forbidde in a hospital bed because of a drive-by.',
+        'Rather than your child on the computer learning, chatting or just playing games, safe and sound in your home or community place.',
+        'Now I hope you have reached a point to understand and agree with me, because computers can have great effects on you or child because it gives us time to chat with friends/new people, helps us learn about the globe and believe or not keeps us out of troble.',
+        'Thank you for listening.']])
+    # q.extract_triples([["Rather than your child on the computer learning, chatting or just playing games, safe and sound in your home or community place."]])

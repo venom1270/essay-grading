@@ -6,21 +6,21 @@ import re
 class HermiT:
 
     def __init__(self):
-        '''
+        """
         Init. HermiT path is set.
-        '''
+        """
         # self.path = "C:/Users/zigsi/Desktop/OIE/HermiT/"
         self.path = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/external/hermit/"
 
     def debugPrint(self, i='[X]', *args, **kwargs, ):
-        '''
+        """
         Logging method. Same behavior as "print()", but prints id in format "[ID] " before content (*args).
-        '''
+        """
         print("[" + str(i) + "] ", end="")
         print(*args, **kwargs)
 
     def check_unsatisfiable_cases(self, ontology, remove=True, explain=False, i=0):
-        '''
+        """
         :param ontology: rdflig Graph() object.
         :param remove: remove temporary .owl file after check.
         :param explain: return detailed explanations.
@@ -33,7 +33,7 @@ class HermiT:
         TRUE	Yes	|   TRUE
         TRUE	No	|   List<Exp>
 
-        '''
+        """
         os.chdir(self.path)
         onto_path = "ontologies/ontology_tmp_test_" + str(i) + ".owl"
         ontology.serialize(onto_path, format='pretty-xml')
@@ -48,11 +48,11 @@ class HermiT:
         if explain:
             output = subprocess.call(['javaw', '-jar', self.path + "HermiT.jar", '-U', IRI, '-X'],
                                      stdout=open('ontologies/logs/logfile_' + str(i) + '.log', 'w'),
-                                     stderr=open('ontologies/logs/logfile_' + str(i) + '.err', 'w'),)
+                                     stderr=open('ontologies/logs/logfile_' + str(i) + '.err', 'w'), )
         else:
             output = subprocess.call(['javaw', '-jar', self.path + "HermiT.jar", '-U', IRI],
                                      stdout=open('ontologies/logs/logfile_' + str(i) + '.log', 'w'),
-                                     stderr=open('ontologies/logs/logfile_' + str(i) + '.err', 'w'),)
+                                     stderr=open('ontologies/logs/logfile_' + str(i) + '.err', 'w'), )
 
         self.debugPrint(i, "Finished")
         if remove:
@@ -60,10 +60,10 @@ class HermiT:
         else:
             self.debugPrint(i, onto_path)
         if output != 0:
-            #print("ERROR COUNT +1")
-            #errorCount[0] = errorCount[0] + 1
-            #extrNumber = extrNumber - 1
-            #O.remove((subject, RDF.type, AURI))
+            # print("ERROR COUNT +1")
+            # errorCount[0] = errorCount[0] + 1
+            # extrNumber = extrNumber - 1
+            # O.remove((subject, RDF.type, AURI))
             self.debugPrint(i, "Ourput != 0:")
             self.debugPrint(i, output)
             self.debugPrint(i, "LOG")
@@ -89,20 +89,20 @@ class HermiT:
                 self.debugPrint(i, read)
                 if read[38:49] != "owl:Nothing" or len(read) > 52:
                     self.debugPrint(i, "unsatisfiable COUNT +1")
-                    #errorCount[1] = errorCount[1] + 1
-                    #extrNumber = extrNumber - 1
-                    #ontology.remove((subject, RDF.type, AURI))
+                    # errorCount[1] = errorCount[1] + 1
+                    # extrNumber = extrNumber - 1
+                    # ontology.remove((subject, RDF.type, AURI))
                 else:
                     self.debugPrint(i, "Ontology OK")
                     return True
         return False
 
     def read_explanations(self, i):
-        '''
+        """
         Read explanations and parse them to readable strings.
         :param i: id of process (for logging).
         :return: parsed explanations.
-        '''
+        """
         read = None
         with open('explanations.txt', 'r') as f:
             read = f.read()
@@ -129,12 +129,12 @@ class HermiT:
         return self.parse_explanations(explanations, i)
 
     def parse_explanations(self, explanations, i):
-        '''
+        """
         Parse list of explanations to readable string.
         :param explanations: list of explanations.
         :param i: id of process (for logging).
         :return: list of readable explanations.
-        '''
+        """
         p_explanations = []
         for explanation in explanations:
             p_explanation = []
@@ -145,12 +145,12 @@ class HermiT:
         return p_explanations
 
     def parse_exp(self, explanation, i):
-        '''
+        """
         Parse explanation to easily readable text.
         :param explanation: explanation string
         :param i: id of process (for logging).
         :return: readable explanation string.
-        '''
+        """
         num_groups = 4
         text = re.search("(.+?)\( *<(.+?)> *<(.+?)> *<(.+?)> *\)", explanation)
         if text is None:
@@ -159,34 +159,40 @@ class HermiT:
         self.debugPrint(i, "Parsing explanation")
         self.debugPrint(i, explanation)
         self.debugPrint(i, "Printing text")
-        #print(text)
+        # print(text)
         parsed_explanation = None
         if text:
-            #for i in range(1, num_groups+1):
+            # for i in range(1, num_groups+1):
             #    print(text.group(i))
             typ = text.group(1)
             exp_text = ""
             if typ == "ObjectPropertyAssertion":
-                exp_text = "Relation not consistent: " + self.url_to_readable_string(text.group(3)) + " " + self.url_to_readable_string(text.group(2)) + " " + self.url_to_readable_string(text.group(4)) + "."
+                exp_text = "Relation not consistent: " + self.url_to_readable_string(
+                    text.group(3)) + " " + self.url_to_readable_string(
+                    text.group(2)) + " " + self.url_to_readable_string(text.group(4)) + "."
                 self.debugPrint(i, exp_text)
             elif typ == "DisjointObjectProperties":
-                exp_text = "Relations " + self.url_to_readable_string(text.group(2)) + " and " + self.url_to_readable_string(text.group(3)) + " are opposite/disjoint."
+                exp_text = "Relations " + self.url_to_readable_string(
+                    text.group(2)) + " and " + self.url_to_readable_string(text.group(3)) + " are opposite/disjoint."
                 self.debugPrint(i, exp_text)
             elif typ == "DisjointClasses":
-                exp_text = "Concepts " + self.url_to_readable_string(text.group(2)) + " and " + self.url_to_readable_string(text.group(3)) + " are opposite/disjoint."
+                exp_text = "Concepts " + self.url_to_readable_string(
+                    text.group(2)) + " and " + self.url_to_readable_string(text.group(3)) + " are opposite/disjoint."
             elif typ == "ClassAssertion":
-                exp_text = "'" + self.url_to_readable_string(text.group(3)) + " is " + self.url_to_readable_string(text.group(2)) + "'."
+                exp_text = "'" + self.url_to_readable_string(text.group(3)) + " is " + self.url_to_readable_string(
+                    text.group(2)) + "'."
             elif typ == "SubClassOf":
-                exp_text = "'" + self.url_to_readable_string(text.group(3)) + " is a subclass/hyponym of " + self.url_to_readable_string(text.group(2)) + "'."
+                exp_text = "'" + self.url_to_readable_string(
+                    text.group(3)) + " is a subclass/hyponym of " + self.url_to_readable_string(text.group(2)) + "'."
             else:
                 self.debugPrint(i, "Unknown relation type: " + str(typ))
             parsed_explanation = exp_text
         return parsed_explanation
 
     def url_to_readable_string(self, URL):
-        '''
+        """
         URIRef to string.
         :param URL: URIREf.
         :return: string from URIRef
-        '''
+        """
         return str(URL).split("#")[1]

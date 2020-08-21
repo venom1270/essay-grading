@@ -15,7 +15,6 @@ name = "Content"
 
 
 class Content(BaseModule):
-
     name = "Content"
 
     def __init__(self, corpus, corpus_sentences, grades, source_texts=None, graded_corpus=None,
@@ -248,8 +247,9 @@ class Content(BaseModule):
         Calculates number of punctuation errors.
         :return: Number of punctuation errors of each essay.
         """
-        punctuation_errors = [sum([1 for e in doc_errors if e.category == "Punctuation" or e.category == "Miscellaneous"])
-                              for doc_errors in self.lang_check_errors]
+        punctuation_errors = [
+            sum([1 for e in doc_errors if e.category == "Punctuation" or e.category == "Miscellaneous"])
+            for doc_errors in self.lang_check_errors]
         return punctuation_errors
 
     def calculate_cosine_source_text(self):

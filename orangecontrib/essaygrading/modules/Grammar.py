@@ -5,12 +5,10 @@ import collections
 from orangecontrib.essaygrading.modules.BaseModule import BaseModule
 from orangecontrib.essaygrading.utils.parse_tree_util import get_parse_tree_height
 
-
 name = "Grammar"
 
 
 class Grammar(BaseModule):
-
     name = "Grammar"
 
     def __init__(self, corpus=None, corpus_sentences=None):
@@ -87,7 +85,7 @@ class Grammar(BaseModule):
         """
         # TODO: med POS tagi so pike, vejce, oklepaji... treba bi blo removat stop worde -- update: to je ze?
         # Normalized with 36: https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
-        num_of_different_pos_tags = [len(doc)/36 for doc in self.pos_tag_counter]
+        num_of_different_pos_tags = [len(doc) / 36 for doc in self.pos_tag_counter]
         return num_of_different_pos_tags
 
     def calculate_sentence_structure_tree_height(self):
@@ -242,7 +240,7 @@ class Grammar(BaseModule):
         if selected_attributes is None or selected_attributes.cbPosVerbPresentParticiple:
             pos_count = np.array([tags.get("VBG", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_VBG"] = pos_count
-         #i = self._update_progressbar(callback, proportions, i)
+        # i = self._update_progressbar(callback, proportions, i)
         if selected_attributes is None or selected_attributes.cbPosVerbPastParticiple:
             pos_count = np.array([tags.get("VBN", 0) for tags in self.pos_tag_counter])
             attribute_dictionary["pos_VBN"] = pos_count

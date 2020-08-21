@@ -140,7 +140,8 @@ class OWScoreEssayPredictions(OWWidget):
                 if self.true_scores_selection == "score" and len(np.array(self.data.Y).shape) == 1:
                     self.true_scores = self.data.Y
                 else:
-                    self.true_scores = self.data.Y[:, index] # TODO: za tole nism zihr, najbrz nikol do tega sploh ne pride?
+                    self.true_scores = self.data.Y[:,
+                                       index]  # TODO: za tole nism zihr, najbrz nikol do tega sploh ne pride?
             else:
                 self.true_scores = None
         else:
@@ -173,9 +174,7 @@ class OWScoreEssayPredictions(OWWidget):
             print(self.predictions)
             print(self.true_scores)
 
-            # pred = np.array([round(x[0]) for x in self.predictions])
             pred = np.array([round(x) for x in self.predictions])
-            # folds = []
             print(self.predictions)
             # if self.predictions.metas is not None:
             #     folds = np.array([x[0] for x in self.predictions.metas])
@@ -201,16 +200,17 @@ class OWScoreEssayPredictions(OWWidget):
             kappa_folds = []
             exact_folds = []
             num_folds = int(max(folds)) + 1
+
             if len(folds) > 0:
-                for i in range(num_folds): # TODO: dynamic EDIT: je že?
-                    print(i+1)
+                for i in range(num_folds):  # TODO: dynamic EDIT: je že?
+                    print(i + 1)
                     p_scores = np.array([pred[x] for x in range(len(pred)) if folds[x] == i])
                     t_scores = np.array([true[x] for x in range(len(true)) if folds[x] == i])
                     print(p_scores)
                     print(t_scores)
                     print(folds)
                     kappa_folds.append(quadratic_weighted_kappa(t_scores, p_scores))
-                    exact_folds.append((len(p_scores) - sum(np.abs(p_scores-t_scores))) / len(p_scores))
+                    exact_folds.append((len(p_scores) - sum(np.abs(p_scores - t_scores))) / len(p_scores))
 
             self.outDictionary["exactAgreement"] = s / len(self.predictions)
             self.outDictionary["exactAgreementFolds"] = sum(exact_folds) / num_folds
@@ -237,7 +237,7 @@ def confusion_matrix(rater_a, rater_b, min_rating=None, max_rating=None):
     """
     Returns the confusion matrix between rater's ratings
     """
-    assert(len(rater_a) == len(rater_b))
+    assert (len(rater_a) == len(rater_b))
     if min_rating is None:
         min_rating = min(rater_a + rater_b)
     if max_rating is None:
@@ -285,20 +285,20 @@ def quadratic_weighted_kappa(y, y_pred):
     """
     rater_a = y
     rater_b = y_pred
-    min_rating=None
-    max_rating=None
+    min_rating = None
+    max_rating = None
     rater_a = np.array(rater_a, dtype=int)
     rater_b = np.array(rater_b, dtype=int)
-    assert(len(rater_a) == len(rater_b))
+    assert (len(rater_a) == len(rater_b))
     if min_rating is None:
         min_rating = min(min(rater_a), min(rater_b))
     if max_rating is None:
         max_rating = max(max(rater_a), max(rater_b))
 
-    #print(rater_a)
-    #print(rater_b)
-    #print(min_rating)
-    #print(max_rating)
+    # print(rater_a)
+    # print(rater_b)
+    # print(min_rating)
+    # print(max_rating)
     conf_mat = confusion_matrix(rater_a, rater_b,
                                 min_rating, max_rating)
     num_ratings = len(conf_mat)

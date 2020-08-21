@@ -2,6 +2,7 @@ import string
 import nltk
 import numpy as np
 
+
 # https://charactercounttool.com/
 
 class BaseModule:
@@ -65,5 +66,3 @@ class BaseModule:
         self.corpus_sentences = corpus_sentences
 
         self._init_processing(corpus, corpus_sentences)
-
-

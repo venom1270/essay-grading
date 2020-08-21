@@ -93,7 +93,7 @@ def rf_feature_selection(X, y):
 
 # table = Table.from_file("datasets/FAS/set1_train_2.tab")
 #table = Table.from_file("datasets/FAS/set1_train_2.tab")
-table = Table.from_file("datasets/FAS/set8_flair.tab")
+#table = Table.from_file("datasets/FAS/set8_flair.tab")
 
 
 TABLES = []
@@ -101,7 +101,8 @@ TABLES = []
 #    TABLES.append(Table.from_file("datasets/FAS/All/" + s))
 
 #TABLES.append(Table.from_file("datasets/FAS/All/DS1_AGE_TFIDF.tab"))
-
+TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS4_AGE_TFIDF.tab"))
+'''
 TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS1_AGE_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS2A_AGE_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS2B_AGE_TFIDF.tab"))
@@ -121,10 +122,30 @@ TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS5_AGE+_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS6_AGE+_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS7_AGE+_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS8_AGE+_TFIDF.tab"))
+'''
 
+
+# SAGE TESTING
+
+# DS3
+#TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS3_AGE_TFIDF.tab"))
+#TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS3_AGE+_TFIDF.tab"))
+#TABLES.append(Table.from_file("datasets/FAS/All/SAGE/DS3_SAGE_TFIDF.tab"))
+
+# DS4
 #TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS4_AGE_TFIDF.tab"))
 #TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS4_AGE+_TFIDF.tab"))
 #TABLES.append(Table.from_file("datasets/FAS/All/SAGE/DS4_SAGE_TFIDF.tab"))
+
+# DS5
+#TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS5_AGE_TFIDF.tab"))
+#TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS5_AGE+_TFIDF.tab"))
+#TABLES.append(Table.from_file("datasets/FAS/All/SAGE/DS5_SAGE_TFIDF.tab"))
+
+# DS6
+#TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS6_AGE_TFIDF.tab"))
+#TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS6_AGE+_TFIDF.tab"))
+#TABLES.append(Table.from_file("datasets/FAS/All/SAGE/DS6_SAGE_TFIDF.tab"))
 
 '''
 
@@ -185,7 +206,7 @@ base_attributes = 0
 max_fail = 20
 
 # subtract reverses forward selection - start with all attributes and remove them until it stops increasing.
-subtract = True
+subtract = False
 
 for i, table in enumerate(TABLES):
 
@@ -222,7 +243,7 @@ for i, table in enumerate(TABLES):
     k = 10
     chunk = int(len(ALL_ATTRIBUTES) / k)
 
-    max_fail = len(ALL_ATTRIBUTES[0])
+    #max_fail = len(ALL_ATTRIBUTES[0])
 
     attributes = np.array([ALL_ATTRIBUTES[:, 0]]).transpose()
     #kept_attributes = range(base_attributes)
@@ -330,8 +351,8 @@ for i, table in enumerate(TABLES):
                 test_attributes = np.take(test[fold], taken_attributes, axis=1)
 
                 #rf = LinearRegressionLearner()
-                rf = RidgeRegressionLearner(alpha=0.02)  # (n_estimators=100, )#, min_samples_split=max(int(len(attributes[0])/3), 2))
-                #rf = RandomForestRegressionLearner(n_estimators=100, random_state=0)#, max_features=max(int(len(taken_attributes)/3),1))
+                #rf = RidgeRegressionLearner(alpha=0.02)  # (n_estimators=100, )#, min_samples_split=max(int(len(attributes[0])/3), 2))
+                rf = RandomForestRegressionLearner(n_estimators=100, random_state=0)#, max_features=max(int(len(taken_attributes)/3),1))
 
                 # print("Training...")
 

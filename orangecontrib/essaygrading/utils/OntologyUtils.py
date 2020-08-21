@@ -8,14 +8,13 @@ import spacy
 import neuralcoref
 import multiprocessing
 
-
 from orangecontrib.essaygrading.utils import OpenIEExtraction
 from orangecontrib.essaygrading.utils.OntologyUtilsProcess import thread_func
 from orangecontrib.essaygrading.utils.lemmatizer import breakToWords
 
 
 def coreference_resolution(essays, source_text=None):
-    '''
+    """
     Performs coreference resolution on provided essays. If source text present, it:
     - prepends source text to every essay
     - performs coreference resolution on prepended essays
@@ -25,7 +24,7 @@ def coreference_resolution(essays, source_text=None):
     :param essays: list of essays.
     :param source_text: source text string.
     :return: coreference resolved essays.
-    '''
+    """
     prepared_essays = []
     print("Loading coref...")
 
@@ -34,7 +33,7 @@ def coreference_resolution(essays, source_text=None):
     nlp.add_pipe(coref, name="neuralcoref")
 
     # if source_text is not None:
-        # source_text = [s.translate(str.maketrans('', '', string.punctuation)) for s in source_text]
+    # source_text = [s.translate(str.maketrans('', '', string.punctuation)) for s in source_text]
 
     if essays is None and source_text is not None:
         # Coref on source_text only
@@ -44,9 +43,9 @@ def coreference_resolution(essays, source_text=None):
         source_text = nltk.sent_tokenize(doc._.coref_resolved)
         print("Length after coref: " + str(len(source_text)))
         st_final = []
-        #for e in source_text[:-1]:
+        # for e in source_text[:-1]:
         #    st_final.append(e + ".")
-        #st_final.append(source_text[-1])
+        # st_final.append(source_text[-1])
         st_final = source_text
         prepared_essays = st_final
 
@@ -55,16 +54,16 @@ def coreference_resolution(essays, source_text=None):
         for i in range(len(essays)):
             print("Essay " + str(i))
             # TODO: spremljaj ce je to vredu, problem je ker se tukaj odstrani ' in ne najde nasprotja
-            #essays[i] = [s.translate(str.maketrans('', '', string.punctuation)) for s in essays[i]]
-            #essay = ". ".join(essays[i]) + "."
+            # essays[i] = [s.translate(str.maketrans('', '', string.punctuation)) for s in essays[i]]
+            # essay = ". ".join(essays[i]) + "."
             essay = " ".join(essays[i])
             # print(essay)
             # essay = essay.replace("! ",". ").replace("? ",". ")
             print("Length before coref: " + str(len(essays[i])))
 
-            essay_tokenized_len = len(nltk.sent_tokenize(essay)) # da pravilno odsekamo source text stran
+            essay_tokenized_len = len(nltk.sent_tokenize(essay))  # da pravilno odsekamo source text stran
 
-            #print(len(source_text))
+            # print(len(source_text))
             # Ce imamo source text, ga appendamo na zacetek, da bo coref delal cez source in esej
             if source_text is not None:
                 tmp = ". ".join(source_text)
@@ -101,20 +100,20 @@ def coreference_resolution(essays, source_text=None):
     nlp.remove_pipe("neuralcoref")
     return prepared_essays
 
+
 def prepare_ontology(path):
-    '''
+    """
     Prepares ontology and extracts included URIRefs.
     :param path: path to ontology.
     :return: rdflib Graph() object, URIRef list ([0] = Subject/objects, [1] = Predicates)
-    '''
+    """
     g = Graph()
     # g.parse("../data/COSMO-Serialized.owl", format="xml")
     # g.parse("C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangecontrib/essaygrading/data/COSMO-Serialized.owl",
     #         format="xml")
     # TODO: naredi izbiro base ontologije!!!
-    #g.parse("C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangecontrib/essaygrading/data/DS4_ontology.owl",
+    # g.parse("C:/Users/zigsi/Google Drive/ASAP corpus/widget-demo/orangecontrib/essaygrading/data/DS4_ontology.owl",
     #        format="xml")
-
 
     g.parse(path, format="xml")
 
@@ -184,9 +183,10 @@ def prepare_ontology(path):
 p = None
 
 
-def run_semantic_consistency_check(essays, use_coref=False, openie_system="ClausIE", source_text=None, num_threads=4, explain=False, orig_ontology_name="COSMO-Serialized.owl", ontology_name="SourceTextOntology.owl", callback=None):
-    '''
-        TODO OPTIONAL: shranjuj vmesne korake, če kaj crasha da lahko resumaš????
+def run_semantic_consistency_check(essays, use_coref=False, openie_system="ClausIE", source_text=None, num_threads=4,
+                                   explain=False, orig_ontology_name="COSMO-Serialized.owl",
+                                   ontology_name="SourceTextOntology.owl", callback=None):
+    """
     :param essays: list of essays.
     :param use_coref: flag to use coreference resolution.
     :param openie_system: which OpenIE system to use. ("ClausIE" or "OpenIE-5.0").
@@ -197,12 +197,22 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
     :param ontology_name: ontology filename to use fo saving temporary ontology enriched with source text extractions.
     :param callback: Orange progessbar callback method.
     :return: [basic feedback, [consistency error count, semantic error count, sum], detailed feedback]
-    '''
+    """
 
     PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     if callback is not None:
         callback(0.02)
+
+    # Filtering essayss that were already checked (if essays are not none - not source text)
+    # FILTERING MOVED TO TASK CREATION AS WE NEED PROPER INDEXES!!!
+    indexes_to_keep = []
+    if essays is not None and len(essays) > 1:
+        indexes_to_keep = \
+            [i for i, _ in enumerate(essays) if not os.path.isfile(PATH + '/data/results/' + str(i + 1) + '.txt')]
+        essays = essays[indexes_to_keep]
+    print(indexes_to_keep)
+    print(len(essays))
 
     print("Running semantic consistency check...")
 
@@ -222,9 +232,8 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
         if essays is None:
             essays = [source_text]
 
-
     # LEMMATIZATION
-    '''nlp = spacy.load("en_core_web_lg")
+    """nlp = spacy.load("en_core_web_lg")
     e_tmp = []
     for essay in essays:
         e = []
@@ -237,7 +246,7 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
         e_tmp.append(e)
 
     essays = e_tmp
-    print(essays)'''
+    print(essays)"""
     # END LEMMATIZATION
 
     print("Preparing ontology... " + orig_ontology_name)
@@ -246,7 +255,7 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
 
     # writeURIRefs(uniqueURIRefs, PATH)  # Workaround for pythonw.exe not running prcesses properly...
 
-    print("Starting OpenIE extraction...")
+    print("Initializing OpenIE extraction...")
 
     if openie_system == "ClausIE":
         openie = OpenIEExtraction.ClausIE()
@@ -260,14 +269,30 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
     task_list = []
     start_time = time.time()
 
+    mp_run_size = 100
+    all_tasks_chunks = []
+    all_tasks = []
+
+    count = 0
     for i, essay in enumerate(essays):
         print(essay)
         if len(essays) > 1:  # ce je len == 1, to pomeni da je samo source text -> gradnja ontologije
-            index = i + 1
+            index = indexes_to_keep[i] + 1
         else:
             index = 0
-        #if index == 1:
-        task_list.append((index, essays, ONTO, essay, uniqueURIRefs, openie, explain, PATH, original_source_text))
+        if index >= 0:  # and not os.path.isfile(PATH + '/data/results/' + str(i+1) + '.txt'):
+            print(index)
+            task_list.append((index, essays, ONTO, essay, uniqueURIRefs, openie, explain, PATH, original_source_text))
+            all_tasks.append((index, essays, ONTO, essay, uniqueURIRefs, openie, explain, PATH, original_source_text))
+            count += 1
+            if count >= mp_run_size:
+                all_tasks_chunks.append(task_list)
+                task_list = []
+                count = 0
+    if len(task_list) > 0:
+        all_tasks_chunks.append(task_list)
+
+    print("We have " + str(len(all_tasks_chunks)) + " tasks!")
 
     print("Pooling...")
 
@@ -282,21 +307,35 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
 
     progress_range = 0.99 - 0.03
     current_progress = 0.03
-    progress_increment = progress_range / len(task_list)
+    progress_increment = progress_range / len(all_tasks)  # TODO pravilni length
 
     results = []
-    for i, val in enumerate(p.imap_unordered(thread_func, task_list, chunksize=1), 1):
+
+    chunksize = max(1, int(len(task_list) / num_threads / 4))
+
+    for i, val in enumerate(p.imap_unordered(thread_func, all_tasks, chunksize=1), 1):
         results.append(val)
         current_progress += progress_increment
         if callback is not None:
             callback(current_progress)
         print("################ FINISHED " + str(i) + "/" + str(len(task_list)) + "#########################")
 
-    p.terminate()
+    results = []
+
+    # for tasks in all_tasks:
+    #    print("#*#*#*# STARTING NEW MULTIPROCESS RUN")
+    #    p = multiprocessing.Pool(processes=num_threads)
+    #    results_partial = p.map(thread_func, tasks, chunksize=1)
+    #    print("GOT RESULTS")
+    #    p.terminate()
+    #    print("TERMINATE")
+    #    current_progress += progress_increment
+    #    callback(current_progress)
+    #    results += results_partial
+
+    # results = p.map(thread_func, all_tasks, chunksize=1)
 
     results = sorted(results)
-
-    # results = p.map(thread_func, task_list, chunksize=1)
 
     if callback is not None:
         callback(0.99)
@@ -326,10 +365,10 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
 
 
 def terminatePool():
-    '''
+    """
     Terminates multiprocess pool in case of Widget deletion or changes. Also called when multiprocessing complete to
     make sure all processes are killed.
-    '''
+    """
     global p
     if p is not None:
         p.terminate()

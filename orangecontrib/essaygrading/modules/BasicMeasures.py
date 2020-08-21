@@ -7,7 +7,6 @@ name = "Basic measures"
 
 
 class BasicMeasures(BaseModule):
-
     name = "Basic measures"
 
     def calculate_all(self, selected_attributes, attribute_dictionary, callback=None, proportions=None, i=None):

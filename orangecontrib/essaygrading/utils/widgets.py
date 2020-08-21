@@ -2,17 +2,15 @@
 Taken from: https://github.com/biolab/orange3-text/blob/master/orangecontrib/text/widgets/utils/widgets.py
 '''
 
-
 import os
 
 from AnyQt.QtWidgets import (QComboBox, QWidget, QHBoxLayout,
-                         QSizePolicy, QLineEdit, QDoubleSpinBox,
-                         QSpinBox, QTextEdit, QDateEdit, QGroupBox,
+                             QSizePolicy, QLineEdit, QDoubleSpinBox,
+                             QSpinBox, QTextEdit, QDateEdit, QGroupBox,
                              QPushButton, QStyle, QFileDialog, QLabel,
                              QGridLayout, QCheckBox, QStackedLayout)
 
 from AnyQt.QtCore import pyqtSignal, Qt, QSize
-
 
 from orangecontrib.text.corpus import get_sample_corpora_dir
 

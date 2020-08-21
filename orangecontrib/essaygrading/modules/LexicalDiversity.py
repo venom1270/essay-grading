@@ -6,9 +6,9 @@ from orangecontrib.essaygrading.modules.BaseModule import BaseModule
 
 name = "Lexical diversity"
 
-# TODO: zanimivo https://quanteda.io/reference/textstat_lexdiv.html
-class LexicalDiversity(BaseModule):
 
+# Interesting: https://quanteda.io/reference/textstat_lexdiv.html
+class LexicalDiversity(BaseModule):
     name = "Lexical diversity"
 
     def calculate_all(self, selected_attributes, attribute_dictionary, callback=None, proportions=None, i=None):

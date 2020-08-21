@@ -10,10 +10,10 @@ class Task:
     """
     #: A concurrent.futures.Future with our (eventual) results.
     #: The OWLearningCurveC class must fill this field
-    future = ...       # type: concurrent.futures.Future
+    future = ...  # type: concurrent.futures.Future
 
     #: FutureWatcher. Likewise this will be filled by OWLearningCurveC
-    watcher = ...      # type: FutureWatcher
+    watcher = ...  # type: FutureWatcher
 
     #: True if this evaluation has been cancelled. The OWLearningCurveC
     #: will setup the task execution environment in such a way that this

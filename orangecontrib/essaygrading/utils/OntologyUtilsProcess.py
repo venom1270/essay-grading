@@ -1,9 +1,9 @@
 def thread_func(tpl):
-    '''
+    """
     Multiprocessing function. Takes care of OpenIE extractions and semantic consistency analysis.
     :param tpl: tuple: (index, essay list, ontology, URIRefs in ontology, openie to use, explan flag, results path)
     :return: [index, basic explantions, errors, detailed explanations]
-    '''
+    """
 
     import copy
     from orangecontrib.essaygrading.utils.ExtractionManager import ExtractionManager
@@ -25,13 +25,14 @@ def thread_func(tpl):
     extractionManager = ExtractionManager(turbo=True, i=i)
     chunks = extractionManager.getChunks(essay, URIRefs=uniqueURIRef)
 
-
     # ADD OPENIE EXTRACTIONS TO ONTOLOGY
     debugPrint(i, "OpenIE extraction...")
     debugPrint(i, essay)
     triples = []
     try:
-        triples = openie.extract_triples([essay])
+        triples = openie.extract_triples([essay], id=i)
+        # print("TRIPLES:")
+        # print(triples)
     except:
         import sys
         debugPrint(i, "Unexpected error: ", sys.exc_info()[0])
@@ -49,12 +50,15 @@ def thread_func(tpl):
 
     try:
         if len(triples) > 0:
-            feedback, errors, feedback2 = extractionManager.addExtractionToOntology(g, triples[0], essay, uniqueURIRef['SubObj'],
-                                                                     uniqueURIRef['Pred'], explain=explain, source_text=source_text)
+            feedback, errors, feedback2 = extractionManager.addExtractionToOntology(g, triples[0], essay,
+                                                                                    uniqueURIRef['SubObj'],
+                                                                                    uniqueURIRef['Pred'],
+                                                                                    explain=explain,
+                                                                                    source_text=source_text)
         else:
             debugPrint(i, "#### ERROR: OpenIE extraction failure")
             feedback = [["ERROR: OpenIE extraction failure"]]
-            errors = [-1,-1,-1]
+            errors = [-1, -1, -1]
             feedback2 = []
     except Exception as e:
         import sys
@@ -91,9 +95,9 @@ def thread_func(tpl):
 
 
 def debugPrint(i='[X]', *args, **kwargs, ):
-    '''
+    """
     Logging method. Same behavior as "print()", but prints id in format "[ID] " before content (*args).
-    '''
+    """
     print("[" + str(i) + "] ", end="")
     print(*args, **kwargs)
 
