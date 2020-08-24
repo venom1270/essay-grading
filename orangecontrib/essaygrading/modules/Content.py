@@ -9,7 +9,12 @@ from orangecontrib.essaygrading.utils.lemmatizer import lemmatizeTokens
 from spellchecker import SpellChecker
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from flair.embeddings import WordEmbeddings, FlairEmbeddings, DocumentPoolEmbeddings, Sentence
+try:
+    from flair.embeddings import WordEmbeddings, FlairEmbeddings, DocumentPoolEmbeddings, Sentence
+    flair_available = True
+except ModuleNotFoundError:
+    print("Flair module not found!")
+    flair_available = False
 
 name = "Content"
 
@@ -78,6 +83,11 @@ class Content(BaseModule):
 
         spacy_embeddings = None
         flair_embeddings = None
+
+        if not flair_available and self.word_embeddings == globals.EMBEDDING_GLOVE_FLAIR:
+            print("Flair not available, switching to SpaCy embeddings")
+            self.word_embeddings = globals.EMBEDDING_GLOVE_SPACY
+
         if self.word_embeddings == globals.EMBEDDING_GLOVE_SPACY:
             spacy_embeddings = spacy.load("en_vectors_web_lg")
             print("GloVe (SpaCy) vectors loaded!")

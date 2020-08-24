@@ -90,9 +90,16 @@ class OWAttributeSelection(OWWidget):
         parametersBox = gui.widgetBox(self.controlArea, "Options")
 
         self.cb_word_embedding_info = gui.widgetLabel(parametersBox, 'Word Embedding: ')
+
+        # Don't show Flair embeddings if Flair not available
+        try:
+            import flair
+            items = (globals.EMBEDDING_TFIDF, globals.EMBEDDING_GLOVE_SPACY, globals.EMBEDDING_GLOVE_FLAIR)
+        except ModuleNotFoundError:
+            items = (globals.EMBEDDING_TFIDF, globals.EMBEDDING_GLOVE_SPACY)
+
         self.cb_coherence_word_embeddings = gui.comboBox(widget=parametersBox, master=self,
-                                                         items=(globals.EMBEDDING_TFIDF, globals.EMBEDDING_GLOVE_SPACY,
-                                                                globals.EMBEDDING_GLOVE_FLAIR),
+                                                         items=items,
                                                          value="coherence_word_embeddings", sendSelectedValue=True,
                                                          callback=self.checkCommit)
 

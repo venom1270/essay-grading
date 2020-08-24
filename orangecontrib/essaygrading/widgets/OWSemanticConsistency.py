@@ -276,10 +276,7 @@ class OWSemanticConsistency(OWWidget):
                                         metas=[Orange.data.StringVariable("feedback"),
                                                Orange.data.StringVariable("feedback_detail")])
 
-            print(np.array(output_list)[:, -1].transpose())
             out = Orange.data.Table.from_list(domain, output_list)
-            print(out)
-
             self.Outputs.feedback.send(out)
 
         except Exception as ex:
@@ -362,6 +359,6 @@ if __name__ == "__main__":
     # WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/set1_train.tsv"),
     #                                  set_source_texts=Corpus.from_file("../datasets/source_texts.tsv"))
 
-    WidgetPreview(OWSemanticConsistency).run(
-        set_essays=Corpus.from_file("../datasets/All datasets/set3_utf8.tsv"))  # set5_utf8.tsv"))  # set3_small_2.tsv
-    # WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/Lisa.tsv"))
+    #WidgetPreview(OWSemanticConsistency).run(
+    #    set_essays=Corpus.from_file("../datasets/All datasets/set3_utf8.tsv"))  # set5_utf8.tsv"))  # set3_small_2.tsv
+    WidgetPreview(OWSemanticConsistency).run(set_essays=Corpus.from_file("../datasets/Lisa.tsv"))

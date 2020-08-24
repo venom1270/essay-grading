@@ -185,7 +185,7 @@ p = None
 
 def run_semantic_consistency_check(essays, use_coref=False, openie_system="ClausIE", source_text=None, num_threads=4,
                                    explain=False, orig_ontology_name="COSMO-Serialized.owl",
-                                   ontology_name="SourceTextOntology.owl", callback=None):
+                                   ontology_name="SourceTextOntology.owl", callback=None, clean=True):
     """
     :param essays: list of essays.
     :param use_coref: flag to use coreference resolution.
@@ -204,8 +204,16 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
     if callback is not None:
         callback(0.02)
 
+    # If clean run, delete past results; default clean=True
+    if clean:
+        if not os.path.isdir(PATH + '/data/results'):
+            os.makedirs(PATH + '/data/results')
+        results_path = os.path.join(PATH, "data/results/")
+        results_files = [os.path.join(results_path, f) for f in os.listdir(results_path)]
+        for f in results_files:
+            os.remove(f)
+
     # Filtering essayss that were already checked (if essays are not none - not source text)
-    # FILTERING MOVED TO TASK CREATION AS WE NEED PROPER INDEXES!!!
     indexes_to_keep = []
     if essays is not None and len(essays) > 1:
         indexes_to_keep = \
@@ -320,8 +328,7 @@ def run_semantic_consistency_check(essays, use_coref=False, openie_system="Claus
             callback(current_progress)
         print("################ FINISHED " + str(i) + "/" + str(len(task_list)) + "#########################")
 
-    results = []
-
+    # results = []
     # for tasks in all_tasks:
     #    print("#*#*#*# STARTING NEW MULTIPROCESS RUN")
     #    p = multiprocessing.Pool(processes=num_threads)

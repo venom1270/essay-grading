@@ -35,8 +35,8 @@ This is an essay grading add-on for [Orange data mining](https://orange.biolab.s
 - You will also need to download SpaCy's english language models:
 
         python -m spacy download en
+        python -m spacy download en_core_web_lg 
         python -m spacy download en_vectors_web_lg 
-        python -m spacy download en_vectors_core_lg 
         
         
 - DONE!
@@ -46,10 +46,8 @@ This is an essay grading add-on for [Orange data mining](https://orange.biolab.s
 
 - Run Orange
 - All essay grading widgets are bundled in "Essay grading"
-- [NEW!] You can find a few examples by clicking Help > Example Workflows
-- [OLD] [Open provided Orange test file for example usage](https://github.com/venom1270/essay-grading-util)
-     - example.ows is an Orange example model
-     - set2A.tsv is the file you should load in Corpus widget
+- You can find a few examples by clicking Help > Example Workflows
+
 
 
 ## Remarks
