@@ -22,7 +22,7 @@ name = "Content"
 class Content(BaseModule):
     name = "Content"
 
-    def __init__(self, corpus, corpus_sentences, grades, source_texts=None, graded_corpus=None,
+    def __init__(self, corpus, corpus_sentences, grades, source_text=None, graded_corpus=None,
                  word_embeddings=globals.EMBEDDING_TFIDF):
         """
         Overrides parent __init__ and calls _load().
@@ -31,30 +31,30 @@ class Content(BaseModule):
         :param corpus: Tokenized essay Corpus.
         :param corpus_sentences: Tokenized (by sentence) essay Corpus.
         :param grades: Array of essay grades (ints)
-        :param source_texts: Corpus of source texts (optional)
+        :param source_text: Corpus of source texts (optional)
         :param graded_corpus: Corpus with grades ("training set").
         :param word_embeddings: specify which word embeddings to use (TF-IDF or GloVe).
         """
-        self._load(corpus, corpus_sentences, grades, source_texts=source_texts, graded_corpus=graded_corpus,
+        self._load(corpus, corpus_sentences, grades, source_text=source_text, graded_corpus=graded_corpus,
                    word_embeddings=word_embeddings)
 
     # graded corpus is used when comparing "Score point level for maximum cosine similarity over all score points"
     # and "max cosine sim"
     # if empty, just compare with "leave one out" method
-    def _load(self, corpus, corpus_sentences, grades, source_texts=None, graded_corpus=None,
+    def _load(self, corpus, corpus_sentences, grades, source_text=None, graded_corpus=None,
               word_embeddings=globals.EMBEDDING_TFIDF):
         """
         Calls parent _load() and sets additional parameters. Initializes spellchecker.
         :param corpus: Tokenized essay Corpus.
         :param corpus_sentences: Tokenized (by sentence) essay Corpus.
         :param grades: Array of essay grades
-        :param source_texts: Corpus of source texts (optional)
+        :param source_text: Corpus of source texts (optional)
         :param graded_corpus: Corpus with grades ("training set").
         :param word_embeddings: specify which word embeddings to use (TF-IDF or GloVe).
         """
         if corpus is not None and corpus_sentences is not None:
             super()._load(corpus, corpus_sentences)
-            self.source_texts = source_texts
+            self.source_text = source_text
 
             self.attributes = []
 
@@ -68,7 +68,10 @@ class Content(BaseModule):
             self.lang_check_errors = None
 
             self.tfidf_matrix = None
-            self.essay_scores = np.array(grades)
+            if grades is None:
+                self.essay_scores = None
+            else:
+                self.essay_scores = np.array(grades)
             self.cosine = None
 
             self.word_embeddings = word_embeddings
@@ -99,8 +102,12 @@ class Content(BaseModule):
 
         docs = lemmatizeTokens(self.corpus, join=True)
         # append source/prompt text
-        if self.source_texts is not None:
-            docs.append((lemmatizeTokens(self.source_texts, join=True)[0]))
+        if self.source_text is not None:
+            # Preprocess source text and add to documents for similarity calculation
+            spacy_preprocess = spacy.load("en_vectors_web_lg")
+            self.source_text = spacy_preprocess(self.source_text.lower())
+            docs.append(" ".join([token.lemma_ for token in self.source_text]))
+            # docs.append((lemmatizeTokens(self.source_text, join=True)[0]))
 
         # print(docs)
 
@@ -142,8 +149,7 @@ class Content(BaseModule):
             self.essay_scores = list(np.floor(self.essay_scores))
             print("COSINE GRADED")
             print(self.cosine_graded)
-        else:
-            # TODO: kaj je to???
+        elif self.essay_scores is not None:
             # self.essay_scores = list(np.floor(self.essay_scores / 2))
             self.essay_scores = list(np.floor(self.essay_scores))
 
@@ -196,9 +202,7 @@ class Content(BaseModule):
                 or selected_attributes.cbCosineSimilaritySourceText:
             self._cosine_preparation()
 
-        # TODO: https://onlinelibrary.wiley.com/doi/epdf/10.1002/j.2333-8504.2011.tb02272.x
-
-        if (selected_attributes is None or selected_attributes.cbCosineSimilaritySourceText) and self.source_texts is not None:
+        if (selected_attributes is None or selected_attributes.cbCosineSimilaritySourceText) and self.source_text is not None:
             cosine_source_text = self.calculate_cosine_source_text()
             print("Cosine similarity with source text: ", cosine_source_text)
             attribute_dictionary["cosineWithSourceText"] = cosine_source_text
@@ -274,15 +278,18 @@ class Content(BaseModule):
         Calculates/"predicts" grade of essay by taking the grade of the essay it's most similar to (based on cosine similarity).
         :return: Grades of essays that essays are most similar to.
         """
-        # TODO: nisem ziher: score point dokumenta kateremu je najbolj podoben?
         max_similarity_scores = []
 
         # Two cases: 1. if we are calculating attributes for an already graded essay
         #            then we proceed normally via leave one out strategy
+        #            (we have no graded corpus AND have essay scores)
         #            2. if we are calculating attributes for ungraded essays
-        #            then we have to compare ungraded essays to graded essays (self.cosine_graded)
+        #            then we have to compare ungraded essays to graded essays (self.cosine_graded) IF they are provided
+        #            (we have graded corpus AND have essay scores)
+        #
+        #            Otherwise return empty array
 
-        if self.graded_corpus is None:
+        if self.graded_corpus is None and self.essay_scores:
             # Attributes for graded essay
             for ii in range(len(self.corpus.documents)):
                 row = self.cosine[ii][:-1]
@@ -290,7 +297,7 @@ class Content(BaseModule):
                 max_similarity_scores.append(self.essay_scores[most_similar_doc_index])
             return max_similarity_scores
 
-        else:
+        elif self.essay_scores:
             # Attributes for ungraded essay
             for ii in range(len(self.corpus.documents)):
                 row = self.cosine_graded[ii][:]
@@ -298,14 +305,19 @@ class Content(BaseModule):
                 # print(ii, most_similar_doc_index)
                 max_similarity_scores.append(self.essay_scores[most_similar_doc_index])
             return max_similarity_scores
+        else:
+            return np.zeros(len(self.corpus.documents))
 
     def calculate_cosine_best_essays(self):
         """
-        Calculates cosine similarity with top 5 essays of the corpus. TODO
+        Calculates cosine similarity with top 5 essays of the corpus.
         :return: Cosine similarities with top essays.
         """
-        # average cosine similarity with top x% score essays
-        # TODO: now take 5 essay, change to relative (eg 5%)
+        # TODO: now takes 5 essays, change to relative (eg 5%)
+
+        # If we have no essay scores, it means we are processing ungraded cropus only, return zeros
+        if not self.essay_scores:
+            return np.zeros(len(self.corpus.documents))
 
         top_essay_indexes = [self.essay_scores.index(i) for i in sorted(self.essay_scores, reverse=True)[0:5]]
         top_essay_similarities = []
@@ -337,6 +349,10 @@ class Content(BaseModule):
         Calculates "Cosine pattern".
         :return: Cosine pattern for each essay.
         """
+
+        if not self.essay_scores:
+            return np.zeros(len(self.corpus.documents))
+
         # sum (score*ranking) ; ranking je lahko 1. vrstni red po podobnosti; ali 2. podobnosti po vrsti
         cos_patterns = []
 
@@ -373,6 +389,10 @@ class Content(BaseModule):
         Calculates "Cosine correlation values".
         :return: Cosine weighted sum of correlation values for each essay.
         """
+
+        if not self.essay_scores:
+            return np.zeros(len(self.corpus.documents))
+
         # sesstejs cosine zgornje polovice, odstejes cosine spodne polovice
         cos_weighted_sum = []
 

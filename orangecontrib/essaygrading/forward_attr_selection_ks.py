@@ -101,7 +101,7 @@ TABLES = []
 #    TABLES.append(Table.from_file("datasets/FAS/All/" + s))
 
 #TABLES.append(Table.from_file("datasets/FAS/All/DS1_AGE_TFIDF.tab"))
-TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS4_AGE_TFIDF.tab"))
+#TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS4_AGE_TFIDF.tab"))
 '''
 TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS1_AGE_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS2A_AGE_TFIDF.tab"))
@@ -130,22 +130,22 @@ TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS8_AGE+_TFIDF.tab"))
 # DS3
 #TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS3_AGE_TFIDF.tab"))
 #TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS3_AGE+_TFIDF.tab"))
-#TABLES.append(Table.from_file("datasets/FAS/All/SAGE/DS3_SAGE_TFIDF.tab"))
+TABLES.append(Table.from_file("datasets/FAS/All/SAGE/DS3_SAGE_TFIDF.tab"))
 
 # DS4
 #TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS4_AGE_TFIDF.tab"))
 #TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS4_AGE+_TFIDF.tab"))
-#TABLES.append(Table.from_file("datasets/FAS/All/SAGE/DS4_SAGE_TFIDF.tab"))
+TABLES.append(Table.from_file("datasets/FAS/All/SAGE/DS4_SAGE_TFIDF.tab"))
 
 # DS5
 #TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS5_AGE_TFIDF.tab"))
 #TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS5_AGE+_TFIDF.tab"))
-#TABLES.append(Table.from_file("datasets/FAS/All/SAGE/DS5_SAGE_TFIDF.tab"))
+TABLES.append(Table.from_file("datasets/FAS/All/SAGE/DS5_SAGE_TFIDF.tab"))
 
 # DS6
 #TABLES.append(Table.from_file("datasets/FAS/All/AGE/DS6_AGE_TFIDF.tab"))
 #TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS6_AGE+_TFIDF.tab"))
-#TABLES.append(Table.from_file("datasets/FAS/All/SAGE/DS6_SAGE_TFIDF.tab"))
+TABLES.append(Table.from_file("datasets/FAS/All/SAGE/DS6_SAGE_TFIDF.tab"))
 
 '''
 

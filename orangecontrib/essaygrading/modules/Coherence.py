@@ -24,37 +24,36 @@ name = "Coherence"
 class Coherence(BaseModule):
     name = "Coherence"
 
-    def __init__(self, corpus, corpus_sentences, grades, source_texts=None, word_embeddings=globals.EMBEDDING_TFIDF):
-        # TODO: ZAKAJ IMAMO TUKAJ 'grades', saj jih nikjer ne uporabljamo??!!
+    def __init__(self, corpus, corpus_sentences, grades, word_embeddings=globals.EMBEDDING_TFIDF):
         """
         Overrides parent __init__ and calls _load().
         :param corpus: Tokenized essay Corpus.
         :param corpus_sentences: Tokenized (by sentence) essay Corpus.
-        :param grades: Array of essay grades (ints)
-        :param source_texts: Corpus of source texts (optional)
+        :param grades: Array of essay grades (ints) - not used
         :param word_embeddings: Word embeddings to use ('TF-IDF' or 'GloVe')
         """
-        self._load(corpus, corpus_sentences, grades, source_texts, word_embeddings)
+        self._load(corpus, corpus_sentences, grades, word_embeddings)
 
-    def _load(self, corpus, corpus_sentences, grades, source_texts=None, word_embeddings=globals.EMBEDDING_TFIDF):
+    def _load(self, corpus, corpus_sentences, grades, word_embeddings=globals.EMBEDDING_TFIDF):
         """
         Calls parent _load() and sets additional parameters.
         :param corpus: Tokenized essay Corpus.
         :param corpus_sentences: Tokenized (by sentence) essay Corpus.
-        :param grades: Array of essay grades
-        :param source_texts: Corpus of source texts (optional)
+        :param grades: Array of essay grades - not used
         :param word_embeddings: Word embeddings to use ('TF-IDF' or 'GloVe')
         """
         if corpus is not None and corpus_sentences is not None:
             super()._load(corpus, corpus_sentences)
 
-            self.source_texts = source_texts
-            self.grades = np.array(grades)
+            # Scores/grades are actually not needed
+            # if grades is None:
+            #    self.essay_scores = None
+            # else:
+            #    self.essay_scores = list(np.round(self.grades))
 
             self.attributes = []
             self.corpus_parts = []
             self.tfidf_parts = []
-            self.essay_scores = []
             self.distance_matrix = []
 
             self.word_embeddings = word_embeddings
@@ -571,10 +570,6 @@ class Coherence(BaseModule):
         corpus_tokens = [[token for token in i if token not in string.punctuation and token not in sw] for i in
                          corpus_tokens]
         print(corpus_tokens)
-        # corpus_tokens = self.corpus.tokens
-        # append source/prompt text
-        # TODO: source_text rabimo sploh?
-        # docs.append((lemmatizeTokens(self.source_texts, join=True)[0]))
 
         # WINDOW PARAMETERS #
         window_step = 10  # Steps of 10 words
@@ -678,7 +673,7 @@ class Coherence(BaseModule):
                 # print(essay_word_embedding)
                 self.tfidf_parts.append(np.array(essay_word_embedding))
 
-        self.essay_scores = list(np.round(self.grades))
+
 
         # print(self.tfidf_parts[0])
 

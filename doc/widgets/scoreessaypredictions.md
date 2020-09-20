@@ -1,5 +1,5 @@
 Score essay predictions
-=======
+=======================
 
 Calculate exact agreement and quadratic weighted kappa.
 
@@ -12,7 +12,7 @@ Calculate exact agreement and quadratic weighted kappa.
 
 **Score essay predictions** widget enables us to calculate domain specific scores for our models - exact agreement (percentage of predicted scores that match true scores exactly) and quadratic weighted kappa.
 
-TODO slika <!-- ![](images/GeoMap-stamped.png) -->
+![](images/score-essay-prediction-widget.png)
 
 1. Bring output data from 'Test and score' widget to input of Score essays.
 
@@ -22,7 +22,14 @@ TODO slika <!-- ![](images/GeoMap-stamped.png) -->
 
 Examples
 --------
-TODO
+
+The below example is taken from Attribute Selection widget example. 
+We bring the output of Test and Score widget to the input of Score essay predictions widget.
+Exact agreement and Quadratic weighted kappa are calculated and displayed in the widget.
+
+![](images/score-essay-predictions-example.png)
+
+
 <!--
 
 In the first example we will model class predictions on a map. We will use *philadelphia-crime* data set, load it with **File** widget and connect it to **Map**. We can already observe the mapped points in Map. Now, we connect **Tree** to Map and set target variable to Type. This will display the predicted type of crime for a specific region of Philadelphia city (each region will be colored with a corresponding color code, explained in a legend on the right).

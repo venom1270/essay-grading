@@ -1,21 +1,22 @@
 Attribute selection
-=======
+===================
 
-Show data points on a world map.
+Calculate attributes based on essay grading system (Zupanc and Bosnić).
+Provides options to choose among AGE system groups, as well as the AGE+ group (coherence).
 
 **Inputs**
--  Graded essays: Corpus of graded essays ("train set").
--  Ungraded essays: Corpus of ungraded essays ("test set").
--  Source texts: Optional corpus of source texts (text the essays are based on).
+-  Graded essays: Corpus of graded essays.
+-  Ungraded essays: Corpus of ungraded essays.
+-  Source text: Optional file with source text (text the essays are based on).
 
 **Outputs**
 -  Graded attributes: Attributes for graded essay corpus.
 -  Ungraded attributes: Attributes for ungraded essay corpus.
 
 
-**Attribute selection** widget gives us the option to select and calculate desired attributes from input essays. All inputs are of type 'Corpus' (from Orange-text), while outputs are of type 'DataTable'. We can then use these outputs in a standard Orange fashion (models, predictions ...).
+**Attribute selection** widget gives us the option to select and calculate desired attributes from input essays. All essay inputs are of type 'Corpus' (from Orange-text), while outputs and source text input are of type 'DataTable'. We can then use these outputs in a standard Orange fashion (models, predictions ...).
 
-TODO slika <!-- ![](images/GeoMap-stamped.png) -->
+![](images/attribute-selection-widget.png)
 
 1. Select desired attributes
 
@@ -66,7 +67,7 @@ TODO slika <!-- ![](images/GeoMap-stamped.png) -->
             - Cosine similarity with best essays
             - Cosine pattern
             - Cosine correlation values
-        - Coherence:
+        - Coherence (AGE+):
             - Avg/min/max distance to neighbouring points (2x, euc. and cos. distance)
             - Avg/min/max distance to any point (2x, euc. and cos. distance)
             - Clark Evans nearest neighbour
@@ -98,19 +99,15 @@ Quadratic weighted kappa is calculated in "Score essay predictions" widget.
 
 ![](images/attribute-selection-example-1.png)
 
-If we have a defined train and test set beforehand, we would put the training set on "graded essays" input and the test set on "ungraded essays" input.
+If we have a defined train set beforehand, we would put the training set on "graded essays" input and the test set on "ungraded essays" input.
 The difference is in calculations of some attributes, as some require knowledge of best graded essays ('training set') for comparison.
 
 
+References
+----------
 
-<!--
-TODO
-In the first example we will model class predictions on a map. We will use *philadelphia-crime* data set, load it with **File** widget and connect it to **Map**. We can already observe the mapped points in Map. Now, we connect **Tree** to Map and set target variable to Type. This will display the predicted type of crime for a specific region of Philadelphia city (each region will be colored with a corresponding color code, explained in a legend on the right).
+Zupanc, Kaja, and Zoran Bosnić. "Automated essay evaluation with semantic analysis." Knowledge-Based Systems 120 (2017): 118-132.
 
-![](images/GeoMap-classification.png)
+Zupanc, Kaja, and Zoran Bosnic. "Advances in the field of automated essay evaluation." Informatica 39.4 (2016).
 
-The second example uses [global-airports.csv](https://raw.githubusercontent.com/ajdapretnar/datasets/master/data/global_airports.csv) data. Say we somehow want to predict the altitude of the area based soley on the latitude and longitude. We again load the data with **File** widget and connect it to Map. Then we use a regressor, say, **kNN** and connect it to Map as well. Now we set target to altitude and use Black and White map type. The model guessed the Himalaya, but mades some errors elsewhere.
-
-![](images/GeoMap-regression.png)
-
--->
+Zupanc, Kaja, and Zoran Bosnic. "Automated essay evaluation augmented with semantic coherence measures." 2014 IEEE International Conference on Data Mining. IEEE, 2014.

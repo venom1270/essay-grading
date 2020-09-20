@@ -31,7 +31,7 @@ class OWAttributeSelection(OWWidget):
 
     class Inputs:
         data = Input("Graded Essays", Corpus)
-        source_texts = Input("Source texts", Corpus)
+        source_text = Input("Source text", Orange.data.Table)
         ungraded_essays = Input("Ungraded essays", Corpus)
 
     class Outputs:
@@ -69,7 +69,7 @@ class OWAttributeSelection(OWWidget):
 
         self.corpus = None
         self.corpus_sentences = None
-        self.source_texts = None
+        self.source_text = None
         self.ungraded_corpus = None
         self.ungraded_corpus_sentences = None
         self.corpus_grades = None
@@ -140,12 +140,12 @@ class OWAttributeSelection(OWWidget):
             if self.ungraded_corpus is None:
                 self.Warning.no_test_data()
 
-    @Inputs.source_texts
-    def set_source_texts(self, source_texts):
-        if source_texts is not None:
-            self.source_texts = source_texts  # p(source_texts)
+    @Inputs.source_text
+    def set_source_text(self, source_text):
+        if source_text is not None:
+            self.source_text = source_text  # p(source_texts)
         else:
-            self.source_texts = None
+            self.source_text = None
 
     @Inputs.ungraded_essays
     def set_ungraded_data(self, ungraded_essays):
@@ -177,14 +177,15 @@ class OWAttributeSelection(OWWidget):
         assert self._task is None
 
         if self.corpus is None:  # or self.corpus_sentences is None:
-            return
+            if self.ungraded_corpus is None:
+                return
 
         calculate_attributes_func = partial(
             calculateAttributes,
             graded_corpus=self.corpus,
             ungraded_corpus=self.ungraded_corpus,
             grades=self.corpus_grades,
-            source_texts=self.source_texts,
+            source_text=self.source_text,
             attr=self.selected_attributes,
             word_embeddings=self.coherence_word_embeddings,
             METHODS=self.METHODS
@@ -291,7 +292,7 @@ class OWAttributeSelection(OWWidget):
         self._update()
 
 
-def calculateAttributes(graded_corpus, source_texts, ungraded_corpus, grades, attr, callback, word_embeddings, METHODS):
+def calculateAttributes(graded_corpus, source_text, ungraded_corpus, grades, attr, callback, word_embeddings, METHODS):
     if METHODS is None:
         METHODS = [BasicMeasures.BasicMeasures, ReadabilityMeasures.ReadabilityMeasures,
                    LexicalDiversity.LexicalDiversity, Grammar.Grammar, Content.Content, Coherence.Coherence]
@@ -300,17 +301,30 @@ def calculateAttributes(graded_corpus, source_texts, ungraded_corpus, grades, at
 
     # Prepare data
     graded_corpus, graded_corpus_sentences = prepare_data(graded_corpus)
-    source_texts = prepare_source_texts(source_texts)
+    # source_text = prepare_source_text(source_text)
+    # source_text = source_text
+
+    try:
+        if len(source_text) == 1 and len(source_text[0]) == 1:
+            source_text = source_text[0][0]
+        else:
+            source_text = source_text.metas[0]
+        source_text = str(source_text)
+    except:
+        print("Failed to get source text")
+        source_text = None
 
     if ungraded_corpus is not None:
         ungraded_corpus, ungraded_corpus_sentences = prepare_data(ungraded_corpus)
 
-    print(source_texts)
+    print(source_text)
 
-    if ungraded_corpus is None:
-        proportions = np.linspace(0.0, 1.0, len(attr) + 1, endpoint=True)[1:]
+    if graded_corpus is not None and ungraded_corpus is not None:
+        attr_len = len(attr) * 2
     else:
-        proportions = np.linspace(0.0, 1.0, len(attr) * 2 + 1, endpoint=True)[1:]
+        attr_len = len(attr)
+
+    proportions = np.linspace(0.0, 1.0, attr_len + 1, endpoint=True)[1:]
 
     print(graded_corpus)
 
@@ -323,19 +337,20 @@ def calculateAttributes(graded_corpus, source_texts, ungraded_corpus, grades, at
         index = names.index(m)
         module = METHODS[index]
         if m.startswith("Coherence"):
-            module = module(graded_corpus, graded_corpus_sentences, grades, source_texts, word_embeddings)
+            module = module(graded_corpus, graded_corpus_sentences, grades, word_embeddings)
         elif m.startswith("Content"):
-            module = module(graded_corpus, graded_corpus_sentences, grades, source_texts,
+            module = module(graded_corpus, graded_corpus_sentences, grades, source_text,
                             word_embeddings=word_embeddings)
         else:
             module = module(graded_corpus, graded_corpus_sentences)
         modules[m] = module
 
     i = 0
-    for m in attr:
-        i = modules[m].calculate_all(None, attributeDictionaryGraded, callback, proportions, i)
-        callback(proportions[i])
-        i += 1
+    if graded_corpus and graded_corpus_sentences:
+        for m in attr:
+            i = modules[m].calculate_all(None, attributeDictionaryGraded, callback, proportions, i)
+            callback(proportions[i])
+            i += 1
 
     if ungraded_corpus and ungraded_corpus_sentences:
         modules = {}
@@ -343,9 +358,9 @@ def calculateAttributes(graded_corpus, source_texts, ungraded_corpus, grades, at
             index = names.index(m)
             module = METHODS[index]
             if m.startswith("Coherence"):
-                module = module(ungraded_corpus, ungraded_corpus_sentences, grades, source_texts, word_embeddings)
+                module = module(ungraded_corpus, ungraded_corpus_sentences, grades, word_embeddings)
             elif m.startswith("Content"):
-                module = module(ungraded_corpus, ungraded_corpus_sentences, grades, source_texts,
+                module = module(ungraded_corpus, ungraded_corpus_sentences, grades, source_text,
                                 graded_corpus=graded_corpus, word_embeddings=word_embeddings)
             else:
                 module = module(ungraded_corpus, ungraded_corpus_sentences)
@@ -361,13 +376,8 @@ def calculateAttributes(graded_corpus, source_texts, ungraded_corpus, grades, at
 
 
 def prepare_data(data):
-    """p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
-                                    transformers=[preprocess.LowercaseTransformer()],
-                                    pos_tagger=pos.AveragedPerceptronTagger(),
-                                    normalizer=preprocess.WordNetLemmatizer(),
-                                    # filters=preprocess.StopwordsFilter())
-                                    )
-    p_sentences = preprocess.Preprocessor(tokenizer=preprocess.PunktSentenceTokenizer())"""
+    if data is None:
+        return None, None
 
     p = preprocess.PreprocessorList([preprocess.WordPunctTokenizer(),
                                      preprocess.LowercaseTransformer(),
@@ -383,8 +393,8 @@ def prepare_data(data):
     return corpus, corpus_sentences
 
 
-def prepare_source_texts(source_texts):
-    if source_texts is not None:
+def prepare_source_text(source_text):
+    if source_text is not None:
         """p = preprocess.Preprocessor(tokenizer=preprocess.WordPunctTokenizer(),
                                     transformers=[preprocess.LowercaseTransformer()],
                                     pos_tagger=pos.AveragedPerceptronTagger())"""
@@ -392,7 +402,7 @@ def prepare_source_texts(source_texts):
         p = preprocess.PreprocessorList([preprocess.WordPunctTokenizer(),
                                          preprocess.LowercaseTransformer(),
                                          pos.AveragedPerceptronTagger()])
-        st = p(source_texts)
+        st = p(source_text)
     else:
         st = None
 
@@ -411,4 +421,5 @@ def is_number(n):
 if __name__ == "__main__":
     WidgetPreview(OWAttributeSelection).run(set_graded_data=Corpus.from_file("../datasets/small_set.tsv"),
                                             set_ungraded_data=Corpus.from_file("../datasets/small_set.tsv"),
-                                            set_source_texts=Corpus.from_file("../datasets/source_texts.tsv"))
+                                            set_source_text=Orange.data.Table.from_file("../datasets/source_text_3_data.tsv")
+                                            )

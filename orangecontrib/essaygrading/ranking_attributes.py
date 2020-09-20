@@ -8,13 +8,14 @@ from Orange.regression import RidgeRegressionLearner
 
 from sklearn.model_selection import KFold
 from Orange.preprocess.score import RReliefF, UnivariateLinearRegression
+from Orange.regression import RidgeRegressionLearner
 from scipy import stats
 
 TABLES = []
 TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS1_AGE+_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS2A_AGE+_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS2B_AGE+_TFIDF.tab"))
-TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS3_AGE+_TFIDF.tab"))
+TABLES.append(Table.from_file("datasets/FAS/All/SAGE/DS3_SAGE_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/SAGE/DS4_SAGE_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/SAGE/DS5_SAGE_TFIDF.tab"))
 TABLES.append(Table.from_file("datasets/FAS/All/AGE+/DS6_AGE+_TFIDF.tab"))
@@ -50,7 +51,7 @@ for i, table in enumerate(TABLES):
         data = Table.from_numpy(domain, np.array(train_x), np.array(train_y))
         #relief = RReliefF(n_iterations=200)
         #weights = relief.score_data(data, feature=False)
-        ulr = UnivariateLinearRegression()
+        ulr = RidgeRegressionLearner(alpha=0.02) #UnivariateLinearRegression()
         weights = ulr.score_data(data, None)
         # ULR JE DOST BOLJ LEGIT!
         print(weights)

@@ -217,8 +217,9 @@ class OWScoreEssayPredictions(OWWidget):
             self.outDictionary["weightedKappa"] = quadratic_weighted_kappa(true, pred)
             self.outDictionary["weightedKappaFolds"] = sum(kappa_folds) / num_folds
 
-            self.info_ea.setText(str(self.outDictionary["exactAgreement"]))
-            self.info_qwk.setText(str(self.outDictionary["weightedKappa"]))
+            self.info_ea.setText(str(round(self.outDictionary["exactAgreement"], 5)))
+            self.info_qwk.setText(str(round(self.outDictionary["weightedKappa"], 5)))
+            self.infoa.setText("Data with " + str(num_folds) + " folds on input.")
 
             domain = Orange.data.Domain([Orange.data.ContinuousVariable.make(key) for key in self.outDictionary])
 
@@ -226,7 +227,7 @@ class OWScoreEssayPredictions(OWWidget):
 
             print(arr)
 
-            out = Orange.data.Table.from_numpy(domain, np.array(arr).transpose())
+            out = Orange.data.Table.from_numpy(domain, np.around(np.array(arr), decimals=5).transpose())
 
         self.Outputs.scores.send(out)
 
