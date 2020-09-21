@@ -1,0 +1,172 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=cp1252" />
+    <title>Attribute selection</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="next" title="Semantic consistency" href="semanticconsistency.html" />
+    <link rel="prev" title="Orange3-Essaygrading Documentation" href="../index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="attribute-selection">
+<h1>Attribute selection</h1>
+<p>Calculate attributes based on essay grading system (Zupanc and Bosni&#263;).
+Provides options to choose among AGE system groups, as well as the AGE+ group (coherence).</p>
+<p><strong>Inputs</strong></p>
+<ul class="simple">
+<li>Graded essays: Corpus of graded essays.</li>
+<li>Ungraded essays: Corpus of ungraded essays.</li>
+<li>Source text: Optional file with source text (text the essays are based on).</li>
+</ul>
+<p><strong>Outputs</strong></p>
+<ul class="simple">
+<li>Graded attributes: Attributes for graded essay corpus.</li>
+<li>Ungraded attributes: Attributes for ungraded essay corpus.</li>
+</ul>
+<p><strong>Attribute selection</strong> widget gives us the option to select and calculate desired attributes from input essays. All essay inputs are of type ‘Corpus’ (from Orange-text), while outputs and source text input are of type ‘DataTable’. We can then use these outputs in a standard Orange fashion (models, predictions …).</p>
+<p><img alt="../_images/attribute-selection-widget.png" src="../_images/attribute-selection-widget.png" /></p>
+<ol class="simple">
+<li>Select desired attributes<ul>
+<li>Select desired attributes using the available checkboxes</li>
+<li>There are 6 categories of attributes which include over 70 attributes in total<ul>
+<li>Basic measures:<ul>
+<li>Number of characters (with spaces)</li>
+<li>Number of characters (without spaces)</li>
+<li>Number of words</li>
+<li>Number of short words</li>
+<li>Number of long words</li>
+<li>Most frequent word length</li>
+<li>Average word length</li>
+<li>Number of sentences</li>
+<li>Number of short sentences</li>
+<li>Number of long sentences</li>
+<li>Most frequent sentence length</li>
+<li>Average sentence length</li>
+<li>Number of different words</li>
+<li>Number of stopwords</li>
+</ul>
+</li>
+<li>Readability measures:<ul>
+<li>Gunning Fog index</li>
+<li>Flesch reading ease index</li>
+<li>Flesch Kincaid grade</li>
+<li>Dale Chall readability formula</li>
+<li>Automated readability index</li>
+<li>Simple measure of Gobbledygook</li>
+<li>LIX</li>
+<li>Word variation index</li>
+<li>Nominal ratio</li>
+</ul>
+</li>
+<li>Lexical diversity:<ul>
+<li>Type-token ration</li>
+<li>Guiraud’s index</li>
+<li>Yule’s K</li>
+<li>The D estimate</li>
+<li>Hapax legomena</li>
+<li>Advanced Guiraud’s index</li>
+</ul>
+</li>
+<li>Grammar:<ul>
+<li>Number of each different POS tag (~30 attributes)</li>
+<li>Average sentence structure tree height</li>
+<li>Number of verbs</li>
+</ul>
+</li>
+<li>Content:<ul>
+<li>Number of spellchecking errors</li>
+<li>Number of capitalization errors</li>
+<li>Number of punctuation errors</li>
+<li>Cosine similarity with source text (if source text present)</li>
+<li>Grade that the current essay’s cosine similarity is most similar to</li>
+<li>Cosine similarity with best essays</li>
+<li>Cosine pattern</li>
+<li>Cosine correlation values</li>
+</ul>
+</li>
+<li>Coherence (AGE+):<ul>
+<li>Avg/min/max distance to neighbouring points (2x, euc. and cos. distance)</li>
+<li>Avg/min/max distance to any point (2x, euc. and cos. distance)</li>
+<li>Clark Evans nearest neighbour</li>
+<li>Average distance of nearest neighbour</li>
+<li>Cumulative frequency <!--Frequency TODO--></li>
+<li>Avg/min/max distance to centroid (2x, euc. and cos. distance)</li>
+<li>Standard distance</li>
+<li>Relative distance</li>
+<li>Determinant of distance matrix</li>
+<li>Moran’s I</li>
+<li>Geary’s C</li>
+<li>Gettis’ G</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Select word embeddings:<ul>
+<li>Word embeddings are used during calculations of ‘Content’ and ‘Coherence’ attributes</li>
+<li>Choose ‘TF-IDF’ or ‘GloVe’ (SpaCy and Flair implementations available) word embeddings</li>
+</ul>
+</li>
+<li>The calculation may take a few minutes, depending on attribute categories selected. ‘Grammar’, ‘Content’ and ‘Coherence’ are most demanding.</li>
+<li>Due to speed, selection changes are NOT communicated automatically. You can change this by ticking the checkbox next to ‘Apply’ button.</li>
+</ol>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<p>In the below example we put our training set corpus on the “graded essays” input.
+We calculate all attributes (using TF-IDF) and do 10-fold cross-validation in “Test and Score” widget.
+Quadratic weighted kappa is calculated in “Score essay predictions” widget.</p>
+<p><img alt="../_images/attribute-selection-example-1.png" src="../_images/attribute-selection-example-1.png" /></p>
+<p>If we have a defined train set beforehand, we would put the training set on “graded essays” input and the test set on “ungraded essays” input.
+The difference is in calculations of some attributes, as some require knowledge of best graded essays (‘training set’) for comparison.</p>
+</div>
+<div class="section" id="references">
+<h2>References</h2>
+<p>Zupanc, Kaja, and Zoran Bosni&#263;. “Automated essay evaluation with semantic analysis.” Knowledge-Based Systems 120 (2017): 118-132.</p>
+<p>Zupanc, Kaja, and Zoran Bosnic. “Advances in the field of automated essay evaluation.” Informatica 39.4 (2016).</p>
+<p>Zupanc, Kaja, and Zoran Bosnic. “Automated essay evaluation augmented with semantic coherence measures.” 2014 IEEE International Conference on Data Mining. IEEE, 2014.</p>
+</div>
+</div>
+
+
+          </div>
+          
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Žiga Simon&#269;i&#269;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/widgets/attributeselection.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
